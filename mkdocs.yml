@@ -1,0 +1,150 @@
+site_name: Jarvis Developer Docs
+site_description: Build voice commands and integrations for the Jarvis assistant platform
+site_url: https://docs.jarvis.local
+repo_url: https://github.com/alexberardi/jarvis
+repo_name: jarvis
+dev_addr: 0.0.0.0:7730
+
+theme:
+  name: material
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: deep purple
+      accent: amber
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: deep purple
+      accent: amber
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+  features:
+    - navigation.tabs
+    - navigation.sections
+    - navigation.expand
+    - navigation.top
+    - content.code.copy
+    - content.code.annotate
+    - search.highlight
+    - search.suggest
+  icon:
+    repo: fontawesome/brands/github
+  custom_dir: docs/overrides
+
+extra_css:
+  - assets/stylesheets/extra.css
+
+markdown_extensions:
+  - admonition
+  - pymdownx.details
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.mark
+  - attr_list
+  - md_in_html
+  - tables
+  - toc:
+      permalink: true
+
+nav:
+  - Home: index.md
+  - Getting Started:
+    - getting-started/index.md
+    - Installation: getting-started/installation.md
+    - Your First Command: getting-started/first-command.md
+    - Configuration: getting-started/configuration.md
+  - Architecture:
+    - architecture/index.md
+    - Voice Pipeline: architecture/voice-pipeline.md
+    - Service Discovery: architecture/service-discovery.md
+    - Authentication: architecture/authentication.md
+    - Cloud Services: architecture/cloud.md
+    - Deployment: architecture/deployment.md
+  - Extending Jarvis:
+    - extending/index.md
+    - Discovery System: extending/discovery.md
+    - Commands:
+      - commands/index.md
+      - Interface Reference: commands/interface-reference.md
+      - "Tutorial: Dice Roll": commands/tutorial-simple.md
+      - "Tutorial: API Integration": commands/tutorial-api.md
+      - "Tutorial: OAuth Command": commands/tutorial-oauth.md
+      - Parameters: commands/parameters.md
+      - Secrets: commands/secrets.md
+      - Responses: commands/responses.md
+      - Lifecycle: commands/lifecycle.md
+      - Examples & Training: commands/examples.md
+      - Testing: commands/testing.md
+    - Agents:
+      - extending/agents/index.md
+      - Alerts: extending/agents/alerts.md
+      - Scheduling: extending/agents/scheduling.md
+    - Prompt Providers:
+      - extending/prompt-providers/index.md
+      - Reference: extending/prompt-providers/reference.md
+    - Device Control:
+      - extending/devices/index.md
+      - Device Managers: extending/devices/managers.md
+      - Device Protocols: extending/devices/protocols.md
+    - Providers:
+      - extending/providers/index.md
+      - Speech-to-Text: extending/providers/stt.md
+      - Text-to-Speech: extending/providers/tts.md
+      - Wake Responses: extending/providers/wake-responses.md
+    - Infrastructure:
+      - extending/infrastructure/index.md
+      - Command Center Client: extending/infrastructure/jcc-client.md
+      - Secret Service: extending/infrastructure/secrets.md
+      - Command Data Store: extending/infrastructure/datastore.md
+      - Settings Snapshots: extending/infrastructure/settings.md
+  - Services:
+    - services/index.md
+    - Config Service: services/config-service.md
+    - Auth: services/auth.md
+    - Command Center: services/command-center.md
+    - LLM Proxy: services/llm-proxy.md
+    - Whisper API: services/whisper-api.md
+    - TTS: services/tts.md
+    - OCR Service: services/ocr-service.md
+    - Recipes Server: services/recipes-server.md
+    - Logs: services/logs.md
+    - Settings Server: services/settings-server.md
+    - MCP: services/mcp.md
+    - Notifications: services/notifications.md
+    - Admin: services/admin.md
+  - Libraries:
+    - libraries/index.md
+    - Log Client: libraries/log-client.md
+    - Config Client: libraries/config-client.md
+    - Settings Client: libraries/settings-client.md
+    - Auth Client: libraries/auth-client.md
+    - Web Scraper: libraries/web-scraper.md
+  - Clients:
+    - clients/index.md
+    - Node Setup: clients/node-setup.md
+    - Node Mobile: clients/node-mobile.md
+    - Provisioning: clients/provisioning.md
+  - Security:
+    - security/index.md
+    - Compliance Roadmap: security/compliance-roadmap.md
+  - Contributing:
+    - contributing/index.md
+    - Coding Standards: contributing/coding-standards.md
+    - Testing: contributing/testing.md
+  - Reference:
+    - CLI: reference/cli.md
+    - Environment Variables: reference/env-vars.md
+    - Benchmarks: reference/benchmarks.md
