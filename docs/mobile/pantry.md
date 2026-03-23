@@ -2,7 +2,7 @@
 
 The Pantry tab lets you browse, search, and install community packages from the Jarvis package store.
 
-<!-- Screenshot needed: Pantry browse with package cards -->
+![Pantry browse](img/pantry.png){ width="300" }
 
 ## Browsing
 
