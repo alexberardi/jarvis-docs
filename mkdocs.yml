@@ -138,6 +138,16 @@ nav:
     - Node Setup: clients/node-setup.md
     - Node Mobile: clients/node-mobile.md
     - Provisioning: clients/provisioning.md
+  - Mobile App:
+    - mobile/index.md
+    - Home & Chat: mobile/home.md
+    - Devices: mobile/devices.md
+    - Pantry: mobile/pantry.md
+    - Routines: mobile/routines.md
+    - Nodes: mobile/nodes.md
+    - Settings: mobile/settings.md
+    - Inbox: mobile/inbox.md
+    - Authentication: mobile/auth.md
   - Security:
     - security/index.md
     - Compliance Roadmap: security/compliance-roadmap.md
