@@ -11,6 +11,7 @@ This section covers the developer-facing APIs that your plugins can use at runti
 | [Command Center Client](jcc-client.md) | `clients/jarvis_command_center_client.py` | HTTP client for CC (voice commands, LLM chat, training, conversations) |
 | [Secret Service](secrets.md) | `services/secret_service.py` | Read/write secrets from encrypted SQLite |
 | [Command Data Store](datastore.md) | `repositories/command_data_repository.py` | Generic key-value persistence with TTL |
+| [JarvisStorage](datastore.md#jarvisstorage-sdk-persistence-facade) | `jarvis_command_sdk.JarvisStorage` | SDK persistence facade for Pantry packages |
 | [Settings Snapshots](settings.md) | `services/settings_snapshot_service.py` | Build encrypted settings for mobile sync |
 | Command Registry | `repositories/command_registry_repository.py` | Enable/disable commands |
 
@@ -53,6 +54,7 @@ result = client.chat_text("What time is it in Tokyo?")
 | Call the LLM for structured parsing | [Command Center Client](jcc-client.md) --- `chat()` or `lightweight_chat()` |
 | Read an API key or config value | [Secret Service](secrets.md) --- `get_secret_value()` |
 | Cache data between command invocations | [Command Data Store](datastore.md) --- `CommandDataRepository` |
+| Store data in a Pantry package | [JarvisStorage](datastore.md#jarvisstorage-sdk-persistence-facade) --- SDK facade over `CommandDataRepository` |
 | Store temporary results with auto-expiry | [Command Data Store](datastore.md) --- `save()` with `expires_at` |
 | Expose settings to the mobile app | [Settings Snapshots](settings.md) --- automatic via `required_secrets` |
 | Check if a command is enabled | Command Registry --- `CommandRegistryRepository.get_all()` |

@@ -1,8 +1,71 @@
 # Installation
 
-## Quick Start
+There are several ways to install Jarvis, from a one-liner to a full source checkout. Pick the one that fits your setup.
 
-The `jarvis` CLI handles everything — token generation, database creation, migrations, and service startup:
+## Option 1: One-Line Install (Recommended)
+
+Download the `jarvis-admin` binary, which includes a guided setup wizard:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/alexberardi/jarvis-admin/main/install.sh | sh
+```
+
+This detects your OS and architecture, downloads the latest release, and installs to `~/.jarvis/bin/`. Then start the wizard:
+
+```bash
+jarvis-admin
+```
+
+Open [http://localhost:7711](http://localhost:7711) in your browser — the setup wizard walks you through selecting services, configuring your hardware, and starting the stack.
+
+!!! info "Prerequisites"
+    Docker and Docker Compose (v2+) must be installed. The installer warns you if Docker is missing.
+
+## Option 2: npx (No Install)
+
+If you have Node.js 22+, run directly without installing anything:
+
+```bash
+npx @alexberardi/jarvis-admin
+```
+
+Same setup wizard, no binary on disk.
+
+## Option 3: Docker
+
+Run the admin panel as a container:
+
+```bash
+docker run -d \
+  --name jarvis-admin \
+  -p 7711:7711 \
+  -v /var/run/docker.sock:/var/run/docker.sock \
+  ghcr.io/alexberardi/jarvis-admin:latest
+```
+
+Open [http://localhost:7711](http://localhost:7711) to access the setup wizard.
+
+!!! warning
+    Mounting the Docker socket gives the container access to manage other containers. This is required for the wizard to start Jarvis services.
+
+## Option 4: GitHub Releases (Manual)
+
+Download a standalone binary from the [Releases page](https://github.com/alexberardi/jarvis-admin/releases):
+
+| Platform | Binary |
+|----------|--------|
+| macOS (Apple Silicon) | `jarvis-admin-darwin-arm64` |
+| Linux (x86_64) | `jarvis-admin-linux-x64` |
+| Linux (ARM64 / Pi 5) | `jarvis-admin-linux-arm64` |
+
+```bash
+chmod +x jarvis-admin-*
+./jarvis-admin-*
+```
+
+## Option 5: From Source (Developers)
+
+For contributing or hacking on Jarvis itself:
 
 ```bash
 git clone https://github.com/alexberardi/jarvis.git
@@ -16,11 +79,11 @@ This runs three phases:
 2. **`start --all`** — Starts all services in dependency order
 3. **LLM wizard** — Prompts you to select and download a language model
 
-## Manual Setup
+### Manual Setup
 
 If you prefer step-by-step control:
 
-### 1. Initialize infrastructure
+#### 1. Initialize infrastructure
 
 ```bash
 ./jarvis init
@@ -33,7 +96,7 @@ This creates:
 - `.env` files in each service directory (from `.env.example` templates)
 - PostgreSQL databases and runs all Alembic migrations
 
-### 2. Start services
+#### 2. Start services
 
 ```bash
 # Start everything
@@ -52,9 +115,9 @@ Services start in dependency order (tiers):
 | 2 | command-center, llm-proxy | Voice processing, LLM inference |
 | 3 | whisper, tts, ocr, recipes, notifications | Specialized services |
 | 4 | settings-server, mcp | Management tools |
-| 5 | admin | Web UI |
+| 5 | admin, web | Web UIs |
 
-### 3. Verify
+#### 3. Verify
 
 ```bash
 ./jarvis health

@@ -36,17 +36,24 @@ graph LR
 
 ## Built-in Commands
 
-Jarvis ships with 20+ commands out of the box:
+Jarvis ships with these commands out of the box:
 
 | Command | Description |
 |---------|-------------|
-| `get_weather` | Weather conditions and forecasts |
 | `calculate` | Arithmetic operations |
-| `search_web` | Web search with AI summaries |
 | `control_device` | Smart home device control |
-| `set_timer` | Timers and alarms |
-| `read_calendar` | Calendar queries |
-| `send_email` | Email composition and sending |
-| `play_music` | Music playback control |
-| `tell_joke` | Random jokes |
+| `get_device_status` | Query smart home device state |
+| `chat` | Open-ended LLM conversation |
+| `answer_question` | Factual Q&A |
+| `set_timer` | Countdown timers |
+| `check_timers` | List active timers |
+| `cancel_timer` | Cancel a running timer |
+| `reminder` | Set, list, delete, and snooze reminders (with recurrence) |
+| `routine` | Multi-step automations |
+| `tell_a_joke` | Random jokes |
+| `whats_up` | Morning briefing (weather + calendar + news) |
+| `convert_measurement` | Unit conversions |
+| `get_current_time` | Current time in any timezone |
 | ... and more | See the full [command list](commands/index.md) |
+
+Many commands that were previously built-in have been extracted to installable **[Pantry](architecture/cloud.md#pantry-command-store)** packages, including: `get_weather`, `get_news`, `get_sports_scores`, `search_web`, `tell_a_story`, `bluetooth`, `music`, `email`, `get_calendar_events`, and device families (Kasa, LIFX, Govee, Apple, Nest). Install them from the Pantry with a single CLI command.

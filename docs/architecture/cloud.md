@@ -61,7 +61,7 @@ Each cloud service is stateless or nearly so, meaning you can run your own insta
 
 **Port:** 7720 | **Stack:** FastAPI + PostgreSQL | **Auth:** GitHub OAuth (authors) + household JWT (nodes)
 
-Pantry is the HACS-style command store for Jarvis. It hosts a catalog of community-built commands, agents, device protocols, and device managers that any node can install.
+Pantry is the HACS-style command store for Jarvis. It hosts a catalog of community-built commands, agents, device protocols, device managers, and routines that any node can install.
 
 ### How It Works
 
@@ -109,9 +109,13 @@ my-smart-home-package/
         widget_protocol.py     # IJarvisDeviceProtocol
     device_managers/
         widget_manager.py      # IJarvisDeviceManager
+    routines/
+        morning_routine.json   # Multi-step automation
 ```
 
 The manifest declares which components are included. The node's `install_command.py` handles dependency resolution and secret seeding for the entire bundle.
+
+Extracted packages that need persistent storage use `JarvisStorage`, a persistence facade provided by the SDK that abstracts over the node's `CommandDataRepository`. This lets Pantry packages store and retrieve data without depending on node internals.
 
 ### CLI
 
@@ -252,6 +256,8 @@ Commands: `PreRouteResult`, `CommandExample`, `CommandResponse`, `JarvisParamete
 Agents: `AgentSchedule`, `Alert`
 
 Devices: `DiscoveredDevice`, `DeviceControlResult`, `DeviceManagerDevice`
+
+Utilities: `JarvisStorage` (persistence facade for extracted packages), `DateKeys` (date constant helpers), `GeocodingHelper` (location resolution for weather, local search, etc.)
 
 ### Usage
 

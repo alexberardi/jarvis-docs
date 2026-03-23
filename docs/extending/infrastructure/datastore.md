@@ -265,6 +265,25 @@ class CommandAuth:
 
 The settings snapshot system reads `CommandAuth` entries to show an "authentication required" badge in the mobile app, prompting the user to complete the OAuth flow.
 
+## JarvisStorage (SDK Persistence Facade)
+
+For commands distributed as Pantry packages, the SDK provides `JarvisStorage` --- a high-level persistence facade that wraps `CommandDataRepository`. This lets extracted packages store and retrieve data without importing node internals directly:
+
+```python
+from jarvis_command_sdk import JarvisStorage
+
+storage = JarvisStorage("my_command")
+
+# Save and retrieve
+storage.set("cache:Miami", {"temp": 75, "condition": "sunny"})
+data = storage.get("cache:Miami")
+
+# List all keys
+all_data = storage.get_all()
+```
+
+`JarvisStorage` is the recommended approach for Pantry packages. Commands that live directly in `jarvis-node-setup/commands/` can use either `JarvisStorage` or `CommandDataRepository` directly.
+
 ## Session Management
 
 The data store requires a SQLAlchemy session from `SessionLocal()`. Always close the session when you are done:
