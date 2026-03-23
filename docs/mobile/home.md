@@ -40,7 +40,7 @@ When enabled in Settings, Jarvis responses are automatically spoken aloud via th
 
 When no nodes are paired, the Home screen shows a welcome message with a prompt to add your first node.
 
-![Empty state](img/home-empty.png){ width="300" }
+<!-- Screenshot needed: Empty state with "Welcome to Jarvis" and "Add Your First Node" button -->
 
 ## Tool Loading
 

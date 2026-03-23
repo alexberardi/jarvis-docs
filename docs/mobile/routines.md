@@ -2,7 +2,7 @@
 
 The Routines tab manages multi-step voice automations. Routines chain multiple commands together and compose the results into a natural spoken response.
 
-![Routines list](img/routines.png){ width="300" }
+<!-- Screenshot needed: Routines list with routine cards -->
 
 ## Routine Types
 
