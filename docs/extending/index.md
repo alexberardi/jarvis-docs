@@ -60,6 +60,7 @@ The wordsmith runs on the command center, not the node. They craft the system pr
 | [Agents](agents/index.md) | `IJarvisAgent` | The Coordinators | `agents/` | Node | `AgentDiscoveryService` |
 | [Device Managers](devices/managers.md) | `IJarvisDeviceManager` | The Stewards | `device_managers/` | Node | `DeviceManagerDiscoveryService` |
 | [Device Protocols](devices/protocols.md) | `IJarvisDeviceProtocol` | The Translators | `device_families/` | Node | `DeviceFamilyDiscoveryService` |
+| Routines | JSON definitions | The Playbooks | `routines/` | Node | Loaded by `RoutineCommand` |
 | [Prompt Providers](prompt-providers/index.md) | `IJarvisPromptProvider` | The Wordsmiths | `app/core/prompt_providers/` | Command Center | `PromptProviderFactory` |
 | STT Providers | `IJarvisSpeechToTextProvider` | The Scribe | `stt_providers/` | Node | Manual config |
 | TTS Providers | `IJarvisTextToSpeechProvider` | The Orator | `tts_providers/` | Node | Manual config |

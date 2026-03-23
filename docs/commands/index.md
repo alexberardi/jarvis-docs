@@ -72,14 +72,11 @@ class MyCommand(IJarvisCommand):
 
 ## Built-in Commands
 
-Jarvis ships with these commands out of the box:
+These commands ship with Jarvis and are available on every node by default:
 
 | Command | Name | Description |
 |---------|------|-------------|
 | `CalculatorCommand` | `calculate` | Two-number arithmetic (add, subtract, multiply, divide) |
-| `OpenWeatherCommand` | `get_weather` | Current weather and forecasts via OpenWeather API |
-| `MusicCommand` | `music` | Play content and control playback via Music Assistant |
-| `EmailCommand` | `email` | List, read, search, send, reply, archive email (Gmail/IMAP) |
 | `ControlDeviceCommand` | `control_device` | Smart home device control (Home Assistant + direct WiFi) |
 | `GetDeviceStatusCommand` | `get_device_status` | Query smart home device state |
 | `ChatCommand` | `chat` | Open-ended conversation with the LLM |
@@ -87,16 +84,30 @@ Jarvis ships with these commands out of the box:
 | `TimerCommand` | `set_timer` | Set countdown timers |
 | `CheckTimersCommand` | `check_timers` | List active timers |
 | `CancelTimerCommand` | `cancel_timer` | Cancel a running timer |
-| `SportsCommand` | `get_sports_scores` | Live sports scores via ESPN |
-| `NewsCommand` | `get_news` | News headlines |
-| `WebSearchCommand` | `search_web` | Web search with deep research |
+| `ReminderCommand` | `reminder` | Set, list, delete, and snooze reminders (with recurrence support) |
 | `TellAJokeCommand` | `tell_a_joke` | Random jokes |
-| `StoryCommand` | `tell_a_story` | Generate stories |
 | `MeasurementConversionCommand` | `convert_measurement` | Unit conversions |
 | `TimezoneCommand` | `get_current_time` | Current time in any timezone |
-| `ReadCalendarCommand` | `read_calendar` | Calendar events (iCloud) |
 | `RoutineCommand` | `routine` | Multi-step automations |
 | `WhatsUpCommand` | `whats_up` | Morning briefing (weather + calendar + news) |
+
+## Pantry-Installable Commands
+
+The following commands have been extracted to standalone [Pantry](../architecture/cloud.md#pantry-command-store) packages. Install them with `jarvis pantry install <name>`:
+
+| Command | Name | Description |
+|---------|------|-------------|
+| `OpenWeatherCommand` | `get_weather` | Current weather and forecasts via OpenWeather API |
+| `NewsCommand` | `get_news` | News headlines |
+| `SportsCommand` | `get_sports_scores` | Live sports scores via ESPN |
+| `WebSearchCommand` | `search_web` | Web search with deep research |
+| `StoryCommand` | `tell_a_story` | Generate stories |
+| `BluetoothCommand` | `bluetooth` | Bluetooth device management |
+| `MusicCommand` | `music` | Play content and control playback via Music Assistant |
+| `EmailCommand` | `email` | List, read, search, send, reply, archive email (Gmail/IMAP) |
+| `ReadCalendarCommand` | `get_calendar_events` | Calendar events (iCloud) |
+
+Device families (Kasa, LIFX, Govee, Apple, Nest) are also available as Pantry packages.
 
 ## Guides
 

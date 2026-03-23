@@ -150,6 +150,6 @@ Services register with and discover each other through `jarvis-config-service`. 
 | Notifications | 7712 | Push notifications, inbox, device tokens |
 | Recipes | 7030 | Recipe CRUD, meal planning, OCR import |
 | OCR Service | 7031 | Image-to-text (Apple Vision on macOS, Tesseract on Linux) |
-| Pantry | 7720 | Community command store (browse, install, publish) |
+| Pantry | 7720 | Community package store (commands, agents, device adapters, routines) |
 | Notifications Relay | --- | Stateless Expo Push API proxy for push delivery |
 | Web Chat | 7722 | Browser-based chat interface to the command center |
