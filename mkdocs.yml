@@ -64,8 +64,10 @@ nav:
   - Home: index.md
   - Getting Started:
     - getting-started/index.md
+    - Why Jarvis?: getting-started/why-jarvis.md
     - Installation: getting-started/installation.md
     - Your First Command: getting-started/first-command.md
+    - TrueNAS Setup: getting-started/truenas.md
     - Configuration: getting-started/configuration.md
   - Architecture:
     - architecture/index.md
@@ -155,6 +157,7 @@ nav:
     - contributing/index.md
     - Coding Standards: contributing/coding-standards.md
     - Testing: contributing/testing.md
+  - Troubleshooting: troubleshooting/index.md
   - Reference:
     - CLI: reference/cli.md
     - Environment Variables: reference/env-vars.md
