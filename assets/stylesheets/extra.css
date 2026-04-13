@@ -1,0 +1,39 @@
+/* Jarvis brand overrides */
+:root {
+  --md-primary-fg-color: #7E57C2;
+  --md-primary-fg-color--light: #9575CD;
+  --md-primary-fg-color--dark: #5E35B1;
+  --md-accent-fg-color: #ffab00;
+}
+
+[data-md-color-scheme="slate"] {
+  --md-primary-fg-color: #B39DDB;
+  --md-primary-fg-color--light: #CE93D8;
+  --md-primary-fg-color--dark: #9575CD;
+  --md-accent-fg-color: #ffd740;
+}
+
+/* Mermaid diagram sizing */
+.mermaid {
+  text-align: center;
+}
+
+/* Screenshot grid — wrapping flex layout for mobile screenshots */
+.screenshot-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+  justify-content: center;
+}
+
+.screenshot-grid figure {
+  margin: 0;
+  text-align: center;
+}
+
+.screenshot-grid figcaption {
+  font-size: 0.8rem;
+  opacity: 0.7;
+  margin-top: 0.5rem;
+  max-width: 280px;
+}
