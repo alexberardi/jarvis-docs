@@ -1,13 +1,24 @@
-# Jarvis Developer Documentation
+# Jarvis
 
-Jarvis is a fully private, self-hosted voice assistant built on Pi Zero nodes and a microservice backend. This documentation covers everything you need to build custom commands, understand the architecture, and deploy your own instance.
+**A voice assistant you own completely.** Runs on your network, keeps your data private, and does what you tell it -- not what a corporation decides.
 
-## Why Jarvis?
+!!! tip "TLDR"
+    Jarvis is a self-hosted, open-source voice assistant. Cheap Pi Zero nodes in each room connect to a server you control. An on-device AI understands your commands, controls your smart home, and remembers your preferences. No cloud. No subscriptions. No one listening. Install in 10 minutes with one command:
+
+    ```bash
+    curl -fsSL https://raw.githubusercontent.com/alexberardi/jarvis-admin/main/install.sh | sh
+    ```
+
+    New to this? Read **[Why Jarvis?](getting-started/why-jarvis.md)** for the full picture.
+
+## At a Glance
 
 - **Fully private** — No cloud dependencies. All data stays on your network.
 - **Self-hostable** — Same open-source codebase for local and cloud deployments.
 - **Extensible** — Add capabilities by implementing a single Python interface.
 - **Voice-first** — Wake word detection, speech-to-text, LLM routing, text-to-speech.
+- **Speaker-aware** — Identifies who's speaking and remembers per-person preferences.
+- **Use anywhere** — Voice nodes, mobile app, web chat -- all connected to one backend.
 
 ## Architecture at a Glance
 
