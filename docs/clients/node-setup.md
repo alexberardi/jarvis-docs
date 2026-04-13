@@ -2,11 +2,27 @@
 
 The Pi Zero node is the primary voice interface for Jarvis. It runs on Raspberry Pi Zero hardware (or any Linux/macOS machine for development) with a microphone and speaker attached.
 
+## Quick Install
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/alexberardi/jarvis-node-setup/main/install.sh | sudo bash
+```
+
+This installs to `/opt/jarvis-node`, sets up a systemd service, and configures audio. After install, pair the node with your server using the mobile app or `authorize_node.py`.
+
+Flags:
+
+| Flag | Description |
+|------|-------------|
+| `--no-audio` | Skip ALSA / I2S DAC configuration |
+| `--force` | Reinstall even if already at latest version |
+| `--version TAG` | Install a specific version (e.g. `v0.1.0`) |
+
 ## What It Does
 
-1. **Wake word detection** -- Listens locally for a configured wake word using [Porcupine](https://picovoice.ai/platform/porcupine/). No audio leaves the device until the wake word is heard.
+1. **Wake word detection** -- Listens locally for a configured wake word using [openWakeWord](https://github.com/dscripka/openWakeWord). No audio leaves the device until the wake word is heard.
 2. **Audio capture** -- Records speech until silence is detected.
-3. **Command submission** -- Sends the audio to the command center (`POST /api/v0/command`), which handles transcription, intent classification, and command execution.
+3. **Command submission** -- Sends the audio to the command center, which handles transcription, intent classification, and command execution.
 4. **Response playback** -- Receives spoken responses via MQTT (from the TTS service) and plays them through the speaker.
 
 ## Architecture
@@ -16,20 +32,19 @@ jarvis-node-setup/
 ├── scripts/
 │   └── main.py                # Entry point
 ├── core/
-│   ├── ijarvis_command.py     # Command interface (IJarvisCommand)
+│   ├── ijarvis_command.py     # Command interface (re-exports from SDK)
 │   ├── ijarvis_parameter.py   # Parameter definitions
 │   ├── ijarvis_secret.py      # Secret definitions
 │   ├── command_response.py    # Response structure
 │   └── platform_abstraction.py # Hardware abstraction
-├── commands/                  # Built-in commands (20+)
-│   ├── weather_command.py
-│   ├── calculator_command.py
-│   ├── jokes_command.py
-│   ├── smart_home_command.py
-│   └── ...
+├── commands/                  # Built-in commands
+├── agents/                    # Background agents (reminders, device discovery)
 ├── services/
 │   ├── secret_service.py      # Encrypted secret management
-│   └── mqtt_tts_listener.py   # MQTT TTS listener
+│   ├── mqtt_tts_listener.py   # MQTT TTS listener
+│   ├── agent_scheduler_service.py  # Background agent scheduling
+│   ├── alert_queue_service.py # Proactive alert queue
+│   └── reminder_service.py    # Persistent reminders
 ├── stt_providers/
 │   └── jarvis_whisper_client.py  # Whisper API client
 ├── provisioning/              # Headless provisioning system
@@ -39,10 +54,11 @@ jarvis-node-setup/
 
 ## Threading Model
 
-The node runs two threads:
+The node runs multiple supervised threads:
 
 - **Main thread** -- Voice listener. Detects wake word, captures audio, sends to command center.
-- **Background thread** -- MQTT listener. Receives TTS audio from the broker and plays it through the speaker.
+- **MQTT thread** -- Receives TTS audio from the broker and plays it through the speaker.
+- **Agent scheduler** -- Runs background agents on configurable intervals (reminders, device discovery, token refresh).
 
 ## Plugin Architecture
 
@@ -80,19 +96,12 @@ def pre_route(self, voice_command: str) -> PreRouteResult | None:
 
 This skips the LLM entirely, reducing latency to near-zero for simple commands like "pause" or "stop".
 
-### Installing Commands
+### Installing Commands from the Pantry
+
+Additional commands can be installed from the community Pantry store via the mobile app or CLI:
 
 ```bash
-cd jarvis-node-setup
-
-# List all commands and their required secrets
-python scripts/install_command.py --list
-
-# Install all commands (runs DB migrations + seeds secrets table)
-python scripts/install_command.py --all
-
-# Install a single command
-python scripts/install_command.py get_weather
+jarvis pantry install get_weather
 ```
 
 ## Dependencies
@@ -101,9 +110,10 @@ python scripts/install_command.py get_weather
 |---------|---------|
 | PyAudio, SoundDevice | Audio capture and playback |
 | paho-mqtt | MQTT integration (TTS listener) |
-| pvporcupine | Wake word detection |
+| openwakeword | Wake word detection |
 | httpx | REST client to command center |
 | SQLAlchemy + pysqlcipher3 | Local encrypted database |
+| jarvis-command-sdk | Shared command/agent interfaces |
 
 ## Local Encrypted Storage
 
