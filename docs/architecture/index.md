@@ -143,7 +143,7 @@ Services register with and discover each other through `jarvis-config-service`. 
 | Command Center | 7703 | Voice command orchestration, tool routing, memory |
 | LLM Proxy | 7704/7705 | LLM inference (MLX on macOS, llama.cpp/vLLM on Linux) |
 | Whisper API | 7706 | Speech-to-text via whisper.cpp with speaker identification |
-| TTS | 7707 | Text-to-speech via Piper TTS |
+| TTS | 7707 | Text-to-speech via pluggable providers (Piper default, Kokoro optional) |
 | Settings Server | 7708 | Runtime settings aggregation |
 | MCP | 7709 | Claude Code tool integration |
 | Admin UI | 7710 | Web administration interface |

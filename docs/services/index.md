@@ -12,7 +12,7 @@ Jarvis is composed of small, focused microservices. Each runs as a Docker contai
 | [Command Center](command-center.md) | 7703 | Voice command orchestrator | 2 - Command Processing |
 | [LLM Proxy](llm-proxy.md) | 7704/7705 | LLM inference (MLX/GGUF/vLLM) | 2 - Command Processing |
 | [Whisper API](whisper-api.md) | 7706 | Speech-to-text via whisper.cpp | 3 - Specialized |
-| [TTS](tts.md) | 7707 | Text-to-speech via Piper | 3 - Specialized |
+| [TTS](tts.md) | 7707 | Text-to-speech (Piper default, Kokoro optional) | 3 - Specialized |
 | [OCR Service](ocr-service.md) | 7031 | OCR with multiple backends | 3 - Specialized |
 | [Recipes Server](recipes-server.md) | 7030 | Recipe CRUD and meal planning | 3 - Specialized |
 | [Notifications](notifications.md) | 7712 | Push notifications and inbox | 3 - Specialized |

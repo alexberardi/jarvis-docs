@@ -42,7 +42,7 @@ The scribe listens and transcribes. When someone speaks, the scribe converts aud
 
 ### The Orator --- `IJarvisTextToSpeechProvider`
 
-The orator is the household's voice. When Jarvis needs to speak a response aloud, the orator converts text into natural speech. Like the scribe, different orators use different engines (Piper, a cloud TTS API), but they all produce audio from text.
+The orator is the household's voice. When Jarvis needs to speak a response aloud, the orator converts text into natural speech. Like the scribe, different orators use different engines (Piper, Kokoro, or a cloud TTS API), but they all produce audio from text. The server-side engine is swappable via the `tts.provider` setting — see the [TTS service docs](../services/tts.md).
 
 ### The Greeter --- `IJarvisWakeResponseProvider`
 

@@ -86,7 +86,7 @@ By default, Jarvis runs entirely on your local network:
 
 - Speech-to-text runs locally via whisper.cpp
 - LLM inference runs locally via MLX (macOS) or llama.cpp (Linux)
-- Text-to-speech runs locally via Piper TTS
+- Text-to-speech runs locally via Piper TTS (default) or Kokoro TTS (optional); no cloud calls
 - All data is stored in your PostgreSQL instance
 - No telemetry, no external API calls (unless you configure them)
 
