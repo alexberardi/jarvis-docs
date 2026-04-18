@@ -173,7 +173,9 @@ Common causes by service:
 | Auth | Database migration failed | Check PostgreSQL logs, verify connection string |
 | Command Center | LLM Proxy unreachable | Start LLM Proxy first, check `LLM_PROXY_URL` |
 | LLM Proxy | No model loaded | Download a model via the admin dashboard Models page |
-| TTS | Piper model missing | Download a Piper voice model |
+| TTS | Piper model missing | Download a Piper voice model to `app/models/` |
+| TTS | Kokoro weights slow to download | Mount `jarvis-tts-hf-cache` volume so weights persist across restarts |
+| TTS | Selected provider failed to load | Service falls back to Piper and logs a warning; check `tts.provider` and provider extras are installed |
 
 ### Database migration failures
 

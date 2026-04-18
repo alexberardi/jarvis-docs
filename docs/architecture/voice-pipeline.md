@@ -98,7 +98,7 @@ The command's result (`CommandResponse`) is sent back to the LLM to generate a n
 
 ### 8. Text-to-Speech
 
-The spoken response text is sent to `jarvis-tts` which uses [Piper TTS](https://github.com/rhasspy/piper). Audio is delivered to the node via MQTT (Mosquitto broker) or direct HTTP response.
+The spoken response text is sent to `jarvis-tts`, which delegates to a selectable provider: [Piper TTS](https://github.com/rhasspy/piper) for fast/lightweight output (the default, baked into the image) or [Kokoro TTS](https://github.com/hexgrad/kokoro) for more natural prosody. The provider is chosen at runtime via the `tts.provider` setting; see the [TTS service docs](../services/tts.md) for voices and caching. Audio is streamed back to the node as raw 16-bit PCM; the format is carried in `X-Audio-*` response headers so the node plays whatever the provider emits.
 
 ## Pre-Routing (Fast Path)
 

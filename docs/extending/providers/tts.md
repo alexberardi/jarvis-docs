@@ -39,7 +39,7 @@ The `play_chime()` method is a built-in helper that plays `sounds/chime.wav` thr
 
 ### JarvisTTS
 
-The primary TTS provider. Proxies text through the Command Center's media endpoint, which forwards it to the `jarvis-tts` service (Piper TTS). Supports streaming PCM audio for low latency.
+The primary TTS provider. Proxies text through the Command Center's media endpoint, which forwards it to the `jarvis-tts` service. `jarvis-tts` itself can run multiple backends (Piper default, Kokoro optional) selected via the `tts.provider` setting — the node side is unchanged. Supports streaming PCM audio for low latency.
 
 ```python
 class JarvisTTS(IJarvisTextToSpeechProvider):
