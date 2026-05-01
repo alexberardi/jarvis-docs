@@ -153,6 +153,16 @@ Discovery services use `threading.RLock` for thread-safe access to the plugin re
 
 ## Getting Started
 
-The fastest way to extend Jarvis is to add a new command. See the [Commands](../commands/index.md) guide for a step-by-step walkthrough.
+The fastest way to extend Jarvis is the [Developer Toolkit (`jdt`)](toolkit/index.md):
 
-For deeper understanding of how plugins are found and loaded, see the [Discovery System](discovery.md) documentation.
+```bash
+pip install git+https://github.com/alexberardi/jarvis-developer-toolkit.git
+jdt init my_command --type command
+cd my_command
+jdt test .          # Verify it passes
+jdt deploy local .  # Install to your node
+```
+
+`jdt` scaffolds a complete, working package with valid stubs, a manifest, and a `CLAUDE.md` for AI-assisted development. See the [Development Workflow](toolkit/workflow.md) for a full walkthrough, or the [Claude Code Integration](toolkit/claude-code.md) guide if you are using Claude Code.
+
+For a manual walkthrough without the toolkit, see the [Commands](../commands/index.md) tutorial. For deeper understanding of how plugins are found and loaded, see the [Discovery System](discovery.md) documentation.

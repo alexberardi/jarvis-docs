@@ -78,6 +78,15 @@ nav:
     - Deployment: architecture/deployment.md
   - Extending Jarvis:
     - extending/index.md
+    - Developer Toolkit:
+      - extending/toolkit/index.md
+      - Development Workflow: extending/toolkit/workflow.md
+      - "jdt init": extending/toolkit/init.md
+      - "jdt test": extending/toolkit/test.md
+      - "jdt validate": extending/toolkit/validate.md
+      - "jdt manifest": extending/toolkit/manifest.md
+      - "jdt deploy": extending/toolkit/deploy.md
+      - Claude Code Integration: extending/toolkit/claude-code.md
     - Discovery System: extending/discovery.md
     - Commands:
       - commands/index.md
