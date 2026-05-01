@@ -1,6 +1,6 @@
 # `jdt test` --- Validate a Package
 
-Runs the full three-phase validation pipeline locally. This is the same pipeline that [Pantry](../../services/pantry.md) runs on submission, so passing locally guarantees your package will pass review.
+Runs the full three-phase validation pipeline locally. This is the same pipeline that Pantry runs on submission, so passing locally guarantees your package will pass review.
 
 ## Usage
 
