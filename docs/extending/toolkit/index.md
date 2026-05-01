@@ -85,7 +85,7 @@ This creates a multi-component bundle with all three stubs and a unified manifes
 
 ## Validation Pipeline
 
-`jdt test` runs the same three-phase pipeline that [Pantry](../../services/pantry.md) uses for submission review. Passing locally means your package will pass Pantry validation.
+`jdt test` runs the same three-phase pipeline that Pantry uses for submission review. Passing locally means your package will pass Pantry validation.
 
 ```
 Phase 1: Manifest Validation
