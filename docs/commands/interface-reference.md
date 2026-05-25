@@ -113,22 +113,6 @@ def generate_prompt_examples(self) -> List[CommandExample]:
 - At most **1** example may have `is_primary=True`
 - Keep this list small (3-7 examples) -- it goes into every prompt
 
-### `generate_adapter_examples() -> List[CommandExample]`
-
-Larger, more varied example set used for LoRA adapter training. Cover edge cases, alternative phrasings, and tricky inputs.
-
-```python
-def generate_adapter_examples(self) -> List[CommandExample]:
-    return [
-        CommandExample("What's the weather?", {}, is_primary=True),
-        CommandExample("Do I need an umbrella?", {}),
-        CommandExample("Weather in Miami", {"city": "Miami"}),
-        # ... 20-40 examples covering variations
-    ]
-```
-
-See [Examples & Training](examples.md) for best practices.
-
 ### `run(request_info, **kwargs) -> CommandResponse`
 
 The actual command logic. Called after all validation passes.

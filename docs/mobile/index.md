@@ -7,7 +7,7 @@ The Jarvis mobile app (iOS/Android) is the primary interface for managing your v
 The app uses a bottom tab bar with five tabs:
 
 | Tab | Purpose |
-|-----|---------|
+|-----|--------|
 | **Home** | Chat interface --- text and voice input |
 | **Devices** | Smart home device list and control |
 | **Pantry** | Browse and install community packages |
@@ -15,8 +15,6 @@ The app uses a bottom tab bar with five tabs:
 | **Nodes** | Manage Pi Zero voice nodes |
 
 Additional screens are accessible from the header: **Settings** (gear icon), **Inbox** (bell icon), and **Add Node** (plus icon).
-
-![Home screen with quick actions](img/home.png){ width="300" }
 
 ## Sections
 
