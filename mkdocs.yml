@@ -137,6 +137,7 @@ nav:
     - MCP: services/mcp.md
     - Notifications: services/notifications.md
     - Admin: services/admin.md
+    - Pantry Runner: services/pantry-runner.md
   - Libraries:
     - libraries/index.md
     - Log Client: libraries/log-client.md
