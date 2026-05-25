@@ -61,9 +61,6 @@ class MyCommand(IJarvisCommand):
             ),
         ]
 
-    def generate_adapter_examples(self) -> List[CommandExample]:
-        return self.generate_prompt_examples()
-
     def run(self, request_info: RequestInformation, **kwargs) -> CommandResponse:
         return CommandResponse.final_response(
             context_data={"message": "Hello from my command!"}
@@ -150,10 +147,6 @@ Device families (Kasa, LIFX, Govee, Apple, Nest) are also available as Pantry pa
 -   **[Execution Lifecycle](lifecycle.md)**
 
     Full flow from voice input to command execution, with Mermaid diagrams.
-
--   **[Examples & Training](examples.md)**
-
-    Prompt examples, adapter examples, and the training workflow.
 
 -   **[Testing Commands](testing.md)**
 
