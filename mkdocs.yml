@@ -132,10 +132,11 @@ nav:
     - TTS: services/tts.md
     - OCR Service: services/ocr-service.md
     - Recipes Server: services/recipes-server.md
-    - Logs: services/logs.md
+    - Logs: services/log.md
     - Settings Server: services/settings-server.md
     - MCP: services/mcp.md
     - Notifications: services/notifications.md
+    - Pantry Runner: services/pantry-runner.md
     - Admin: services/admin.md
   - Libraries:
     - libraries/index.md
