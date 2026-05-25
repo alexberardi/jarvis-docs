@@ -62,6 +62,50 @@ This format is used for:
 - Command matching (the LLM sees device names and domains)
 - Settings sync snapshots (`get_all_managers_for_snapshot()`)
 
+## Available Device Packages
+
+The following device integrations are available as Pantry packages. Install via `jarvis pantry install <package-name>`.
+
+### Lighting
+
+| Package | Devices | Connection | Setup Required |
+|---------|---------|------------|----------------|
+| `jarvis-device-lifx` | LIFX bulbs, strips, beams | LAN (UDP 56700) | None — pure broadcast discovery |
+| `jarvis-device-govee` | Govee lights, strips, plugs | Hybrid (LAN + cloud) | `GOVEE_API_KEY` from developer.govee.com |
+| `jarvis-device-kasa` | TP-Link Kasa/Tapo switches, bulbs, dimmers | LAN broadcast | None — auto-discovery |
+| `jarvis-device-hue` | Philips Hue lights | LAN (Hue Bridge) | Bridge IP + API username (press link button once) |
+
+### Climate & Security
+
+| Package | Devices | Connection | Setup Required |
+|---------|---------|------------|----------------|
+| `jarvis-device-resideo` | Honeywell Home / Resideo thermostats | Cloud (Home API v2) | `RESIDEO_CONSUMER_KEY`, `RESIDEO_CONSUMER_SECRET` + OAuth |
+| `jarvis-device-nest` | Google Nest thermostats, cameras | Cloud (SDM API) | Device Access registration ($5 one-time) + `NEST_PROJECT_ID` + OAuth |
+| `jarvis-device-simplisafe` | SimpliSafe security systems | Cloud (unofficial API) | SimpliSafe account + MFA enabled + browser-based OAuth (PKCE) |
+
+### Locks & Access
+
+| Package | Devices | Connection | Setup Required |
+|---------|---------|------------|----------------|
+| `jarvis-device-schlage` | Schlage Encode WiFi smart locks | Cloud (pyschlage) | Schlage account email + password |
+
+### Appliances
+
+| Package | Devices | Connection | Setup Required |
+|---------|---------|------------|----------------|
+| `jarvis-device-homeconnect` | Bosch/Siemens dishwashers and appliances | Cloud (Home Connect API) | Home Connect developer account + Client ID/Secret + OAuth |
+
+### Media & Smart Home
+
+| Package | Devices | Connection | Setup Required |
+|---------|---------|------------|----------------|
+| `jarvis-device-apple` | Apple TV, HomePod | LAN (mDNS/pyatv) | None — Bonjour discovery |
+| `jarvis-device-zwave` | Z-Wave lights, switches, locks, thermostats | WebSocket (Z-Wave JS UI) | Z-Wave USB stick + Z-Wave JS UI running with WS Server enabled |
+
+### Platform Integrations
+
+For homes already using Home Assistant, the `jarvis-home-assistant-integration` package provides a full device manager (all HA entities), voice commands for device control and status queries, and a background agent for state caching. Requires a long-lived HA access token.
+
 ## Getting Started
 
 - To integrate a platform that already has device lists, see [Device Managers](managers.md).
