@@ -136,6 +136,7 @@ nav:
     - Settings Server: services/settings-server.md
     - MCP: services/mcp.md
     - Notifications: services/notifications.md
+    - Pantry Store: services/pantry-store.md
     - Admin: services/admin.md
   - Libraries:
     - libraries/index.md
