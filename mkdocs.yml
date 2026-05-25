@@ -98,7 +98,6 @@ nav:
       - Secrets: commands/secrets.md
       - Responses: commands/responses.md
       - Lifecycle: commands/lifecycle.md
-      - Examples & Training: commands/examples.md
       - Testing: commands/testing.md
     - Agents:
       - extending/agents/index.md
