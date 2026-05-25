@@ -2,8 +2,6 @@
 
 The Devices tab shows all smart home devices discovered in your household. Devices are found through installed device protocol packages (Kasa, LIFX, Govee, Apple, Nest, Home Assistant).
 
-![Devices screen](img/devices.png){ width="300" }
-
 ## Device List
 
 Devices are grouped by room. Each device shows:
