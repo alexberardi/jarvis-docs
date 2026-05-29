@@ -257,7 +257,7 @@ Agents: `AgentSchedule`, `Alert`
 
 Devices: `DiscoveredDevice`, `DeviceControlResult`, `DeviceManagerDevice`
 
-Utilities: `JarvisStorage` (persistence facade for extracted packages), `DateKeys` (date constant helpers), `GeocodingHelper` (location resolution for weather, local search, etc.)
+Utilities: `JarvisStorage` (persistence facade for extracted packages), `DateKeys` (date constant helpers), `GeocodingHelper` (location resolution for weather, local search, etc.), `BluetoothAudio` (PA sink routing for BT speakers), `process_alive` (PID-reuse-safe liveness check for pidfile-tracked daemons)
 
 ### Usage
 

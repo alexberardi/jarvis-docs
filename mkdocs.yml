@@ -120,6 +120,7 @@ nav:
       - Command Center Client: extending/infrastructure/jcc-client.md
       - Secret Service: extending/infrastructure/secrets.md
       - Command Data Store: extending/infrastructure/datastore.md
+      - Process Introspection: extending/infrastructure/process.md
       - Settings Snapshots: extending/infrastructure/settings.md
   - Services:
     - services/index.md
@@ -161,6 +162,7 @@ nav:
   - Security:
     - security/index.md
     - Compliance Roadmap: security/compliance-roadmap.md
+    - Privacy Policy: security/privacy-policy.md
   - Contributing:
     - contributing/index.md
     - Coding Standards: contributing/coding-standards.md
