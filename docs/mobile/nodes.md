@@ -2,8 +2,6 @@
 
 The Nodes tab manages your Pi Zero voice nodes --- the physical devices that capture voice commands.
 
-![Nodes list](img/nodes.png){ width="300" }
-
 ## Node List
 
 Each node card shows:

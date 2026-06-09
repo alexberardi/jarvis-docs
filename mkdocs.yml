@@ -98,7 +98,6 @@ nav:
       - Secrets: commands/secrets.md
       - Responses: commands/responses.md
       - Lifecycle: commands/lifecycle.md
-      - Examples & Training: commands/examples.md
       - Testing: commands/testing.md
     - Agents:
       - extending/agents/index.md
@@ -121,6 +120,7 @@ nav:
       - Command Center Client: extending/infrastructure/jcc-client.md
       - Secret Service: extending/infrastructure/secrets.md
       - Command Data Store: extending/infrastructure/datastore.md
+      - Process Introspection: extending/infrastructure/process.md
       - Settings Snapshots: extending/infrastructure/settings.md
   - Services:
     - services/index.md
@@ -138,6 +138,7 @@ nav:
     - Notifications: services/notifications.md
     - Pantry Store: services/pantry-store.md
     - Admin: services/admin.md
+    - Pantry Runner: services/pantry-runner.md
   - Libraries:
     - libraries/index.md
     - Log Client: libraries/log-client.md
@@ -163,6 +164,7 @@ nav:
   - Security:
     - security/index.md
     - Compliance Roadmap: security/compliance-roadmap.md
+    - Privacy Policy: security/privacy-policy.md
   - Contributing:
     - contributing/index.md
     - Coding Standards: contributing/coding-standards.md
