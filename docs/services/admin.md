@@ -64,7 +64,7 @@ jarvis-admin (Bun binary)
 The installer creates these files in `~/.jarvis/compose/`:
 
 | File | Purpose |
-|------|---------|
+|------|----------|
 | `docker-compose.yml` | Service definitions, ports, environment, volumes |
 | `.env` | Secrets, ports, app-to-app credentials |
 | `init-db.sh` | PostgreSQL database creation script |
@@ -95,15 +95,26 @@ The compose file is generated from `service-registry.json` which defines:
 - **Dependencies**: `depends_on` with health check conditions
 - **Health checks**: Per-service with appropriate `start_period`
 - **GPU config**: NVIDIA deploy resources for LLM proxy (Linux only)
+- **Volumes**: Named Docker volumes declared per-service in the registry
 
 ### Notable Service Configurations
 
 | Service | Notes |
 |---------|-------|
-| **command-center** | Runs `alembic upgrade head` before uvicorn; python-based health check (no curl in image) |
+| **command-center** | Runs `alembic upgrade head` before uvicorn; python-based health check (no curl in image); mounts `command-center-prompt-providers` volume at `/app/core/prompt_providers_custom` |
 | **llm-proxy** | Starts model service (7705) + API (7704) in one container; 120s health check start period |
 | **settings-server** | Gets `JARVIS_AUTH_SECRET_KEY` from shared auth secret |
 | **postgres** | Uses `pgvector/pgvector:pg16` (command-center needs vector extension) |
+
+### Named Volumes
+
+Services that declare `volumes` in `service-registry.json` get both a per-service volume mount and a top-level named-volume declaration in the generated `docker-compose.yml`. Named volumes persist across container recreates and `docker compose up --force-recreate`.
+
+| Volume | Service | Mount Path | Purpose |
+|--------|---------|------------|---------|
+| `command-center-prompt-providers` | `jarvis-command-center` | `/app/core/prompt_providers_custom` | Custom prompt providers survive container recreates |
+
+To add custom prompt providers, place them in the Docker volume. The volume is managed by Docker and persists independently of the container image.
 
 ## Environment Variables
 
