@@ -33,6 +33,33 @@ The command center is the voice command orchestrator. It receives transcribed te
 - **Speaker Resolver** (`app/core/utils/speaker_resolver.py`) -- maps speaker IDs to display names
 - **Memory Service** (`app/services/memory_service.py`) -- persistent user memory CRUD
 
+## not_for_me Detection
+
+The command center uses a `<not_for_me/>` sentinel in LLM responses to reject transcripts that were not directed at Jarvis. Since jarvis-command-center#11, the classification behavior is conditional on the direction hint the node ships with each transcript.
+
+### Direction Hints
+
+The node's pre-wake VAD window (~5 s) generates a `[direction hint:]` line included with each transcript. Values:
+
+| Hint | Meaning |
+|------|---------|
+| (absent) | Room state unknown |
+| quiet / directed | Speech was the first sound after silence — likely a deliberate address |
+| ambient / overheard | Continuous room conversation was already underway when the wake word fired |
+
+### Borderline Case Policy
+
+`NOT_FOR_ME_INSTRUCTION` in `app/core/prompt_providers/shared/core_rules.py` branches on the hint:
+
+| Direction hint | Borderline policy |
+|----------------|-------------------|
+| None or quiet | **Answer.** Vague phrasing, unusual word choice, a short "thanks" or "never mind" all count as addressed to Jarvis. `<not_for_me/>` is reserved for clear ambient capture, not for ambiguous requests. |
+| Ambient / overheard | **Silence.** Without explicit addressing ("Jarvis …", "hey assistant …") or a clear imperative or question, emit `<not_for_me/>`. The node has already done the acoustic work; the prompt defers to that signal on borderline transcripts. |
+
+### Paired Node Behavior
+
+When the command center responds with `<not_for_me/>`, the node holds its wake gate closed for a configurable cool-down (default 20 s, controlled by `not_for_me_quiet_seconds` in the node's `config.json`). This prevents the next sentence of the same side conversation from re-triggering wake. See the [node-setup Wake Behavior](../clients/node-setup.md#wake-behavior) section for details.
+
 ## Environment Variables
 
 ### Core
