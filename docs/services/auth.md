@@ -31,9 +31,16 @@ The auth service handles all authentication for the Jarvis platform: user JWT to
 | Variable | Description |
 |----------|-------------|
 | `DATABASE_URL` | PostgreSQL connection string |
-| `SECRET_KEY` | JWT signing key |
+| `MIGRATIONS_DATABASE_URL` | PostgreSQL connection string for Alembic migrations (use `localhost` even when running in Docker) |
+| `AUTH_SECRET_KEY` | JWT signing key — generate with `openssl rand -hex 32` |
+| `AUTH_ALGORITHM` | JWT signing algorithm (default `HS256`) |
 | `ACCESS_TOKEN_EXPIRE_MINUTES` | JWT access token TTL |
 | `REFRESH_TOKEN_EXPIRE_DAYS` | Refresh token TTL |
+| `JARVIS_AUTH_ADMIN_TOKEN` | Token for admin endpoints — generate with `openssl rand -hex 32` |
+| `JARVIS_APP_ID` | App identity for service-to-service auth with jarvis-logs (default `jarvis-auth`) |
+| `JARVIS_APP_KEY` | App key for service-to-service auth with jarvis-logs |
+| `JARVIS_LOG_CONSOLE_LEVEL` | Console log level (default `INFO`) |
+| `JARVIS_LOG_REMOTE_LEVEL` | Remote log level sent to jarvis-logs (default `DEBUG`) |
 
 ## Dependencies
 
