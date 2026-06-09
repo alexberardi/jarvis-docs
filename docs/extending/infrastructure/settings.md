@@ -57,6 +57,25 @@ For each discovered device manager (cloud API integration):
 - Manager name and description
 - Required secrets metadata
 
+### Hardware
+
+A `hardware` block is always included in the snapshot. The mobile app uses it to show or hide HAT-specific controls (LED brightness, button configuration) and to display the node's detected audio card on the Hardware tab.
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `hat_detected` | bool | `true` when a ReSpeaker HAT is present |
+| `led_chain_available` | bool | `true` when the APA102 LED ring is available (equals `hat_detected`) |
+| `audio_card` | string \| null | ALSA card name (e.g. `"seeed2micvoicec"`); `null` on macOS or no HAT |
+| `is_muted` | bool | Current PulseAudio mute state; field is omitted if the state is indeterminate |
+| `button_available` | bool | `true` when gpiozero is importable and `hat_detected` is `true` |
+
+The `node_config` section of the snapshot also carries two HAT-related fields from `config.json`:
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `led_enabled` | bool | Whether the LED ring is active (default `true`) |
+| `led_brightness_percent` | int | LED brightness (0–100, default `100`) |
+
 ### Example Snapshot Structure
 
 ```json
@@ -88,21 +107,21 @@ For each discovered device manager (cloud API integration):
       ],
       "parameters": [...],
       "auth": null
-    },
-    "send_email": {
-      "enabled": true,
-      "associated_service": "Gmail",
-      "secrets": [...],
-      "parameters": [...],
-      "auth": {
-        "provider": "gmail",
-        "needs_auth": true,
-        "auth_error": null
-      }
     }
   },
   "device_families": {...},
-  "device_managers": {...}
+  "device_managers": {...},
+  "hardware": {
+    "hat_detected": true,
+    "led_chain_available": true,
+    "audio_card": "seeed2micvoicec",
+    "is_muted": false,
+    "button_available": true
+  },
+  "node_config": {
+    "led_enabled": true,
+    "led_brightness_percent": 80
+  }
 }
 ```
 
@@ -165,7 +184,7 @@ The command center stores the blob temporarily and notifies the mobile app that 
 
 This is the top-level function called when the node receives a snapshot request over MQTT. It orchestrates the entire flow:
 
-1. Calls `build_snapshot()` to enumerate commands, device families, and device managers
+1. Calls `build_snapshot()` to enumerate commands, device families, device managers, and hardware state
 2. Serializes the snapshot to JSON
 3. Reads the K2 key from the secret store
 4. Calls `encrypt_snapshot()` to encrypt the JSON
@@ -211,6 +230,11 @@ Gmail
 Govee (Device Manager)
   API Key              ••••••••
   Default Room         living room
+
+Hardware
+  HAT detected         ✓ ReSpeaker 2-Mics
+  Audio card           seeed2micvoicec
+  LED brightness       80%
 ```
 
 Each secret renders differently based on its metadata:
