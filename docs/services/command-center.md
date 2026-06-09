@@ -10,7 +10,7 @@ The command center is the voice command orchestrator. It receives transcribed te
 | **Health endpoint** | `GET /api/v0/health` |
 | **Source** | `jarvis-command-center/` |
 | **Framework** | FastAPI + Uvicorn |
-| **Database** | PostgreSQL |
+| **Database** | PostgreSQL (pgvector required — see Dependencies) |
 | **Tier** | 2 - Command Processing |
 
 ## API Endpoints
@@ -39,7 +39,7 @@ The command center is the voice command orchestrator. It receives transcribed te
 
 | Variable | Description |
 |----------|-------------|
-| `DB_URL` | PostgreSQL connection string |
+| `DB_URL` | PostgreSQL connection string (must point to a pgvector-enabled instance) |
 | `MIGRATIONS_DATABASE_URL` | PostgreSQL connection string for Alembic migrations |
 | `PORT` | API port (default `7703`) |
 | `ADMIN_API_KEY` | API key for admin endpoints |
@@ -107,7 +107,7 @@ The command center uses a fastText model to pre-route commands to the right tool
 
 ## Dependencies
 
-- **PostgreSQL** -- nodes, memories, command history
+- **PostgreSQL** (`pgvector/pgvector:pg15` required) -- nodes, memories, command history. Alembic migration `e9f0a1b2c3d4` runs `CREATE EXTENSION IF NOT EXISTS vector` and adds a `vector(384)` embedding column with an HNSW index on `user_memories`. Stock `postgres:15` does not ship the `vector` extension and will abort on fresh install with `extension "vector" does not exist`. Use `pgvector/pgvector:pg15` (drop-in for `postgres:15`). The installer and generated `docker-compose.prod.yaml` both use this image automatically.
 - **jarvis-auth** -- node auth and app-to-app auth
 - **jarvis-config-service** -- service discovery
 - **jarvis-llm-proxy-api** -- LLM inference for intent parsing
