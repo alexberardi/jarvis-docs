@@ -38,7 +38,7 @@ When `PANTRY_CONTAINER_RUNNER=github_actions`, Pantry refuses to start if `PANTR
 ### Environment Variables
 
 | Variable | Required | Description |
-|----------|----------|--------------|
+|----------|----------|-------------|
 | `PANTRY_CALLBACK_SIGNING_KEY` | Yes (GHA runner mode) | Shared HMAC secret. Must match the `PANTRY_CALLBACK_SIGNING_KEY` GHA env secret in the `pantry-callback` environment on `jarvis-pantry-runner`. |
 | `PANTRY_CONTAINER_RUNNER` | Yes | Set to `github_actions` in production. |
 
@@ -55,6 +55,26 @@ The `submissions` table uses a `callback_nonce` column (renamed from `callback_t
 The resolved dependency lockfile is shipped as a `workflow_dispatch` input. GitHub Actions has a ~64 KB ceiling on dispatch inputs, so Pantry enforces a **50 KB cap** on resolved lockfiles and rejects submissions that exceed it.
 
 Hashless lockfiles (`pip-compile` without `--generate-hashes`) are used since the hash-per-artifact format inflates lockfile size dramatically for packages with many wheel variants. Version pinning is preserved; only the wheel hashes are omitted.
+
+## Apt Package Allowlists
+
+Submissions can declare `apt_packages` to request system package installation on the runner. Pantry validates these against allowlist YAML files that are bundled into the Docker image.
+
+The `config/` directory is copied into both `Dockerfile` and `Dockerfile.fly` via `COPY config/ config/`. It contains:
+
+| File | Purpose |
+|------|---------|
+| `config/apt-allowlist.yaml` | Packages permitted for installation |
+| `config/apt-source-allowlist.yaml` | Apt sources permitted to be added |
+| `config/post-install-allowlist.yaml` | Post-install operations permitted |
+
+The allowlist check **fails closed** — if the config directory is absent from the image, any submission that declares `apt_packages` is rejected immediately:
+
+```
+Submission failed: apt allow-list config not found: /app/config/apt-allowlist.yaml
+```
+
+If you are building or rebuilding the Docker image and see this error, verify that `COPY config/ config/` appears in the Dockerfile before the application entrypoint.
 
 ## Deployment
 
