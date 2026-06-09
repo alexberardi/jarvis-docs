@@ -64,6 +64,48 @@ The node runs multiple supervised threads:
 - **Agent scheduler** -- Runs background agents on configurable intervals (reminders, device discovery, token refresh).
 - **ButtonShortPress thread** -- Handles ReSpeaker GPIO17 short-press events. Speaks queued alerts via local TTS without blocking the GPIO callback. Started after TTS, LED, and alert-queue services are ready.
 
+## Wake Behavior
+
+### Wake Acceptance Gate
+
+A unified gate (`_wake_min_next_ts`) in `scripts/voice_listener.py` controls when the next wake fire is accepted. Two sources push the gate forward:
+
+| Source | Default duration | Trigger |
+|--------|-----------------|---------|
+| Same-utterance debounce | 8 s | Every accepted wake — prevents openWakeWord from scoring the same "Hey Jarvis" on consecutive 80 ms chunks |
+| `not_for_me` cool-down | 20 s (configurable) | When the command center responds with `<not_for_me/>`, side conversations cluster; suppressing for the cool-down kills the re-trigger loop |
+
+Multiple suppressions do not stack — the later or longer deadline wins.
+
+Log lines to watch in `journalctl`:
+
+| Log key | Meaning |
+|---------|---------|
+| `wake-suppressed-gate` | A wake score > 0.3 was suppressed; includes `cooldown_remaining_sec` |
+| `wake-gate-extended` | The gate was pushed further out; includes `seconds` and `reason` |
+
+### Configuring the not_for_me cool-down
+
+Set `not_for_me_quiet_seconds` in `config.json` (default `20.0`). Raise it if side conversations keep looping after a `<not_for_me/>` response; lower it if legitimate follow-ups are being dropped after a misclassification.
+
+```json
+{
+  "not_for_me_quiet_seconds": 20.0
+}
+```
+
+### suppress_wake_for() API
+
+Any caller can extend the gate programmatically:
+
+```python
+from scripts.voice_listener import suppress_wake_for
+
+suppress_wake_for(seconds=30.0, reason="my-signal")
+```
+
+The gate advances only if the new deadline is further out than the current one. The `reason` string appears in `wake-gate-extended` log lines for debuggability.
+
 ## Plugin Architecture
 
 Commands live in the `commands/` directory. Each command implements the `IJarvisCommand` interface:
@@ -226,6 +268,7 @@ Key config fields:
 | `volume_percent` | Persisted speaker volume (0–100); written on every volume command |
 | `led_enabled` | Whether the LED ring is active on boot (HAT nodes only) |
 | `led_brightness_percent` | LED brightness applied at startup (0–100, default 100) |
+| `not_for_me_quiet_seconds` | Seconds the wake gate is held after a `<not_for_me/>` response. Default: `20.0` |
 
 ## Node Authentication
 
@@ -239,6 +282,7 @@ For development, register a node using the `authorize_node.py` utility:
 
 ```bash
 python utils/authorize_node.py \
+  --cc-url http://localhost:7703 \
   --cc-key <ADMIN_API_KEY> \
   --household-id <household-uuid> \
   --room office --name dev-mac \
