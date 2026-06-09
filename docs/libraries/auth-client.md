@@ -61,12 +61,13 @@ The `AppAuthResult` carries:
 
 ### Node Auth
 
-Used for Pi Zero nodes connecting to services. Nodes send **two separate headers**:
+Used for Pi Zero nodes connecting to services. Nodes send a single combined `X-API-Key` header:
 
 ```
-X-Node-Id: my-node-id
-X-Node-Key: my-node-key
+X-API-Key: <node_id>:<node_key>
 ```
+
+The service forwards this header to jarvis-auth's `/internal/validate-node` endpoint to validate the credentials and resolve the node's household, user, and per-service access.
 
 ### User JWT
 
