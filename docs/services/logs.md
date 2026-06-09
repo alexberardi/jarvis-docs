@@ -21,7 +21,8 @@ The logs service provides centralized structured logging for all Jarvis services
 | `POST` | `/api/v0/logs` | Submit a single log entry |
 | `POST` | `/api/v0/logs/batch` | Submit a batch of log entries |
 | `GET` | `/api/v0/logs` | Query logs with filters |
-| `GET` | `/api/v0/logs/stats` | Log statistics |
+| `GET` | `/api/v0/logs/stream` | SSE stream — real-time log tail |
+| `GET` | `/api/v0/services` | List services that have submitted logs |
 
 ## Environment Variables
 
@@ -29,6 +30,11 @@ The logs service provides centralized structured logging for all Jarvis services
 |----------|-------------|
 | `LOKI_URL` | Loki push endpoint |
 | `JARVIS_AUTH_BASE_URL` | Auth service URL for validating app credentials |
+| `JARVIS_CONFIG_URL` | Config service URL for service discovery |
+| `JARVIS_APP_ID` | App identity for service-to-service auth |
+| `JARVIS_APP_KEY` | App key for service-to-service auth |
+| `JARVIS_LOG_CONSOLE_LEVEL` | Console log level (default `INFO`) |
+| `JARVIS_LOG_REMOTE_LEVEL` | Remote log level (default `DEBUG`) |
 
 ## Dependencies
 
