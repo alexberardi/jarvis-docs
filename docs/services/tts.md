@@ -24,7 +24,7 @@ The service can also generate contextual wake word responses by calling the LLM 
 | `GET`  | `/audio/format` | app | Current provider's audio format (sample rate, width, channels) |
 | `POST` | `/speak` | app | Synthesize text, return full WAV audio |
 | `POST` | `/speak/stream` | app | Stream raw 16-bit PCM as it is synthesized (low latency). Format metadata in `X-Audio-*` response headers |
-| `POST` | `/generate-wake-response` | app | Generate a charming wake-word greeting via the LLM proxy |
+| `POST` | `/generate-wake-response` | app | **Deprecated.** Generate a wake-word greeting via the LLM proxy. New nodes should call `POST /api/v0/wake-response` on jarvis-command-center instead. |
 | `*`    | `/settings/*` | — | Settings CRUD (see Settings Server) |
 
 `/speak/stream` is the preferred endpoint for nodes — the node's `play_pcm_stream()` reads the `X-Audio-Sample-Rate`, `X-Audio-Channels`, and `X-Audio-Sample-Width` headers and pipes the raw PCM to `aplay`, so the node works with any provider regardless of sample rate.
