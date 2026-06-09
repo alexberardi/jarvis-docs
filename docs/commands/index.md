@@ -90,21 +90,29 @@ These commands ship with Jarvis and are available on every node by default:
 
 ## Pantry-Installable Commands
 
-The following commands have been extracted to standalone [Pantry](../architecture/cloud.md#pantry-command-store) packages. Install them with `jarvis pantry install <name>`:
+The following commands are available as standalone [Pantry](../architecture/cloud.md#pantry-command-store) packages. Install them with `jarvis pantry install <name>`:
 
 | Command | Name | Description |
 |---------|------|-------------|
-| `OpenWeatherCommand` | `get_weather` | Current weather and forecasts via OpenWeather API |
-| `NewsCommand` | `get_news` | News headlines |
-| `SportsCommand` | `get_sports_scores` | Live sports scores via ESPN |
-| `WebSearchCommand` | `search_web` | Web search with deep research |
+| `OpenWeatherCommand` | `get_weather` | Current weather and forecasts via OpenWeather API (requires API key) |
+| `MeteoWeatherCommand` | `get_weather_meteo` | Current weather and forecasts via Open-Meteo — **free, no API key required** |
+| `NewsCommand` | `get_news` | News headlines via RSS feeds |
+| `SportsCommand` | `get_sports_scores` | Live sports scores via ESPN (NFL, NBA, MLB, NHL, College) |
+| `WebSearchCommand` | `search_web` | Web search with deep research (Bing or DuckDuckGo) |
 | `StoryCommand` | `tell_a_story` | Generate stories |
-| `BluetoothCommand` | `bluetooth` | Bluetooth device management |
 | `MusicCommand` | `music` | Play content and control playback via Music Assistant |
+| `PandoraCommand` | `pandora` | Stream Pandora Radio with voice control — skip, thumbs up/down, station listing |
+| `SpotifyCommand` | `spotify` | Stream Spotify with voice control via spotifyd — tracks, artists, albums, playlists |
 | `EmailCommand` | `email` | List, read, search, send, reply, archive email (Gmail/IMAP) |
-| `ReadCalendarCommand` | `get_calendar_events` | Calendar events (iCloud) |
+| `ReadCalendarCommand` | `get_calendar_events` | Calendar events (iCloud CalDAV, Google Calendar) |
+| `RottenTomatoesCommand` | `get_movie_rating` | Movie and TV ratings, what's in theaters — Tomatometer scores, no API key |
+| `DadJokeCommand` | `tell_dad_joke` | Random dad jokes via icanhazdadjoke.com — no configuration required |
+| `GreetingCommand` | `greeting` | Say hello in 10 languages |
 
-Device families (Kasa, LIFX, Govee, Apple, Nest) are also available as Pantry packages.
+Device families (LIFX, Kasa, Govee, Apple, Nest, Hue, and more) are also available as Pantry packages. See [Device Packages](../extending/devices/index.md#available-device-packages).
+
+!!! note
+    `BluetoothCommand` (jarvis-cmd-bluetooth) has been archived and is no longer maintained. Use a music command (`PandoraCommand`, `SpotifyCommand`, or `MusicCommand`) for audio playback.
 
 ## Guides
 
