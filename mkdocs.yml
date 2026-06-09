@@ -140,6 +140,7 @@ nav:
     - Installer: services/installer.md
     - Pantry Runner: services/pantry-runner.md
     - Pantry Store: services/pantry-store.md
+    - Pantry Web: services/pantry-web.md
   - Libraries:
     - libraries/index.md
     - Log Client: libraries/log-client.md
