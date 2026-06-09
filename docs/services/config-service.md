@@ -1,6 +1,6 @@
 # Config Service
 
-The config service is the service discovery hub for all Jarvis services. Every service queries it at startup to resolve URLs for other services it needs to communicate with. It is the single Tier 0 dependency -- if config service is down, no service can discover any other.
+The config service is the service discovery hub for all Jarvis services. Every service queries it at startup to resolve URLs for other services it needs to communicate with. It is the single Tier 0 dependency — if config service is down, no service can discover any other.
 
 ## Quick Reference
 
@@ -18,10 +18,24 @@ The config service is the service discovery hub for all Jarvis services. Every s
 | Method | Path | Description |
 |--------|------|-------------|
 | `GET` | `/health` | Health check |
+| `GET` | `/info` | Service identity (name, version, port) |
 | `GET` | `/services` | List all registered services and their URLs |
 | `GET` | `/services/{name}` | Get URL for a specific service |
 | `POST` | `/services` | Register or update a service (admin) |
 | `DELETE` | `/services/{name}` | Deregister a service (admin) |
+| `GET` | `/services/health` | Check health of all registered services |
+| `GET` | `/services/{name}/health` | Check health of a specific registered service |
+
+## URL Style Query Parameters
+
+The `/services` and `/services/{name}` endpoints accept an optional `style` query parameter to control the format of returned URLs:
+
+| Parameter | Value | Description |
+|-----------|-------|-------------|
+| `style` | *(default)* | Returns container-name URLs (e.g. `http://jarvis-auth:7701`) — used by Docker services on the shared network |
+| `style` | `dockerized` | Returns `host.docker.internal` URLs — used when containers need to reach services running directly on the host (e.g. LLM proxy on macOS) |
+| `style` | `remote` | Returns URLs using `JARVIS_REMOTE_HOST` as the hostname |
+| `remote_host` | *hostname* | Override the remote host for this request only (used with `style=remote`) |
 
 ## Environment Variables
 
@@ -29,7 +43,9 @@ The config service is the service discovery hub for all Jarvis services. Every s
 |----------|-------------|
 | `DATABASE_URL` | PostgreSQL connection string |
 | `JARVIS_AUTH_BASE_URL` | Auth service URL for validating admin/app requests |
-| `JARVIS_CONFIG_URL_STYLE` | `dockerized` returns `host.docker.internal` URLs for Docker consumers |
+| `JARVIS_CONFIG_URL_STYLE` | Default URL style for all responses (`dockerized` returns `host.docker.internal` URLs) |
+| `JARVIS_REMOTE_HOST` | Hostname used when `style=remote` is requested |
+| `PORT` | API port (default `7700`) |
 
 ## Dependencies
 
