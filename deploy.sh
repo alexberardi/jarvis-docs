@@ -22,6 +22,14 @@ mkdir -p site/.well-known
 cp .well-known/apple-app-site-association site/.well-known/apple-app-site-association
 cp _headers site/_headers
 
+# Browser fallback for the /app/* Universal Link paths (served only when the
+# app isn't installed — see _redirects). MkDocs has no page at /app/*, so
+# without this those links would 404 in Safari.
+echo "Injecting /app/* fallback page..."
+mkdir -p site/app-fallback
+cp app-fallback/index.html site/app-fallback/index.html
+cp _redirects site/_redirects
+
 echo "Deploying to Cloudflare Pages..."
 npx wrangler pages deploy site --project-name=jarvis-docs --branch=main
 
