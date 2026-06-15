@@ -2,7 +2,11 @@
 
 ## Landing Screen
 
-The landing screen appears when you're not logged in. Tap **Create Account** to register or **Sign In** to log in.
+The landing screen appears when you're not logged in. It has three controls:
+
+- **Create Account** — Register a new account
+- **Sign In** — Log in to an existing account
+- **Set server URL** — Pin a specific Jarvis server before logging in; the app connects to that server exclusively (see [Connection](settings.md#connection))
 
 ## Registration
 
