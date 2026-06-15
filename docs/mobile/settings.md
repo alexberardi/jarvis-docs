@@ -43,3 +43,13 @@ Configure smart home integration:
 ## Connection
 
 Shows whether the app is connected to a local or cloud Jarvis instance.
+
+### Server URL
+
+Use **Set server URL** (available on the Landing screen before login, and here after login) to pin the app to a specific Jarvis config-service URL.
+
+**Pinned URL is authoritative.** When a URL is set, the app resolves exclusively against that server — it will not fall through to mDNS/LAN auto-discovery. If the pinned server is unreachable, the app surfaces an explicit error:
+
+> Can't reach the server at `<url>`. Check the URL or your connection, or clear it to search your local network.
+
+To return to automatic local-network discovery, clear the server URL field.
