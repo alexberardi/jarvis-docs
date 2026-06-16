@@ -1,6 +1,6 @@
 site_name: Jarvis Developer Docs
 site_description: Build voice commands and integrations for the Jarvis assistant platform
-site_url: https://docs.jarvis.local
+site_url: https://docs.jarvisautomation.dev
 repo_url: https://github.com/alexberardi/jarvis
 repo_name: jarvis
 dev_addr: 0.0.0.0:7730

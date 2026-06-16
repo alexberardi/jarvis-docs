@@ -69,13 +69,13 @@ jdt deploy ssh <host> [path] [--node-dir <dir>]
 
 | Argument/Option | Description |
 |----------------|-------------|
-| `host` | SSH target (e.g., `pi@jarvis-dev.local`) |
+| `host` | SSH target (e.g., `pi@<dev-node>.local`) |
 | `path` | Package directory (default: current directory) |
 | `--node-dir` | Remote node directory (default: `/opt/jarvis-node`) |
 
 ```bash
-jdt deploy ssh pi@jarvis-dev.local .
-jdt deploy ssh pi@jarvis-kitchen.local . --node-dir /opt/jarvis-node
+jdt deploy ssh pi@<dev-node>.local .
+jdt deploy ssh pi@<kitchen-node>.local . --node-dir /opt/jarvis-node
 ```
 
 **What it does:**
@@ -98,13 +98,13 @@ jdt test . && jdt deploy local .
 ```bash
 jdt deploy local .
 jdt deploy docker jarvis-node-kitchen .
-jdt deploy ssh pi@jarvis-dev.local .
+jdt deploy ssh pi@<dev-node>.local .
 ```
 
 ### CI/CD deploy
 
 ```bash
-jdt test . && jdt deploy ssh pi@jarvis-kitchen.local . --node-dir /opt/jarvis-node
+jdt test . && jdt deploy ssh pi@<kitchen-node>.local . --node-dir /opt/jarvis-node
 ```
 
 ## What Happens During Install
