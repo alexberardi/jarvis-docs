@@ -235,7 +235,7 @@ jdt deploy docker jarvis-node-kitchen .
 Or to a Pi Zero:
 
 ```bash
-jdt deploy ssh pi@jarvis-dev.local .
+jdt deploy ssh pi@<dev-node>.local .
 ```
 
 The node's discovery system picks up the new command automatically. No restart needed.
