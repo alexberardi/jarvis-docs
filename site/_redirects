@@ -1,0 +1,7 @@
+# Cloudflare Pages redirects.
+# Browser fallback for the iOS Universal Link paths. When the Jarvis app is
+# installed, iOS opens it directly via the AASA (/.well-known/...) and never
+# fetches these URLs — this rewrite only handles the no-app case so visitors
+# get a friendly "install the app" page instead of a 404.
+# 200 = rewrite: serve the fallback page while keeping the /app/... URL.
+/app/*  /app-fallback/  200

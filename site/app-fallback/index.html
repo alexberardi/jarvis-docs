@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="robots" content="noindex" />
+  <title>Open in the Jarvis app</title>
+  <style>
+    :root {
+      --bg: #0b0d12;
+      --card: #151922;
+      --fg: #eef1f6;
+      --muted: #98a2b3;
+      --accent: #6ea8fe;
+      --border: #232938;
+    }
+    @media (prefers-color-scheme: light) {
+      :root {
+        --bg: #f6f8fc; --card: #ffffff; --fg: #1a1d24;
+        --muted: #5b6472; --accent: #2563eb; --border: #e3e8f0;
+      }
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; height: 100%; }
+    body {
+      background: var(--bg);
+      color: var(--fg);
+      font: 16px/1.55 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      display: flex; align-items: center; justify-content: center;
+      padding: max(24px, env(safe-area-inset-top)) 24px max(24px, env(safe-area-inset-bottom));
+    }
+    .card {
+      width: 100%; max-width: 420px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 32px 28px;
+      text-align: center;
+      box-shadow: 0 12px 40px rgba(0,0,0,0.18);
+    }
+    .logo {
+      width: 64px; height: 64px; margin: 0 auto 18px;
+      border-radius: 16px;
+      background: radial-gradient(120% 120% at 30% 20%, var(--accent), #8b5cf6);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 30px;
+    }
+    h1 { font-size: 22px; margin: 0 0 8px; letter-spacing: -0.01em; }
+    p { color: var(--muted); margin: 0 0 8px; }
+    .intent { color: var(--fg); font-weight: 600; }
+    .actions { margin-top: 24px; display: grid; gap: 12px; }
+    a.btn {
+      display: block; text-decoration: none;
+      padding: 13px 18px; border-radius: 12px;
+      font-weight: 600; font-size: 15px;
+      border: 1px solid var(--border);
+      color: var(--fg); background: transparent;
+      transition: transform .06s ease, border-color .15s ease;
+    }
+    a.btn:active { transform: scale(0.985); }
+    a.btn.primary { background: var(--accent); border-color: var(--accent); color: #0b0d12; }
+    @media (prefers-color-scheme: light) { a.btn.primary { color: #fff; } }
+    .foot { margin-top: 22px; font-size: 13px; }
+    .foot a { color: var(--muted); text-decoration: none; }
+    .foot a:hover { color: var(--accent); }
+  </style>
+</head>
+<body>
+  <main class="card">
+    <div class="logo" aria-hidden="true">🤖</div>
+    <h1>Open in the Jarvis app</h1>
+    <p id="lead">This link talks to your Jarvis assistant in the app.</p>
+    <p>If nothing opened, the app isn’t installed on this device yet — grab it below.</p>
+
+    <div class="actions">
+      <a class="btn primary" id="ios" href="https://apps.apple.com/app/id6760924901">Download on the App&nbsp;Store</a>
+      <a class="btn" id="android" href="https://play.google.com/store/apps/details?id=com.jarvis.nodemobile">Get it on Google&nbsp;Play</a>
+    </div>
+
+    <p class="foot"><a href="https://docs.jarvisautomation.dev/">← Jarvis documentation</a></p>
+  </main>
+
+  <script>
+    // Personalize by the Universal Link intent in the path: /app/stt|listen
+    // -> voice; everything else -> chat. (When the app IS installed iOS opens
+    // it directly via the AASA and never loads this page.)
+    (function () {
+      var seg = (location.pathname.split('/').filter(Boolean).pop() || '').toLowerCase();
+      var isVoice = seg === 'stt' || seg === 'listen';
+      var lead = document.getElementById('lead');
+      lead.innerHTML = isVoice
+        ? 'This link starts a <span class="intent">voice command</span> with your Jarvis assistant.'
+        : 'This link opens <span class="intent">chat</span> with your Jarvis assistant.';
+
+      // Surface the most relevant store first by platform.
+      var ua = navigator.userAgent || '';
+      if (/android/i.test(ua)) {
+        var a = document.getElementById('android');
+        a.classList.add('primary');
+        document.getElementById('ios').classList.remove('primary');
+        a.parentNode.insertBefore(a, a.parentNode.firstChild);
+      }
+    })();
+  </script>
+</body>
+</html>

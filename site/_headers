@@ -1,0 +1,5 @@
+# Cloudflare Pages headers.
+# Serve the Apple App Site Association as JSON so iOS accepts it for Universal
+# Links (the Jarvis mobile Control Center button opens https://docs.jarvisautomation.dev/app/stt).
+/.well-known/apple-app-site-association
+  Content-Type: application/json
