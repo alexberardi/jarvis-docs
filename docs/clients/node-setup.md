@@ -30,7 +30,8 @@ Flags:
 ```
 jarvis-node-setup/
 ├── scripts/
-│   └── main.py                # Entry point
+│   ├── main.py                # Entry point
+│   └── jarvis-apt-install     # Sudo-able apt-get shim for Pantry-declared packages
 ├── core/
 │   ├── ijarvis_command.py     # Command interface (re-exports from SDK)
 │   ├── ijarvis_parameter.py   # Parameter definitions
@@ -149,6 +150,14 @@ Additional commands can be installed from the community Pantry store via the mob
 ```bash
 jarvis pantry install get_weather
 ```
+
+When a Pantry command declares `apt_packages` in its manifest, the install pipeline automatically handles the dependencies:
+
+1. **Disk pre-flight** — requires ≥ 500 MB free on `/` before proceeding; fails fast to avoid partial installs on a full SD card.
+2. **Apt install** — calls `sudo /usr/local/sbin/jarvis-apt-install <packages>`, a minimal POSIX sh shim installed by `install.sh` and invocable by the service user via `/etc/sudoers.d/jarvis-node` (NOPASSWD — no broader apt privileges granted). Package names are validated against `^[a-z][a-z0-9.+-]*$` before being forwarded to `apt-get install --no-install-recommends`. Runs at `nice -n 15` to avoid starving the voice pipeline; waits up to 60 s for dpkg lock; 300 s total timeout.
+3. **Pip install** — runs after apt succeeds, so an apt failure aborts cleanly before any Python packages are installed.
+
+If `install.sh` was not run or was run before this change landed, `jarvis-apt-install` will be absent and Pantry commands with `apt_packages` will fail with a clear message instructing you to re-run `install.sh`.
 
 ## Built-in Commands
 
