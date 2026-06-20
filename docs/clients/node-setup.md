@@ -150,6 +150,31 @@ Additional commands can be installed from the community Pantry store via the mob
 jarvis pantry install get_weather
 ```
 
+#### Command Installation Pipeline
+
+The install pipeline runs these steps in order: clone → validate → test → copy files → **apt deps (step 9)** → pip deps (step 10) → namespace → secrets → registry enable.
+
+apt runs before pip so a fast failure (disk full, bad package name, missing wrapper) aborts before the slower pip work begins.
+
+#### apt Dependencies
+
+Commands that declare system packages in their manifest (`apt_packages` field) trigger an apt install step. The installer:
+
+1. **Pre-flights disk space** — requires ≥ 500 MB free on `/`. Fails fast before invoking apt if the check fails.
+2. **Validates package names** — each name is checked against `^[a-z][a-z0-9.+-]*$`. One invalid name aborts the entire call with no partial installs.
+3. **Invokes `/usr/local/sbin/jarvis-apt-install`** via `sudo` — a root-owned POSIX sh wrapper deployed by `install.sh` that forwards valid names to `nice -n 15 apt-get install -y --no-install-recommends` with a 60 s dpkg-lock wait and a 300 s total timeout.
+
+The installer adds this entry to `/etc/sudoers.d/jarvis-node`:
+
+```
+${SERVICE_USER} ALL=(root) NOPASSWD: /usr/local/sbin/jarvis-apt-install *
+```
+
+The `*` is in the argument position (not the binary path), so only `jarvis-apt-install` itself can be invoked with elevated privileges — no other command gains `sudo` access via this entry.
+
+!!! tip "Wrapper missing?"
+    If node logs show `apt wrapper missing at /usr/local/sbin/jarvis-apt-install`, re-run `install.sh` to redeploy the wrapper.
+
 ## Built-in Commands
 
 ### `control_node` — Volume and Mute
