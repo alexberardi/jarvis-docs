@@ -20,7 +20,7 @@ Flags:
 
 ## What It Does
 
-1. **Wake word detection** -- Listens locally for a configured wake word using [openWakeWord](https://github.com/dscripka/openWakeWord). No audio leaves the device until the wake word is heard.
+1. **Wake word detection** -- Listens locally for a configured wake word using [openWakeWord](https://github.com/dscripka/openWakeWord). No audio leaves the device until the wake word is heard. The model is selected via the `wake_word_model` setting in `config.json` (default: `hey_jarvis`); models are downloaded automatically on first run. The Pi USB mic captures audio at 48 kHz, which is resampled to 16 kHz before scoring.
 2. **Audio capture** -- Records speech until silence is detected.
 3. **Command submission** -- Sends the audio to the command center, which handles transcription, intent classification, and command execution.
 4. **Response playback** -- Receives spoken responses via MQTT (from the TTS service) and plays them through the speaker.
@@ -269,6 +269,7 @@ Key config fields:
 | `led_enabled` | Whether the LED ring is active on boot (HAT nodes only) |
 | `led_brightness_percent` | LED brightness applied at startup (0–100, default 100) |
 | `not_for_me_quiet_seconds` | Seconds the wake gate is held after a `<not_for_me/>` response. Default: `20.0` |
+| `wake_word_model` | openWakeWord model name to load (default: `hey_jarvis`). Models are downloaded on first run via `openwakeword.utils.download_models`. |
 
 ## Node Authentication
 
