@@ -125,6 +125,32 @@ python test_multi_turn_conversation.py --full -t 0 1 2 --save-audio ./audio/
 
 **Required services:** Command Center (7703), LLM Proxy (7704). For full mode: TTS (7707), Whisper API (7706).
 
+## Cross-Repo Integration Tests
+
+When a feature spans multiple repos (e.g. a change to `jarvis-command-center` that depends on a concurrent change to `jarvis-llm-proxy-api`), the **cross-repo integration lane** in `jarvis-integration-tests` builds all affected services from source and tests them together as a unit.
+
+### Declaring Linked PRs
+
+Add one `Linked-PR:` marker per sibling PR in your PR body:
+
+```
+Linked-PR: jarvis-llm-proxy-api@feat/streaming
+Linked-PR: jarvis-llm-proxy-api@a1b2c3d   # a SHA is reproducible; a branch resolves at clone time
+```
+
+The trigger workflow (`cross-repo-trigger.yml`) in each participating repo reads these markers and fires the `cross-repo-integration` dispatch at `jarvis-integration-tests`. Every repo in the feature computes the same sorted `feature_key` from all participants, so only one integration run executes per feature — duplicates are deduplicated by the receiver's concurrency group.
+
+**PRs with no `Linked-PR:` markers are unaffected** — the existing single-repo fast lane (`integration-trigger.yml`) still runs as normal.
+
+### Requirements
+
+- The `INTEGRATION_DISPATCH_TOKEN` repository secret must be configured on each participating repo. This is a fine-grained PAT scoped to `repository_dispatch` (write) on `alexberardi/jarvis-integration-tests`. Until the token is set, the trigger warns and passes without dispatching.
+- Adding a `Linked-PR:` marker after the PR is opened (via an edit) re-fires the cross-repo lane automatically (`edited` event is included).
+
+### Symmetric by design
+
+Both sides of a cross-repo feature should carry the `Linked-PR:` markers pointing at each other. Because the `feature_key` is a sorted union of all participating repo slugs, both PRs resolve to the same key and the receiver deduplicates them to a single run.
+
 ## Test Results
 
 E2E test results are written to JSON files containing:
