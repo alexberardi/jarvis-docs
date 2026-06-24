@@ -24,6 +24,30 @@ Tap **Add Node** to start the provisioning flow:
 !!! tip
     For development, you can use **Import Key** (top right) to manually pair a node by pasting its K2 encryption key.
 
+## K2 Encryption Key
+
+Every node has a **K2** key --- an AES-256 key generated during provisioning and stored on your device. K2 encrypts the settings sync channel between the mobile app and the node; the command center transports the encrypted blob but cannot read it.
+
+### Backing Up K2
+
+After a successful provisioning, the **Success** screen offers a **Back Up Encryption Key** button. Two backup modes are available:
+
+| Mode | Protection |
+|------|------------|
+| **Plain** | The raw key is encoded as a QR code. Fast, but anyone who scans it gains full access. |
+| **Password-protected** | The key is encrypted with Argon2id + AES-256-GCM before encoding. You must supply the same password on import. |
+
+!!! warning
+    Keep a backup of your K2 key. If you lose your device without a backup, you cannot restore your node's settings sync channel.
+
+### Importing K2
+
+To import a key from a backup QR code, tap **Import Key** (key icon, top-right of the Nodes list):
+
+1. Scan the QR code with the camera.
+2. For a **password-protected** backup, enter the password when prompted --- the app decrypts the key locally using Argon2id + AES-256-GCM.
+3. On success, the node is re-paired to your device.
+
 ## Node Settings
 
 From a node's detail screen you can:
