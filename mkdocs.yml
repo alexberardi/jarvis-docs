@@ -172,6 +172,9 @@ nav:
     - Coding Standards: contributing/coding-standards.md
     - Testing: contributing/testing.md
   - Troubleshooting: troubleshooting/index.md
+  - Blog:
+    - blog/index.md
+    - "Self-hosted voice assistants in the LLM era": blog/llm-era-voice-assistant.md
   - Reference:
     - CLI: reference/cli.md
     - Environment Variables: reference/env-vars.md
