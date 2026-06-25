@@ -18,6 +18,7 @@
 - **Extensible** — Add capabilities by implementing a single Python interface.
 - **Voice-first** — Wake word detection, speech-to-text, LLM routing, text-to-speech.
 - **Speaker-aware** — Identifies who's speaking and remembers per-person preferences.
+- **Multi-household by default** — Self-host once and share with anyone; friends and family add your server URL in the mobile app and create an account. Each household gets isolated voice profiles, devices, and routines.
 - **Use anywhere** — Voice nodes, mobile app, web chat -- all connected to one backend.
 
 ## Architecture at a Glance
