@@ -241,10 +241,13 @@ JARVIS_REST_AUTH_TOKEN=sk-your-api-key
 | `JARVIS_REST_MODEL_NAME` | --- | Model name for live requests |
 | `JARVIS_REST_BACKGROUND_MODEL_NAME` | --- | Model name for background requests |
 | `JARVIS_REST_AUTH_TYPE` | `none` | Auth type: `bearer`, `api_key`, `custom`, `none` |
-| `JARVIS_REST_AUTH_TOKEN` | --- | Auth token or API key |
+| `JARVIS_REST_AUTH_TOKEN` | --- | Auth token or API key. Also configurable as DB setting `rest.auth_token` via Admin → Settings (DB value takes precedence; env var is the fallback; masked in UI; requires reload) |
 | `JARVIS_REST_AUTH_HEADER` | `Authorization` | Custom auth header name (for `custom` auth type) |
 | `JARVIS_REST_REQUEST_FORMAT` | `openai` | Request format: `openai`, `ollama`, `chatml`, `generic` |
 | `JARVIS_REST_TIMEOUT` | `60` | Request timeout in seconds |
+
+!!! tip "Configuring the auth token via the admin UI"
+    `JARVIS_REST_AUTH_TOKEN` is now also available as the **`rest.auth_token`** DB-backed setting. Set it in **Admin → Settings → REST** — the value is masked in the UI and takes precedence over the environment variable. Existing env-var deployments continue to work without any change; the env var remains as a fallback.
 
 The provider setting controls response parsing (different APIs return results in different shapes). The request format controls how messages are serialized. For most OpenAI-compatible APIs (vLLM, LM Studio, text-generation-webui), use `provider=openai` + `request_format=openai`.
 
