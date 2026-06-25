@@ -53,6 +53,8 @@ Out of the box:
 
 **It runs on modest hardware.** The Pi Zero nodes cost about $50 each (board + mic + speaker). The server can be any computer with a decent GPU. Jarvis was developed and tested on a machine with a 3080 Ti and gets responsive voice interactions -- you don't need cutting-edge hardware.
 
+**Your server, their home.** One Jarvis installation serves multiple households. Share your server URL with whoever you want -- they open the mobile app, add the URL, create an account, and get a fully isolated assistant running on your existing hardware. No cloud. No per-household subscription. No setup on their end beyond the app.
+
 ### Do I Need to Be Technical?
 
 **To install it?** No. The [setup wizard](installation.md) walks you through everything in a browser. Pick your services, download a model, create an account -- it handles Docker, databases, and networking for you.
