@@ -45,3 +45,23 @@ Each node exposes a **Voice Settings** screen where you can tune wake-word detec
 | **Mic Sample Rate** | 48000 Hz | Microphone capture rate. Constrained to 44100 or 48000 Hz. Use 44100 only for USB mics that reject the higher rate; audio is resampled to 16 kHz for the wake-word detector either way. |
 
 Tap **Save Changes** to persist settings to the node. Changes take effect on the next voice-session start.
+
+## Data Browser
+
+Commands that store structured records (e.g. medication lists, shopping lists, reminders) expose a **Data Browser** accessible from the node's command list. The data browser supports listing, viewing, editing, deleting, and — for commands that opt in — **adding** records.
+
+### Adding a Record
+
+When a command supports record creation, the record list shows a **+** floating action button (FAB). Tapping it opens an **Add Record** form pre-seeded with type-appropriate defaults.
+
+- Fields marked `create_only` (e.g. a medication's **Visible to** scope) appear editable on the add form but are read-only on the edit form — set them once at creation.
+- Ownership is always stamped server-side from your authenticated identity; the form never asks for an owner field.
+- Validation errors (e.g. "at least one dose time is required") are shown inline and the record is not saved until resolved.
+
+### Time Array Fields
+
+For fields that hold a list of times (e.g. `dose_times` on a medication), the add and edit forms render individual time rows with a native time picker. Tap a time chip to adjust it; tap the **×** to remove a row; tap **Add time** to append a new one.
+
+### Command Authoring
+
+To enable the **+** button for your own command, see [Data Browser Protocol](../extending/infrastructure/datastore.md#data-browser-protocol) — specifically `data_browser_supports_create` and `data_browser_create` in the [jarvis-command-sdk](../libraries/command-sdk.md#data-browser-hooks) docs.
