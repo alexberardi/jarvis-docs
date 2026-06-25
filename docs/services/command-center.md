@@ -25,6 +25,68 @@ The command center is the voice command orchestrator. It receives transcribed te
 | `POST` | `/api/v0/memories` | Create a user memory |
 | `DELETE` | `/api/v0/memories/{id}` | Delete a user memory |
 
+For mobile data-browser routes see [Mobile Command-Data API](#mobile-command-data-api) below.
+
+## Mobile Command-Data API
+
+The mobile app manages command records through a set of REST routes that proxy to the node's MQTT data-browser protocol. All routes require a valid mobile JWT.
+
+| Method | Path | Description |
+|--------|------|-------------|
+| `GET` | `/command-data/nodes` | List nodes visible to the authenticated user |
+| `GET` | `/command-data/nodes/{node_id}/commands/{command_name}/schema` | Fetch field schema for a command |
+| `GET` | `/command-data/nodes/{node_id}/commands/{command_name}/records` | List all records |
+| `GET` | `/command-data/nodes/{node_id}/commands/{command_name}/records/{key}` | Fetch one record |
+| `POST` | `/command-data/nodes/{node_id}/commands/{command_name}/records` | **Create** a new record |
+| `PATCH` | `/command-data/nodes/{node_id}/commands/{command_name}/records/{key}` | Update (patch) a record |
+| `DELETE` | `/command-data/nodes/{node_id}/commands/{command_name}/records/{key}` | Delete a record |
+
+### Creating a Record (`POST .../records`)
+
+Added in jarvis-command-center#19. The client sends only field values; the node mints the storage key and stamps the owner from the JWT-resolved caller — ownership is never client-asserted.
+
+**Request body:**
+
+```json
+{ "data": { "name": "Vitamin D", "scope": "personal" } }
+```
+
+**Response (200):**
+
+```json
+{ "record": { "id": "...", "user_id": 42, ... }, "key": "..." }
+```
+
+**Error mapping:**
+
+| Node error | HTTP status |
+|---|---|
+| Command is read-only | 403 |
+| Command not found / does not support create | 404 |
+| Validation failure (e.g. "at least one dose time is required") | 400 |
+
+The mobile app shows 400 error messages directly to the user so commands should phrase `ValueError` messages in plain language.
+
+### Schema Response — `supports_create`
+
+The schema endpoint (and the inline schema in the get-record response) now includes `supports_create`:
+
+```json
+{
+  "mode": "enabled",
+  "supports_create": true,
+  "fields": [
+    { "name": "name", "type": "string", "editable": true },
+    { "name": "scope", "type": "enum", "editable": false, "create_only": true,
+      "enum_values": ["personal", "household"] }
+  ]
+}
+```
+
+The mobile app gates its **+** button on `supports_create`. Commands that do not override `data_browser_supports_create` return `false` and the button is hidden.
+
+See [Data Browser Protocol](../extending/infrastructure/datastore.md#data-browser-protocol) for the command-authoring side (how to opt a command into create support).
+
 ## Key Components
 
 - **Prompt Engine** (`app/core/prompt_engine.py`) -- builds system prompts with speaker context and memories
