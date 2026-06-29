@@ -131,6 +131,31 @@ Values fall back to the code default when no override row exists in the DB — n
 - **Tool Executor** (`app/core/tool_executor.py`) -- dispatches tool calls to the appropriate service
 - **Speaker Resolver** (`app/core/utils/speaker_resolver.py`) -- maps speaker IDs to display names
 - **Memory Service** (`app/services/memory_service.py`) -- persistent user memory CRUD
+- **Node Liveness** (`app/services/node_liveness.py`) -- refreshes `last_seen` from any proof-of-life channel
+
+## Node Online Status
+
+A node is shown as **Online** in the admin dashboard when its `last_seen` timestamp is within the past 15 minutes (`Node.is_online()` in `app/models.py`).
+
+### How `last_seen` is refreshed
+
+Since jarvis-command-center#17 (June 2026), `last_seen` is updated by **any authenticated node interaction**, not just the dedicated HTTP heartbeat. This means a node that is actively serving voice commands or MQTT requests stays marked online even if its heartbeat POSTs are failing (e.g. over a flaky WAN or Cloudflare tunnel).
+
+| Interaction | Refresh mechanism |
+|-------------|-------------------|
+| Any node-authenticated HTTP request — voice, `/continue`, `conversation/start`, results callbacks | `touch_node_last_seen()` called in `verify_api_key` |
+| Successful MQTT request/response round-trip | `record_node_seen()` called after `_mqtt_request` returns |
+| Dedicated heartbeat (`POST /admin/nodes/heartbeat`, every 300 s) | Unchanged — still runs and also updates `version`, `busy`, and `protocols` fields |
+
+All liveness updates are **best-effort**: they never raise into an auth path or request handler, and a DB error during a liveness write is swallowed and logged at DEBUG level.
+
+### Online threshold
+
+`Node.is_online()` returns `True` when `last_seen >= now − 15 min`. A node that has not interacted with Command Center on any channel for 15 minutes is considered offline.
+
+### Write debounce
+
+`touch_node_last_seen` skips the DB write if `last_seen` was already updated within the last 60 seconds. This keeps writes bounded on busy paths (at most ~1 write/minute/node from the hot path) while keeping liveness well within the 15-minute threshold.
 
 ## Web Search
 
