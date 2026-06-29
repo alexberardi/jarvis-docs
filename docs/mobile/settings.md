@@ -39,6 +39,22 @@ Household admins can control whether Jarvis is permitted to search the internet 
 
 Toggle between **Light**, **Dark**, and **System** themes.
 
+## Security
+
+### Biometric Login
+
+Toggle biometric session restore under **Settings → Security**.
+
+| Setting | Description |
+|---------|-------------|
+| **Biometric Login** | When on, a cold-boot launch requires Face ID, Touch ID, or Android biometrics before restoring your session. When off, the password form is shown directly. |
+
+Toggling re-keys the stored refresh token immediately — you do not need to log out and back in for the change to take effect.
+
+**Scope:** only cold-boot session restore is gated. Background token refresh, device-control calls, and K2 node-encryption keys are never gated by biometrics and never prompt mid-session.
+
+**Platform:** iOS uses Face ID or Touch ID via the Secure Enclave. Android biometric support requires an app build that includes the `USE_BIOMETRIC` permission; the enroll checkbox will not appear on older APKs.
+
 ## Chat
 
 - **Auto-play responses** --- Automatically speak Jarvis responses via TTS
