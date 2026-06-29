@@ -59,16 +59,7 @@ From a node's detail screen you can:
 
 ## Voice Settings
 
-Each node exposes a **Voice Settings** screen where you can tune wake-word detection, audio I/O, and response behaviour.
-
-| Setting | Default | Description |
-|---|---|---|
-| **Wake Word Model** | `hey_jarvis` | openWakeWord model name. Change for a custom or non-English wake word. |
-| **Not-For-Me Quiet Time** | 20 s (range 5–60 s) | How long to suppress further wakes after one is classified as not meant for this node (ambient false-wake suppression). |
-| **Audio Output Device** | *(auto-detect)* | ALSA playback device string for TTS output (e.g. `plughw:1,0`). Leave blank to let the node auto-detect. |
-| **Mic Sample Rate** | 48000 Hz | Microphone capture rate. Constrained to 44100 or 48000 Hz. Use 44100 only for USB mics that reject the higher rate; audio is resampled to 16 kHz for the wake-word detector either way. |
-
-Tap **Save Changes** to persist settings to the node. Changes take effect on the next voice-session start.
+Each node exposes a **Voice Settings** screen where you can tune wake-word detection and response behaviour. Tap **Save Changes** to persist settings to the node.
 
 ## Data Browser
 
