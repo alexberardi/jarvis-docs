@@ -20,7 +20,7 @@ Flags:
 
 ## What It Does
 
-1. **Wake word detection** -- Listens locally for a configured wake word using [openWakeWord](https://github.com/dscripka/openWakeWord). No audio leaves the device until the wake word is heard.
+1. **Wake word detection** -- Listens locally for a configured wake word using [openWakeWord](https://github.com/dscripka/openWakeWord). Local ONNX inference — no cloud service or API key required. The model is set via `wake_word_model` in `config.json` (default: `hey_jarvis`); models download automatically on first run. No audio leaves the device until the wake word is heard.
 2. **Audio capture** -- Records speech until silence is detected.
 3. **Command submission** -- Sends the audio to the command center, which handles transcription, intent classification, and command execution.
 4. **Response playback** -- Receives spoken responses via MQTT (from the TTS service) and plays them through the speaker.
@@ -150,6 +150,31 @@ Additional commands can be installed from the community Pantry store via the mob
 jarvis pantry install get_weather
 ```
 
+#### Command Installation Pipeline
+
+The install pipeline runs these steps in order: clone → validate → test → copy files → **apt deps (step 9)** → pip deps (step 10) → namespace → secrets → registry enable.
+
+apt runs before pip so a fast failure (disk full, bad package name, missing wrapper) aborts before the slower pip work begins.
+
+#### apt Dependencies
+
+Commands that declare system packages in their manifest (`apt_packages` field) trigger an apt install step. The installer:
+
+1. **Pre-flights disk space** — requires ≥ 500 MB free on `/`. Fails fast before invoking apt if the check fails.
+2. **Validates package names** — each name is checked against `^[a-z][a-z0-9.+-]*$`. One invalid name aborts the entire call with no partial installs.
+3. **Invokes `/usr/local/sbin/jarvis-apt-install`** via `sudo` — a root-owned POSIX sh wrapper deployed by `install.sh` that forwards valid names to `nice -n 15 apt-get install -y --no-install-recommends` with a 60 s dpkg-lock wait and a 300 s total timeout.
+
+The installer adds this entry to `/etc/sudoers.d/jarvis-node`:
+
+```
+${SERVICE_USER} ALL=(root) NOPASSWD: /usr/local/sbin/jarvis-apt-install *
+```
+
+The `*` is in the argument position (not the binary path), so only `jarvis-apt-install` itself can be invoked with elevated privileges — no other command gains `sudo` access via this entry.
+
+!!! tip "Wrapper missing?"
+    If node logs show `apt wrapper missing at /usr/local/sbin/jarvis-apt-install`, re-run `install.sh` to redeploy the wrapper.
+
 ## Built-in Commands
 
 ### `control_node` — Volume and Mute
@@ -193,7 +218,7 @@ pcm.dsnoopmic      type plug → dsnoopmic_hw
 pcm.!default       type asym: playback=output, capture=dsnoopmic
 ```
 
-Wake-word detection reads from `dsnoopmic` (raw PCM, no PA resampling). TTS and streaming playback go through PulseAudio.
+Wake-word detection reads from `dsnoopmic` (raw PCM, no PA resampling); the listener resamples the 48 kHz capture to 16 kHz (openWakeWord's expected input rate) before scoring. TTS and streaming playback go through PulseAudio.
 
 ### Required Systemd Environment
 
@@ -239,7 +264,7 @@ The ReSpeaker GPIO17 button short-press speaks any queued proactive alerts via l
 |---------|---------|
 | PyAudio, SoundDevice | Audio capture and playback |
 | paho-mqtt | MQTT integration (TTS listener) |
-| openwakeword | Wake word detection |
+| openwakeword | Wake word detection (local ONNX inference; no API key or cloud service required) |
 | httpx | REST client to command center |
 | SQLAlchemy + pysqlcipher3 | Local encrypted database |
 | jarvis-command-sdk | Shared command/agent interfaces |
@@ -269,6 +294,7 @@ Key config fields:
 | `led_enabled` | Whether the LED ring is active on boot (HAT nodes only) |
 | `led_brightness_percent` | LED brightness applied at startup (0–100, default 100) |
 | `not_for_me_quiet_seconds` | Seconds the wake gate is held after a `<not_for_me/>` response. Default: `20.0` |
+| `wake_word_model` | openWakeWord model name. Default: `hey_jarvis`. Models are downloaded automatically on first run via `openwakeword.utils.download_models`. |
 
 ## Node Authentication
 

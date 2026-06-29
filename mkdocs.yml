@@ -141,6 +141,9 @@ nav:
     - Pantry Runner: services/pantry-runner.md
     - Pantry Store: services/pantry-store.md
     - Pantry Web: services/pantry-web.md
+  - Pantry:
+    - Overview: pantry/index.md
+    - Rejections: pantry/rejections.md
   - Libraries:
     - libraries/index.md
     - Log Client: libraries/log-client.md
@@ -171,7 +174,11 @@ nav:
     - contributing/index.md
     - Coding Standards: contributing/coding-standards.md
     - Testing: contributing/testing.md
+    - Integration Tests: contributing/integration-tests.md
   - Troubleshooting: troubleshooting/index.md
+  - Blog:
+    - blog/index.md
+    - "Self-hosted voice assistants in the LLM era": blog/llm-era-voice-assistant.md
   - Reference:
     - CLI: reference/cli.md
     - Environment Variables: reference/env-vars.md

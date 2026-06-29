@@ -284,6 +284,85 @@ all_data = storage.get_all()
 
 `JarvisStorage` is the recommended approach for Pantry packages. Commands that live directly in `jarvis-node-setup/commands/` can use either `JarvisStorage` or `CommandDataRepository` directly.
 
+## Data Browser Protocol
+
+The mobile app's in-app data browser talks to the node over MQTT via the `command-data/` topic family. The protocol supports `schema`, `list`, `get`, `update`, `delete`, and (for commands that opt in) `create` operations.
+
+### Opting Into Record Creation
+
+To let mobile users add new records via the **+** button, implement two things on your command class:
+
+**1. Declare support**
+
+```python
+@property
+def data_browser_supports_create(self) -> bool:
+    return True
+```
+
+Commands that do not set this property to `True` refuse create requests at the node — a generic save can never silently bypass runtime state (e.g., a scheduler that reads an in-memory cache).
+
+**2. Implement the hook**
+
+```python
+def data_browser_create(
+    self,
+    fields: dict[str, Any],
+    requesting_user_id: int | None,
+) -> tuple[str, dict]:
+    """Mint a new record and return (data_key, record_dict).
+
+    `fields` is pre-filtered to editable + create_only field names.
+    Stamp ownership from `requesting_user_id` here — the client cannot
+    assert user_id directly.
+    """
+    key = str(uuid.uuid4())
+    record = {"id": key, "user_id": requesting_user_id, **fields}
+    self._repo.save(self.command_name, key, json.dumps(record))
+    return key, record
+```
+
+The node filters the incoming payload to **editable + `create_only`** field names before calling this hook. Server-managed fields (`user_id`, `id`, `created_at`) are never passed through; the command owns ownership stamping.
+
+Raise `ValueError` to surface a user-visible error message (mapped to a 400-equivalent response in the mobile app).
+
+### `FieldSpec.create_only`
+
+Use `create_only=True` for fields that should be settable at record creation but immutable afterwards — for example, a scope or category whose change would alter record visibility:
+
+```python
+FieldSpec("scope", "enum", enum_values=["personal", "household"],
+          editable=False, create_only=True)
+```
+
+| Behaviour | `editable=True` | `create_only=True` |
+|-----------|----------------|-------------------|
+| Shown in create form | ✓ | ✓ |
+| Passed to `data_browser_create` | ✓ | ✓ |
+| Patchable via `update` op | ✓ | ✗ (silently dropped) |
+| Shown in edit form | ✓ | ✗ |
+
+### Schema Response
+
+`_op_schema` (and the inline schema in `_op_get`) now include `supports_create` so the mobile app knows whether to render the **+** button:
+
+```json
+{
+  "ok": true,
+  "mode": "enabled",
+  "supports_create": true,
+  "fields": [
+    { "name": "text", "type": "string", "editable": true, "create_only": false },
+    { "name": "scope", "type": "enum", "editable": false, "create_only": true,
+      "enum_values": ["personal", "household"] }
+  ]
+}
+```
+
+### SDK Requirement
+
+The create verb requires **`jarvis-command-sdk >= 0.4.1`** (adds `data_browser_supports_create`, `data_browser_create`, and `FieldSpec.create_only`). Commands on older SDK versions that attempt a create request receive an "unsupported" error.
+
 ## Session Management
 
 The data store requires a SQLAlchemy session from `SessionLocal()`. Always close the session when you are done:

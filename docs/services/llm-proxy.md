@@ -165,6 +165,8 @@ Proxies inference to remote APIs --- useful for cloud LLMs, hosted inference ser
 | **Auth** | Bearer token, API key, or custom headers |
 | **Vision** | Yes (converts images to data URLs) |
 
+The REST backend maintains a persistent `httpx.AsyncClient` and routes all async inference calls through a single dedicated background event loop. This keeps the connection pool bound to one stable loop for the lifetime of the backend instance, making the backend reliable under concurrent multi-request load --- for example, when the model service handles simultaneous voice commands.
+
 #### Quick Setup
 
 Set the backend to `REST` and point it at your provider:
@@ -241,12 +243,35 @@ JARVIS_REST_AUTH_TOKEN=sk-your-api-key
 | `JARVIS_REST_MODEL_NAME` | --- | Model name for live requests |
 | `JARVIS_REST_BACKGROUND_MODEL_NAME` | --- | Model name for background requests |
 | `JARVIS_REST_AUTH_TYPE` | `none` | Auth type: `bearer`, `api_key`, `custom`, `none` |
-| `JARVIS_REST_AUTH_TOKEN` | --- | Auth token or API key |
+| `JARVIS_REST_AUTH_TOKEN` | --- | Auth token or API key. Also configurable as DB setting `rest.auth_token` via Admin → Settings (DB value takes precedence; env var is the fallback; masked in UI; requires reload) |
 | `JARVIS_REST_AUTH_HEADER` | `Authorization` | Custom auth header name (for `custom` auth type) |
 | `JARVIS_REST_REQUEST_FORMAT` | `openai` | Request format: `openai`, `ollama`, `chatml`, `generic` |
 | `JARVIS_REST_TIMEOUT` | `60` | Request timeout in seconds |
 
+!!! tip "Configuring the auth token via the admin UI"
+    `JARVIS_REST_AUTH_TOKEN` is now also available as the **`rest.auth_token`** DB-backed setting. Set it in **Admin → Settings → REST** — the value is masked in the UI and takes precedence over the environment variable. Existing env-var deployments continue to work without any change; the env var remains as a fallback.
+
 The provider setting controls response parsing (different APIs return results in different shapes). The request format controls how messages are serialized. For most OpenAI-compatible APIs (vLLM, LM Studio, text-generation-webui), use `provider=openai` + `request_format=openai`.
+
+#### Native Tool Calling
+
+Since jarvis-llm-proxy-api#4, the REST backend supports forwarding structured tool calls to OpenAI-compatible endpoints. This enables the `ChatGPTOpenAI` prompt provider in command-center to use native tool routing rather than text `<tool_call>` tag parsing.
+
+When `GenerationParams.tools` is set, `generate_text_chat` routes through `_chat_completion_with_tools()` instead of the plain content path:
+
+- `tools` (OpenAI function definitions) and `tool_choice` are forwarded in the request body.
+- Structured `tool_calls` are parsed from `message.tool_calls` in the response and returned in `ChatResult.tool_calls` (previously always `None`).
+- The real `finish_reason` (`"tool_calls"` or `"stop"`) is returned rather than always returning `"stop"`.
+
+When no tools are passed, the original content-only path runs unchanged — this is fully backward compatible.
+
+**Live behavior lane (manual / on-demand only):** `tests/manual/test_behavior_tool_routing.py` routes a 10-utterance corpus (timers, weather, device control, music, news, list-adds) through a real `gpt-4.1-nano` to verify correct tool selection end-to-end. Excluded from normal CI; requires an OpenAI key:
+
+```bash
+source ~/.jarvis/secrets/openai.env
+JARVIS_REST_PROVIDER=openai JARVIS_REST_AUTH_TYPE=bearer \
+  .venv/bin/python -m pytest tests/manual/test_behavior_tool_routing.py -v
+```
 
 ### Mock (Testing)
 
