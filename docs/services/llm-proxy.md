@@ -253,6 +253,26 @@ JARVIS_REST_AUTH_TOKEN=sk-your-api-key
 
 The provider setting controls response parsing (different APIs return results in different shapes). The request format controls how messages are serialized. For most OpenAI-compatible APIs (vLLM, LM Studio, text-generation-webui), use `provider=openai` + `request_format=openai`.
 
+#### Native Tool Calling
+
+Since jarvis-llm-proxy-api#4, the REST backend supports forwarding structured tool calls to OpenAI-compatible endpoints. This enables the `ChatGPTOpenAI` prompt provider in command-center to use native tool routing rather than text `<tool_call>` tag parsing.
+
+When `GenerationParams.tools` is set, `generate_text_chat` routes through `_chat_completion_with_tools()` instead of the plain content path:
+
+- `tools` (OpenAI function definitions) and `tool_choice` are forwarded in the request body.
+- Structured `tool_calls` are parsed from `message.tool_calls` in the response and returned in `ChatResult.tool_calls` (previously always `None`).
+- The real `finish_reason` (`"tool_calls"` or `"stop"`) is returned rather than always returning `"stop"`.
+
+When no tools are passed, the original content-only path runs unchanged — this is fully backward compatible.
+
+**Live behavior lane (manual / on-demand only):** `tests/manual/test_behavior_tool_routing.py` routes a 10-utterance corpus (timers, weather, device control, music, news, list-adds) through a real `gpt-4.1-nano` to verify correct tool selection end-to-end. Excluded from normal CI; requires an OpenAI key:
+
+```bash
+source ~/.jarvis/secrets/openai.env
+JARVIS_REST_PROVIDER=openai JARVIS_REST_AUTH_TYPE=bearer \
+  .venv/bin/python -m pytest tests/manual/test_behavior_tool_routing.py -v
+```
+
 ### Mock (Testing)
 
 Returns `[mock-text:model] <input>`. Used in tests.
