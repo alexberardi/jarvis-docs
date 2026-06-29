@@ -167,6 +167,25 @@ npm run test:coverage
 
 API URLs are configured in `src/config/env.ts`. In development mode, the app connects to `localhost`.
 
+### E2E / CI Config Discovery (`EXPO_PUBLIC_MANUAL_CONFIG_URL`)
+
+In **DEV_MODE**, config discovery has a Tier-0 fallback to a baked config-service URL. This lets a fresh `clearState` e2e build reach config-service in CI environments where mDNS network sweeping is unavailable.
+
+Set `EXPO_PUBLIC_MANUAL_CONFIG_URL` to the config-service base URL before building. The `development-e2e` EAS profile sets this automatically:
+
+```json
+// eas.json — development-e2e profile
+"EXPO_PUBLIC_MANUAL_CONFIG_URL": "http://localhost:7700"
+```
+
+**Discovery priority order (DEV_MODE only):**
+
+1. UI-pinned URL (AsyncStorage) — always wins; a developer's manually-pinned URL is never overridden
+2. `EXPO_PUBLIC_MANUAL_CONFIG_URL` — baked fallback for e2e / CI builds with no pinned URL
+3. mDNS / LAN sweep
+
+This variable is inert in production builds: `DEV_MODE` is `false` and production EAS profiles never set `EXPO_PUBLIC_MANUAL_CONFIG_URL`.
+
 ## Service Dependencies
 
 | Service | Required | Purpose |
