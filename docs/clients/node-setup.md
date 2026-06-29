@@ -20,7 +20,7 @@ Flags:
 
 ## What It Does
 
-1. **Wake word detection** -- Listens locally for a configured wake word using [openWakeWord](https://github.com/dscripka/openWakeWord). No audio leaves the device until the wake word is heard.
+1. **Wake word detection** -- Listens locally for a configured wake word using [openWakeWord](https://github.com/dscripka/openWakeWord). Local ONNX inference — no cloud service or API key required. The model is set via `wake_word_model` in `config.json` (default: `hey_jarvis`); models download automatically on first run. No audio leaves the device until the wake word is heard.
 2. **Audio capture** -- Records speech until silence is detected.
 3. **Command submission** -- Sends the audio to the command center, which handles transcription, intent classification, and command execution.
 4. **Response playback** -- Receives spoken responses via MQTT (from the TTS service) and plays them through the speaker.
@@ -218,7 +218,7 @@ pcm.dsnoopmic      type plug → dsnoopmic_hw
 pcm.!default       type asym: playback=output, capture=dsnoopmic
 ```
 
-Wake-word detection reads from `dsnoopmic` (raw PCM, no PA resampling). TTS and streaming playback go through PulseAudio.
+Wake-word detection reads from `dsnoopmic` (raw PCM, no PA resampling); the listener resamples the 48 kHz capture to 16 kHz (openWakeWord's expected input rate) before scoring. TTS and streaming playback go through PulseAudio.
 
 ### Required Systemd Environment
 
@@ -264,7 +264,7 @@ The ReSpeaker GPIO17 button short-press speaks any queued proactive alerts via l
 |---------|---------|
 | PyAudio, SoundDevice | Audio capture and playback |
 | paho-mqtt | MQTT integration (TTS listener) |
-| openwakeword | Wake word detection |
+| openwakeword | Wake word detection (local ONNX inference; no API key or cloud service required) |
 | httpx | REST client to command center |
 | SQLAlchemy + pysqlcipher3 | Local encrypted database |
 | jarvis-command-sdk | Shared command/agent interfaces |
@@ -294,6 +294,7 @@ Key config fields:
 | `led_enabled` | Whether the LED ring is active on boot (HAT nodes only) |
 | `led_brightness_percent` | LED brightness applied at startup (0–100, default 100) |
 | `not_for_me_quiet_seconds` | Seconds the wake gate is held after a `<not_for_me/>` response. Default: `20.0` |
+| `wake_word_model` | openWakeWord model name. Default: `hey_jarvis`. Models are downloaded automatically on first run via `openwakeword.utils.download_models`. |
 
 ## Node Authentication
 
