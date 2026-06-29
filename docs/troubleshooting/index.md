@@ -266,6 +266,26 @@ cd ~/.jarvis/compose && docker compose up -d mosquitto
 
 The default MQTT broker port is **1883** (internal) / **1884** (external). Verify the node's MQTT config points to the correct host and port.
 
+### Node shows offline while actively serving commands
+
+**Symptom:** A node's status badge shows **Offline** in the admin dashboard, but it is responding to voice commands or MQTT requests, or SSH is reachable on the LAN.
+
+**How node online status works:** A node is considered online when its `last_seen` timestamp is within the past 15 minutes. Since jarvis-command-center#17, `last_seen` is refreshed by **any** authenticated interaction — voice commands, `/continue`, `conversation/start`, and MQTT round-trips — not just the dedicated HTTP heartbeat. A node that is actively talking to the command center on any channel will stay marked online.
+
+**If the badge is still showing offline after this fix**, the node is genuinely unreachable on all channels. Work through this checklist:
+
+1. **Can you SSH into the node?** If not, the node itself may be down or the LAN path is broken.
+2. **Is MQTT working?** Check the Mosquitto container and confirm the node is subscribed:
+    ```bash
+    docker ps | grep mosquitto
+    docker logs <node-container> 2>&1 | grep -i mqtt | tail -20
+    ```
+3. **Is the command center reachable from the node?** The node's heartbeat posts to `POST /admin/nodes/heartbeat`. A persistent `ReadTimeout` on that path (e.g. a flaky Cloudflare tunnel) used to be enough to mark a node offline even while MQTT worked — that is no longer the case. If you see repeated heartbeat timeouts in the logs, investigate the WAN/tunnel path.
+4. **Force a re-check:** Restart the node container to trigger an immediate heartbeat and re-authentication:
+    ```bash
+    docker restart <node-container>
+    ```
+
 ### Commands not available after install
 
 **Symptom:** You installed a Pantry package, but the command does not work.
