@@ -1,6 +1,6 @@
-# Pi Zero Node (jarvis-node-setup)
+# Node (jarvis-node-setup)
 
-The Pi Zero node is the primary voice interface for Jarvis. It runs on Raspberry Pi Zero hardware (or any Linux/macOS machine for development) with a microphone and speaker attached.
+The Jarvis node is the primary voice interface for Jarvis. It runs on Raspberry Pi hardware (Pi Zero 2 W, Pi 4, Pi 5), any 64-bit Linux machine, or inside Docker with a mic and speaker attached. macOS is supported for development (native only; Docker Desktop has no audio hardware access via VM).
 
 ## Quick Install
 
@@ -30,13 +30,16 @@ Flags:
 ```
 jarvis-node-setup/
 ├── scripts/
-│   └── main.py                # Entry point
+│   ├── main.py                # Native entry point
+│   ├── entrypoint.py          # Container entry point (routes setup / voice mode)
+│   ├── jarvis-apt-install     # Sudo-able apt-get shim for Pantry-declared packages
+│   └── configure-audio.sh     # Audio device auto-detect for containerised runs
 ├── core/
 │   ├── ijarvis_command.py     # Command interface (re-exports from SDK)
 │   ├── ijarvis_parameter.py   # Parameter definitions
 │   ├── ijarvis_secret.py      # Secret definitions
 │   ├── command_response.py    # Response structure
-│   └── platform_abstraction.py # Hardware abstraction
+│   └── platform_abstraction.py # Hardware abstraction (Pi vs generic Linux)
 ├── commands/                  # Built-in commands (control_node, etc.)
 ├── agents/                    # Background agents (reminders, device discovery)
 ├── services/
@@ -54,6 +57,15 @@ jarvis-node-setup/
     ├── audio_volume.py        # PulseAudio volume/mute control
     └── config_service.py      # Configuration loader
 ```
+
+### Platform detection
+
+`core/platform_abstraction.py` exposes two probes used at runtime:
+
+- `is_raspberry_pi()` — reads the device-tree model string; returns `True` only on Pi hardware.
+- `has_respeaker_hat()` — checks for the `seeed2micvoicec` ALSA card; gates TLV320 self-heal and sink keepalive.
+
+On non-Pi 64-bit Linux (and in containers), `LinuxHostAudioProvider` is selected instead of the HAT-specific provider. HAT-specific drivers ship in `requirements-hat.txt` and are not installed by default.
 
 ## Threading Model
 
@@ -270,6 +282,8 @@ The ReSpeaker GPIO17 button short-press speaks any queued proactive alerts via l
 | jarvis-command-sdk | Shared command/agent interfaces |
 | mpv | Streaming command audio playback (`--ao=alsa` path) |
 
+HAT-specific drivers (TLV320, APA102 LEDs, gpiozero) live in `requirements-hat.txt` and are installed separately on Pi HAT nodes only.
+
 ## Local Encrypted Storage
 
 Node secrets (API keys, OAuth tokens) are stored in a local SQLite database encrypted with [PySQLCipher](https://github.com/niccokunzmann/pysqlcipher3). The encryption key (`K1`) is generated on first boot and stored in `~/.jarvis/secrets.key`.
@@ -295,6 +309,7 @@ Key config fields:
 | `led_brightness_percent` | LED brightness applied at startup (0–100, default 100) |
 | `not_for_me_quiet_seconds` | Seconds the wake gate is held after a `<not_for_me/>` response. Default: `20.0` |
 | `wake_word_model` | openWakeWord model name. Default: `hey_jarvis`. Models are downloaded automatically on first run via `openwakeword.utils.download_models`. |
+| `audio_output_device` | ALSA device for playback (e.g. `hw:1,0`, named PulseAudio sink). Overrides auto-detection. Container nodes: set via `JARVIS_AUDIO_OUTPUT_DEVICE` env. |
 
 ## Node Authentication
 
@@ -341,6 +356,108 @@ sudo systemctl restart jarvis-node
 
 !!! tip "Backup before migrating"
     `sudo tar -czf /tmp/jarvis-pre-migration.tar.gz /root/.jarvis /opt/jarvis-node` before step 2.
+
+## Container Deployment
+
+The voice node ships a Docker image (`Dockerfile.audio`) for running the full voice runtime — mic capture, wake word, STT, TTS playback — on any 64-bit Linux host, with or without Pi hardware.
+
+!!! warning "macOS is not supported via Docker"
+    Docker Desktop runs containers in a VM with no access to the Mac's audio hardware. Run natively on macOS for development.
+
+### Supported hosts
+
+| Host | Architecture | Notes |
+|------|-------------|-------|
+| Raspberry Pi (64-bit OS) | arm64 | Any model; USB or HAT audio |
+| Ubuntu/Debian server or desktop | amd64 | USB mic + speaker recommended |
+| Any Linux with Docker | arm64 / amd64 | Requires mic + speaker accessible to the container |
+
+### Quick start
+
+**1. Build the image**
+
+```bash
+docker compose -f docker-compose.audio.yaml build
+```
+
+Builds for the host's native architecture — no QEMU. First build downloads onnxruntime, scipy, and the openWakeWord models; allow a few minutes.
+
+**2. Detect audio devices and write config**
+
+```bash
+./scripts/configure-audio.sh
+```
+
+Auto-detects your host's audio transport (PipeWire/PulseAudio socket vs raw `/dev/snd`), lists available mics, writes `audio.env` (git-ignored), and prints the exact `docker compose … up` command for your system.
+
+**3. First run — register the node**
+
+```bash
+docker compose -f docker-compose.audio.yaml up
+```
+
+On first boot there are no credentials, so the node starts the **setup web UI** on `http://<host>:7771`. Log in, pick a household and room, and point it at your command center URL. Credentials are saved to the `jarvis-node-config` Docker volume.
+
+**4. Restart into voice mode**
+
+```bash
+docker compose -f docker-compose.audio.yaml restart
+```
+
+The node now has credentials and starts the full voice loop (wake → STT → CC → TTS playback).
+
+### Audio transport
+
+| Transport | Compose file(s) | When to use |
+|-----------|----------------|-------------|
+| Raw ALSA (`/dev/snd`) | `docker-compose.audio.yaml` | Headless server with no sound daemon; USB mic + speaker |
+| PulseAudio / PipeWire socket | `docker-compose.audio.yaml` + `docker-compose.pulse.yaml` | Linux desktop — **required** there; the sound server owns the devices exclusively |
+
+For PipeWire/PulseAudio hosts, add the overlay:
+
+```bash
+docker compose -f docker-compose.audio.yaml -f docker-compose.pulse.yaml up
+# If your login UID is not 1000:
+JARVIS_HOST_UID=$(id -u) docker compose -f docker-compose.audio.yaml -f docker-compose.pulse.yaml up
+```
+
+### Echo Cancellation (AEC)
+
+AEC removes the node's own TTS playback from the mic signal so the node can hear "Hey Jarvis" over its own audio (barge-in). Requires the PulseAudio/PipeWire transport. Enable with:
+
+```bash
+JARVIS_AEC_ENABLED=true   # in audio.env
+```
+
+Validated in-container on Ubuntu/PipeWire: calibration succeeds, the pipeline runs per-frame with no errors. Most useful with open speakers; a closed headset has minimal echo.
+
+### Container environment variables
+
+| Variable | Meaning | Default |
+|----------|---------|---------|
+| `JARVIS_AUDIO_OUTPUT_DEVICE` | ALSA playback device (e.g. `plughw:1,0`, named sink, `pulse`) | `default` |
+| `JARVIS_MIC_DEVICE_INDEX` | PyAudio input index | auto (first input) |
+| `JARVIS_MIC_DEVICE_NAME` | Substring match against input device name (more stable than index across reboots) | — |
+| `JARVIS_MIC_SAMPLE_RATE` | Mic capture rate; runtime resamples to 16 kHz internally. Try `44100` for USB mics that reject 48 kHz | `48000` |
+| `JARVIS_HOST_UID` | Host login UID used for the PipeWire socket path | `1000` |
+| `JARVIS_AEC_ENABLED` | Enable acoustic echo cancellation (requires pulse transport) | `false` |
+
+### Container troubleshooting
+
+- **No input devices / `PyAudio.open()` fails** — confirm `/dev/snd` exists on the host and `arecord -l` shows the mic. The compose file adds the container user to the `audio` group automatically.
+- **Playback silent** — set `JARVIS_AUDIO_OUTPUT_DEVICE` to a specific device from `aplay -L` on the host. `default` may map to the wrong card on multi-device systems.
+- **Wake word never fires** — run `docker compose -f docker-compose.audio.yaml exec jarvis-node-audio python scripts/list_audio_devices.py` to verify the mic is visible. Lower `JARVIS_MIC_SAMPLE_RATE` if the device doesn't support 48 kHz.
+- **Can't reach the command center** — the container maps `host.docker.internal` to the host IP. Use that hostname in the setup UI when CC runs on the same machine.
+
+### Docker images (CI-published)
+
+| Tag | Trigger | Architectures |
+|-----|---------|--------------|
+| `:edge` | Every merge to `main` | amd64, arm64 |
+| `:latest` | `v*` git tag | amd64, arm64 |
+| `:<version>` | `v*` git tag | amd64, arm64 |
+
+Images are built with native per-arch runners (no QEMU), so arm64 builds take ~3 minutes instead of ~38.
 
 ## Service Dependencies
 
