@@ -25,6 +25,105 @@ The command center is the voice command orchestrator. It receives transcribed te
 | `POST` | `/api/v0/memories` | Create a user memory |
 | `DELETE` | `/api/v0/memories/{id}` | Delete a user memory |
 
+For mobile data-browser routes see [Mobile Command-Data API](#mobile-command-data-api) below.
+
+For household settings routes (e.g. web search toggle) see [Mobile Household Settings API](#mobile-household-settings-api) below.
+
+## Mobile Command-Data API
+
+The mobile app manages command records through a set of REST routes that proxy to the node's MQTT data-browser protocol. All routes require a valid mobile JWT.
+
+| Method | Path | Description |
+|--------|------|-------------|
+| `GET` | `/command-data/nodes` | List nodes visible to the authenticated user |
+| `GET` | `/command-data/nodes/{node_id}/commands/{command_name}/schema` | Fetch field schema for a command |
+| `GET` | `/command-data/nodes/{node_id}/commands/{command_name}/records` | List all records |
+| `GET` | `/command-data/nodes/{node_id}/commands/{command_name}/records/{key}` | Fetch one record |
+| `POST` | `/command-data/nodes/{node_id}/commands/{command_name}/records` | **Create** a new record |
+| `PATCH` | `/command-data/nodes/{node_id}/commands/{command_name}/records/{key}` | Update (patch) a record |
+| `DELETE` | `/command-data/nodes/{node_id}/commands/{command_name}/records/{key}` | Delete a record |
+
+### Creating a Record (`POST .../records`)
+
+Added in jarvis-command-center#19. The client sends only field values; the node mints the storage key and stamps the owner from the JWT-resolved caller — ownership is never client-asserted.
+
+**Request body:**
+
+```json
+{ "data": { "name": "Vitamin D", "scope": "personal" } }
+```
+
+**Response (200):**
+
+```json
+{ "record": { "id": "...", "user_id": 42, ... }, "key": "..." }
+```
+
+**Error mapping:**
+
+| Node error | HTTP status |
+|---|---|
+| Command is read-only | 403 |
+| Command not found / does not support create | 404 |
+| Validation failure (e.g. "at least one dose time is required") | 400 |
+
+The mobile app shows 400 error messages directly to the user so commands should phrase `ValueError` messages in plain language.
+
+### Schema Response — `supports_create`
+
+The schema endpoint (and the inline schema in the get-record response) now includes `supports_create`:
+
+```json
+{
+  "mode": "enabled",
+  "supports_create": true,
+  "fields": [
+    { "name": "name", "type": "string", "editable": true },
+    { "name": "scope", "type": "enum", "editable": false, "create_only": true,
+      "enum_values": ["personal", "household"] }
+  ]
+}
+```
+
+The mobile app gates its **+** button on `supports_create`. Commands that do not override `data_browser_supports_create` return `false` and the button is hidden.
+
+See [Data Browser Protocol](../extending/infrastructure/datastore.md#data-browser-protocol) for the command-authoring side (how to opt a command into create support).
+
+## Mobile Household Settings API
+
+Added in jarvis-command-center#20. A dedicated router (`app/api/mobile_household_settings.py`) exposes an allowlisted set of household-level settings that a household admin can toggle from the mobile app. The shared `/settings/*` router requires global `is_superuser` — the wrong scope for a per-household toggle — so this router authorizes writes via the caller's role in the target household instead.
+
+**Auth:** reads require `member` role; writes require `admin` role in the target household.
+
+**Allowlisted settings:**
+
+| Key | Type | Description |
+|---|---|---|
+| `web_search.enabled` | `bool` | Master toggle for outbound-web tools (`quick_search` + `deep_research`). Default `false`. |
+
+Any key not on the allowlist returns `404` — the allowlist is the security boundary that prevents this endpoint from becoming a household-admin write path to arbitrary command-center settings.
+
+### Endpoints
+
+| Method | Path | Auth | Description |
+|---|---|---|---|
+| `GET` | `/api/v0/mobile/household/{household_id}/settings` | Any household member | Returns current values of all household-controllable settings |
+| `PUT` | `/api/v0/mobile/household/{household_id}/settings/{key}` | Household admin | Sets one household-controllable setting |
+
+**PUT request body:**
+
+```json
+{ "value": true }
+```
+
+**PUT response (200):**
+
+```json
+{ "success": true, "key": "web_search.enabled", "value": true }
+```
+
+Values fall back to the code default when no override row exists in the DB — no seed data is required for new households.
+
 ## Key Components
 
 - **Prompt Engine** (`app/core/prompt_engine.py`) -- builds system prompts with speaker context and memories
@@ -32,6 +131,60 @@ The command center is the voice command orchestrator. It receives transcribed te
 - **Tool Executor** (`app/core/tool_executor.py`) -- dispatches tool calls to the appropriate service
 - **Speaker Resolver** (`app/core/utils/speaker_resolver.py`) -- maps speaker IDs to display names
 - **Memory Service** (`app/services/memory_service.py`) -- persistent user memory CRUD
+- **Node Liveness** (`app/services/node_liveness.py`) -- refreshes `last_seen` from any proof-of-life channel
+
+## Node Online Status
+
+A node is shown as **Online** in the admin dashboard when its `last_seen` timestamp is within the past 15 minutes (`Node.is_online()` in `app/models.py`).
+
+### How `last_seen` is refreshed
+
+Since jarvis-command-center#17 (June 2026), `last_seen` is updated by **any authenticated node interaction**, not just the dedicated HTTP heartbeat. This means a node that is actively serving voice commands or MQTT requests stays marked online even if its heartbeat POSTs are failing (e.g. over a flaky WAN or Cloudflare tunnel).
+
+| Interaction | Refresh mechanism |
+|-------------|-------------------|
+| Any node-authenticated HTTP request — voice, `/continue`, `conversation/start`, results callbacks | `touch_node_last_seen()` called in `verify_api_key` |
+| Successful MQTT request/response round-trip | `record_node_seen()` called after `_mqtt_request` returns |
+| Dedicated heartbeat (`POST /admin/nodes/heartbeat`, every 300 s) | Unchanged — still runs and also updates `version`, `busy`, and `protocols` fields |
+
+All liveness updates are **best-effort**: they never raise into an auth path or request handler, and a DB error during a liveness write is swallowed and logged at DEBUG level.
+
+### Online threshold
+
+`Node.is_online()` returns `True` when `last_seen >= now − 15 min`. A node that has not interacted with Command Center on any channel for 15 minutes is considered offline.
+
+### Write debounce
+
+`touch_node_last_seen` skips the DB write if `last_seen` was already updated within the last 60 seconds. This keeps writes bounded on busy paths (at most ~1 write/minute/node from the hot path) while keeping liveness well within the 15-minute threshold.
+
+## Web Search
+
+Added in jarvis-command-center#20. The command center exposes two outbound-web **server tools** that let Jarvis answer queries using live internet data:
+
+| Tool | Behaviour |
+|---|---|
+| `quick_search` | Synchronous live lookup — sources are fetched and injected into the LLM context before the answer is generated. |
+| `deep_research` | Asynchronous background research — results are delivered via push notification and the user's inbox. |
+
+### Gate — `web_search.enabled`
+
+Both tools are gated behind the per-household `web_search.enabled` DB setting (**default `false`, fail-closed**). When disabled:
+
+- The tools are excluded from the warmup tool whitelist — the model is never offered them and their prompt guidance drops out automatically.
+- The fast-stream path blocks `quick_search` predictions regardless of classifier confidence.
+- Defense-in-depth re-checks at `execute()` time reject any hallucinated call.
+
+**Fail-closed:** any settings error (DB down, missing key) resolves to `false`. Web search is never accidentally enabled by an outage — the opposite of the memory gate, which fails open.
+
+Household admins toggle the setting from **Household Settings** in the mobile app (see [Mobile Household Settings API](#mobile-household-settings-api) above). It can also be set via **Admin → Settings → web_search** in the command-center admin UI.
+
+### Voice-Only Limitation
+
+Web search is **voice-only today**. The mobile/web chat path routes every tool call to the node over MQTT and never executes command-center server tools in-process, so `quick_search` and `deep_research` do not work in the chat UI. Making web search work in chat requires teaching the chat path to execute server tools locally (distinguishing server tools from node tools) — a separate piece of work.
+
+### Double-Egress Gotcha
+
+The `web_search.enabled` gate controls **server tools only**. The legacy `jarvis-cmd-web-search` node plugin (if installed on a node) is merged into the warmup prompt and routed directly to the node — it is **not** governed by this setting. "Disable web search = zero outbound egress" only holds if that plugin is not installed. Check the node's installed plugins if strict no-egress is required.
 
 ## not_for_me Detection
 
@@ -59,6 +212,14 @@ The node's pre-wake VAD window (~5 s) generates a `[direction hint:]` line inclu
 ### Paired Node Behavior
 
 When the command center responds with `<not_for_me/>`, the node holds its wake gate closed for a configurable cool-down (default 20 s, controlled by `not_for_me_quiet_seconds` in the node's `config.json`). This prevents the next sentence of the same side conversation from re-triggering wake. See the [node-setup Wake Behavior](../clients/node-setup.md#wake-behavior) section for details.
+
+## Key Settings (DB-driven)
+
+These settings are persisted in PostgreSQL and editable via **Admin → Settings** in the admin UI without restarting the service.
+
+| Key | Default | Description |
+|---|---|---|
+| `web_search.enabled` | `false` (per-household) | Master toggle for `quick_search` + `deep_research`. Fail-closed. See [Web Search](#web-search). |
 
 ## Environment Variables
 

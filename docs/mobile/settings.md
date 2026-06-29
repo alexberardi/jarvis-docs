@@ -11,8 +11,8 @@ Shows your username and provides a **Log Out** button.
 Manage your household membership:
 
 - **Switch households** --- Tap a household to make it active
-- **Edit household** --- Tap the pencil icon to rename, manage members, or create invite codes
-- **Join another household** --- Enter an invite code to join
+- **Edit household** --- Tap the pencil icon to rename, manage members, or configure household features
+- **Join another household** --- Enter a server URL and create an account to join
 - **Create new household** --- Create a fresh household
 - **Leave household** --- Available when you belong to multiple households
 
@@ -23,6 +23,17 @@ Admins can manage household members:
 - Change member roles (Member, Power User, Admin)
 - Remove members from the household
 - Create and revoke invite codes
+
+### Web Search (Admin)
+
+Household admins can control whether Jarvis is permitted to search the internet when answering questions. Open **Edit household** (pencil icon) to find the **Web Search** card.
+
+| Setting | Description |
+|---|---|
+| **Use web search** | When enabled, Jarvis can fetch current events, prices, and recent news to supplement its answers. When off, Jarvis answers only from what it already knows — nothing leaves your network for search purposes. Default: off. |
+
+!!! note
+    Only household admins can toggle this setting. Members see the current state but cannot change it.
 
 ## Appearance
 
