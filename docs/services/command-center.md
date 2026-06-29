@@ -221,6 +221,49 @@ These settings are persisted in PostgreSQL and editable via **Admin → Settings
 |---|---|---|
 | `web_search.enabled` | `false` (per-household) | Master toggle for `quick_search` + `deep_research`. Fail-closed. See [Web Search](#web-search). |
 
+
+## Prompt Providers
+
+Command-center selects a prompt provider to build the system prompt and (for native-tool-calling providers) prepare tool schemas for the API. The active provider is chosen by the `llm.interface` config-service DB setting or the `JARVIS_SYSTEM_PROMPT_PROVIDER` env var override.
+
+| Provider | `supports_native_tools` | `use_tool_classifier` | Best for |
+|----------|------------------------|----------------------|---------|
+| `JarvisModel` | `False` | `True` | Local GGUF / MLX / vLLM — text `<tool_call>` parsing + fastText pre-routing |
+| `ChatGPTOpenAI` | `True` | `False` | OpenAI-compatible cloud models (e.g. `gpt-4.1-nano`) via the REST backend |
+
+### ChatGPTOpenAI
+
+Added in jarvis-command-center#14. The first provider with `supports_native_tools=True` — command-center's native tool-calling path was previously unused end-to-end.
+
+**How it differs from text-based providers:**
+
+- Tools are forwarded to the model via the OpenAI `tools` API parameter with `tool_choice="auto"`. The model returns structured `tool_calls`; command-center reads them directly instead of parsing `<tool_call>` text tags.
+- The system prompt is deliberately **concise** — tool schemas are delivered natively, so they are not embedded in the cached system prompt (avoids token waste and llama.cpp prefix-cache invalidation).
+- `use_tool_classifier = False` — a capable cloud model routes from the native schemas; fastText hints are not needed and are skipped.
+
+**To activate** (pair with the REST backend — see [llm-proxy REST backend](llm-proxy.md#rest-remote-api-proxy)):
+
+```bash
+# Config-service DB setting (preferred)
+llm.interface = ChatGPTOpenAI
+
+# Or override via environment variable
+JARVIS_SYSTEM_PROMPT_PROVIDER=ChatGPTOpenAI
+```
+
+Full REST backend setup for `gpt-4.1-nano`:
+
+```bash
+JARVIS_LIVE_MODEL_BACKEND=REST
+JARVIS_LIVE_REST_MODEL_URL=https://api.openai.com
+JARVIS_REST_PROVIDER=openai
+JARVIS_REST_MODEL_NAME=gpt-4.1-nano
+JARVIS_REST_AUTH_TYPE=bearer
+JARVIS_REST_AUTH_TOKEN=sk-your-key
+JARVIS_SYSTEM_PROMPT_PROVIDER=ChatGPTOpenAI
+```
+
+
 ## Environment Variables
 
 ### Core
@@ -271,7 +314,7 @@ The command center uses a fastText model to pre-route commands to the right tool
 
 | Variable | Description |
 |----------|-------------|
-| `JARVIS_SYSTEM_PROMPT_PROVIDER` | Override the default system prompt provider class |
+| `JARVIS_SYSTEM_PROMPT_PROVIDER` | Active prompt provider class (see [Prompt Providers](#prompt-providers)). Example: `ChatGPTOpenAI` |
 | `JARVIS_PARAMETER_INFERENCE_PROMPT_PROVIDER` | Override the parameter inference prompt provider class |
 | `JARVIS_TRANSCRIPTION_CLEANUP_ENABLED` | Apply LLM-based cleanup to raw transcription before routing (`False`) |
 | `JARVIS_PROMPT_INCLUDE_ANTIPATTERNS` | Include anti-pattern examples in the system prompt (`True`) |
