@@ -165,6 +165,8 @@ Proxies inference to remote APIs --- useful for cloud LLMs, hosted inference ser
 | **Auth** | Bearer token, API key, or custom headers |
 | **Vision** | Yes (converts images to data URLs) |
 
+The REST backend maintains a persistent `httpx.AsyncClient` and routes all async inference calls through a single dedicated background event loop. This keeps the connection pool bound to one stable loop for the lifetime of the backend instance, making the backend reliable under concurrent multi-request load --- for example, when the model service handles simultaneous voice commands.
+
 #### Quick Setup
 
 Set the backend to `REST` and point it at your provider:
