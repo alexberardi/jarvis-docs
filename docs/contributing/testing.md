@@ -180,6 +180,34 @@ Replace `service` with one of: `jarvis-llm-proxy-api`, `jarvis-whisper-api`, or 
 
 These env vars determine which host CC's config-service discovery row points at — since config-service discovery takes precedence over CC's env fallback (`JARVIS_WHISPER_URL` / `JARVIS_TTS_URL`), setting these correctly is what actually routes CC to the real container.
 
+
+## Cross-Repo Integration Tests
+
+When a feature spans multiple repos (e.g. a change to `jarvis-command-center` that depends on a concurrent change to `jarvis-llm-proxy-api`), the **cross-repo integration lane** in `jarvis-integration-tests` builds all affected services from source and tests them together as a unit.
+
+### Declaring Linked PRs
+
+Add one `Linked-PR:` marker per sibling PR in your PR body:
+
+```
+Linked-PR: jarvis-llm-proxy-api@feat/streaming
+Linked-PR: jarvis-llm-proxy-api@a1b2c3d   # a SHA is reproducible; a branch resolves at clone time
+```
+
+The trigger workflow (`cross-repo-trigger.yml`) in each participating repo reads these markers and fires the `cross-repo-integration` dispatch at `jarvis-integration-tests`. Every repo in the feature computes the same sorted `feature_key` from all participants, so only one integration run executes per feature — duplicates are deduplicated by the receiver's concurrency group.
+
+**PRs with no `Linked-PR:` markers are unaffected** — the existing single-repo fast lane (`integration-trigger.yml`) still runs as normal.
+
+### Requirements
+
+- The `INTEGRATION_DISPATCH_TOKEN` repository secret must be configured on each participating repo. This is a fine-grained PAT scoped to `repository_dispatch` (write) on `alexberardi/jarvis-integration-tests`. Until the token is set, the trigger warns and passes without dispatching.
+- Adding a `Linked-PR:` marker after the PR is opened (via an edit) re-fires the cross-repo lane automatically (`edited` event is included).
+
+### Symmetric by design
+
+Both sides of a cross-repo feature should carry the `Linked-PR:` markers pointing at each other. Because the `feature_key` is a sorted union of all participating repo slugs, both PRs resolve to the same key and the receiver deduplicates them to a single run.
+
+
 ## Test Results
 
 E2E test results are written to JSON files containing:
