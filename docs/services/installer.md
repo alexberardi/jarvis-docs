@@ -41,13 +41,26 @@ Service definitions live in `public/service-registry.json`. Each entry defines t
 
 Both generators treat infrastructure images (postgres, Redis, etc.) as fixed — `JARVIS_IMAGE_TAG` and release-track overrides are not applied to them.
 
+### Named Volumes
+
+The exported `docker-compose.yml` includes a top-level `volumes:` block declaring the two app-level named volumes. Without this declaration Docker Compose rejects the file at startup with `invalid compose project`.
+
+| Volume | Used by service |
+|--------|----------------|
+| `whisper-voice-profiles` | `jarvis-whisper-api` |
+| `command-center-prompt-providers` | `jarvis-command-center` |
+
+Infrastructure services (postgres, Redis, Mosquitto) use bind mounts rather than named volumes and are not listed here.
+
+Both `compose-generator.ts` (interactive preview) and `compose-export-generator.ts` (download) apply the same top-level volume declarations.
+
 ## vs. Admin Wizard
 
 Both the installer SPA and the `jarvis-admin` setup wizard generate Docker Compose stacks, but serve different use cases:
 
 | | Installer SPA | Admin Setup Wizard |
 |---|---|---|
-| **Requires install** | No — runs in any browser | Yes — admin binary (`~7 MB`) |
+| **Requires install** | No — runs in any browser | Yes — admin binary (~7 MB) |
 | **Executes compose** | No — download only | Yes — pulls images and starts services |
 | **Ongoing management** | No | Yes — dashboard, model downloads, settings |
 | **Good for** | Scripted deploys, air-gapped prep | Interactive first-time setup |
