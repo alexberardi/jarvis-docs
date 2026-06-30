@@ -109,8 +109,36 @@ async def on_removed(self, device: Any, **kwargs: Any) -> None:
 - **Best-effort:** failures are logged as a warning; the delete always proceeds.
 - **Scope:** only fired for `source="direct"` (node-managed protocol) devices.
 - **Default:** no-op — existing protocols require no changes to compile or run.
+- **Node dispatch:** the node's MQTT listener receives the `device_removed` command from command-center and dispatches it off-thread to `direct_device_service.remove_device()`, which calls `on_removed` via a `hasattr` guard. The tool cache is always invalidated afterward, even if `on_removed` raises.
 
 See [Protocol Cleanup on Delete](../../services/command-center.md#protocol-cleanup-on-delete) for the command-center side of this flow.
+
+### `needs_pairing` — Pairing State Signal (v0.1.130+)
+
+When `get_state()` returns `{"needs_pairing": True}`, the node short-circuits device state reporting before domain normalization and emits:
+
+```python
+{
+    "entity_id": ...,
+    "domain": ...,
+    "state": {"needs_pairing": True},
+    "ui_hints": {"control_type": "pairing"},
+}
+```
+
+This tells the mobile app to show a **Pair** affordance (setup-code / PIN dialog) instead of the device's normal domain panel, which can't operate until pairing completes. Once pairing succeeds, `get_state()` should return real state (without `needs_pairing`) and the app transitions directly to the domain control.
+
+**Use this signal** for protocols that require an out-of-band pairing step before control is possible — for example, HomeKit HAP setup-code exchange:
+
+```python
+async def get_state(self, ip: str, **kwargs) -> dict | None:
+    if not self._is_paired(ip):
+        return {"needs_pairing": True}
+    # ... normal state query once paired
+    return {"on": True, "brightness": 80}
+```
+
+The short-circuit runs before domain normalization, so `control_type: "pairing"` is preserved regardless of the device's domain (light, climate, etc.).
 
 ## Supporting Dataclasses
 
