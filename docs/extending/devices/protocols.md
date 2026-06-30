@@ -79,10 +79,38 @@ class IJarvisDeviceProtocol(ABC):
         """Called after OAuth/auth flow completes to persist credentials."""
         ...
 
+    async def on_removed(self, device: Any, **kwargs: Any) -> None:
+        """Called when a device of this protocol is removed from Jarvis.
+
+        Override to release resources tied to this device (e.g. unpair an
+        external pairing so the accessory can be re-paired cleanly). The node
+        calls this before the device record is deleted; failures are logged
+        and do not block the delete. Default: no-op (SDK v0.4.2+).
+        """
+        ...
+
     def validate_secrets(self) -> list[str]:
         """Returns a list of validation error messages (empty = valid)."""
         ...
 ```
+
+### `on_removed` — Device Deletion Hook (SDK v0.4.2+)
+
+When a device is deleted from Jarvis, the node calls `on_removed(device, **kwargs)` on the protocol adapter before the database record is dropped. Implement this to release any external pairing or session tied to the device:
+
+```python
+async def on_removed(self, device: Any, **kwargs: Any) -> None:
+    # Release any external resource (e.g. revoke a token, close a pairing)
+    await self._session_manager.release(device["entity_id"])
+```
+
+**Behaviour:**
+
+- **Best-effort:** failures are logged as a warning; the delete always proceeds.
+- **Scope:** only fired for `source="direct"` (node-managed protocol) devices.
+- **Default:** no-op — existing protocols require no changes to compile or run.
+
+See [Protocol Cleanup on Delete](../../services/command-center.md#protocol-cleanup-on-delete) for the command-center side of this flow.
 
 ## Supporting Dataclasses
 
