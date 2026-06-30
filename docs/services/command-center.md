@@ -124,6 +124,29 @@ Any key not on the allowlist returns `404` — the allowlist is the security bou
 
 Values fall back to the code default when no override row exists in the DB — no seed data is required for new households.
 
+## Smart Home Devices
+
+### Protocol Cleanup on Delete
+
+Added in jarvis-command-center#21. When a `direct`-protocol device (a device managed by a node-side device protocol package) is deleted from a household, command-center publishes a `device_removed` MQTT message to the node that owns that device's protocol **before** the database record is dropped.
+
+This lets the node call the protocol's `on_removed` hook to release any external pairing or session — for example, a HomeKit accessory is unpaired at the HAP layer so it can be re-added and re-paired cleanly.
+
+**Behaviour:**
+
+- **Best-effort:** if MQTT or the node is unavailable, the delete still proceeds (the node retains an orphaned pairing until its next restart or rediscovery).
+- **Scope:** only `source="direct"` devices with a `protocol` field. Cloud-imported or protocol-less devices are unaffected.
+- **No user action required:** the cleanup fires automatically on every device delete.
+
+| Field | Detail |
+|---|---|
+| Trigger | `DELETE /api/v0/households/{id}/devices/{device_id}` |
+| MQTT message type | `device_removed` |
+| Payload fields | `entity_id`, `protocol`, `domain`, `cloud_id`, `local_ip`, `mac_address`, `name` |
+| Failure policy | Warning logged; delete proceeds regardless |
+
+See [`on_removed` — Device Deletion Hook](../extending/devices/protocols.md#on_removed--device-deletion-hook-sdk-v042) for the protocol authoring side.
+
 ## Key Components
 
 - **Prompt Engine** (`app/core/prompt_engine.py`) -- builds system prompts with speaker context and memories
