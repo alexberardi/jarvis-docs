@@ -1,14 +1,16 @@
 # Compliance Roadmap
 
-Enterprise-grade security foundations for B2B deployments. Target frameworks: HIPAA, SOC2 Type II, HITRUST CSF, FedRAMP, ISO 27001, PCI DSS.
+Jarvis's **default posture is self-hosted on a private LAN**, with TLS terminated at the operator's own reverse proxy at the network edge (see the [security model](index.md)). That trust model is the right fit for the home and small-team deployments Jarvis targets today.
+
+This page is the **forward-looking roadmap** for taking Jarvis *beyond* that boundary — into multi-host, enterprise, and regulated (B2B) deployments. Target frameworks: HIPAA, SOC2 Type II, HITRUST CSF, FedRAMP, ISO 27001, PCI DSS. These phases are **additive hardening for those environments, not gaps in the default self-hosted use case**.
 
 **Design principle:** Security must not destroy developer experience. Dev mode stays easy; prod mode is strict. Features are on by default in production, optional and transparent in dev.
 
-## Current Security Posture
+## Security Posture
 
-**Exists:** JWT auth (HS256), app-to-app auth, household role model (MEMBER / POWER_USER / ADMIN), `is_superuser` flag, multi-tenant `household_id` isolation, centralized logging (Loki + Grafana), soft deletes, bcrypt passwords.
+**Implemented today:** JWT auth (HS256), app-to-app auth, node-scoped API keys, household role model (MEMBER / POWER_USER / ADMIN), `is_superuser` flag, multi-tenant `household_id` isolation, bcrypt passwords, encrypted node secret storage (AES-256 SQLCipher with a device-local K1 key), end-to-end-encrypted mobile↔node settings sync (K2), centralized logging (Loki + Grafana), soft deletes, and secure-by-default egress (auto-updates fail closed).
 
-**Missing:** Audit trails, encryption in transit and at rest, RBAC enforcement, rate limiting, data classification, network hardening, log retention beyond 7 days.
+**Planned by this roadmap** (for enterprise / regulated deployments that extend past the LAN trust model): provable audit trails, service-to-service TLS, encryption at rest, formal RBAC enforcement, rate limiting, data classification, network segmentation, and extended log retention.
 
 ## Phase Overview
 
@@ -40,7 +42,7 @@ Tasks:
 
 ## Phase 2: Encryption in Transit (TLS)
 
-All inter-service traffic is currently plaintext HTTP.
+In the default self-hosted model, inter-service traffic runs over the trusted LAN with TLS terminated at the operator's edge proxy. This phase adds **service-to-service TLS** for zero-trust, multi-host, and regulated deployments where the internal network should not be treated as trusted.
 
 **Compliance:** HIPAA 164.312(e), PCI DSS Req 4, FedRAMP SC-8, ISO 27001 A.10.1
 
