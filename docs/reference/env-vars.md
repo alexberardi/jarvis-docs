@@ -103,6 +103,21 @@ Expo public variables are baked into the app bundle at build time via EAS profil
 | `EXPO_PUBLIC_SIMULATED_NODE_IP` | `"127.0.0.1"` | IP address of the simulated node in Simulator Mode (DEV_MODE only). |
 | `EXPO_PUBLIC_NODE_PORT` | `"8080"` | Port for communicating with the node in Simulator Mode (DEV_MODE only). |
 
+## Network Egress & Offline Mode { #network-egress-offline-mode }
+
+Jarvis is offline by default; every outbound-internet capability is opt-in. These variables enable specific external traffic. Full guide: [Network Egress & Offline Mode](../security/offline-mode.md).
+
+| Variable | Service | Default | Enables |
+|----------|---------|---------|---------|
+| `JARVIS_ALLOW_UPDATES` | jarvis-admin | `false` | GitHub update check on the dashboard + self-update `/apply`. Also honored via `~/.jarvis/admin.json` (`allowUpdates`). |
+| `JARVIS_ALLOW_UPDATES` | jarvis-node-setup | `false` | Node OTA self-update (download + apply a release). Also settable as `allow_updates` in the node's `config.json`. |
+| `JARVIS_WAKE_WORD_MODEL_AUTODOWNLOAD_ENABLED` | jarvis-node-setup | `false` | Downloading the openWakeWord model from GitHub on boot. Also `wake_word_model_autodownload_enabled` in `config.json`. |
+| `WHISPER_ALLOW_MODEL_AUTODOWNLOAD` | jarvis-whisper-api | `false` | Auto-downloading a Whisper model from HuggingFace when none exists locally. DB setting: `whisper.allow_model_autodownload`. |
+| `TTS_PROVIDER` | jarvis-tts | `piper` | Selecting the TTS backend. `piper` is local (no egress); `kokoro` downloads weights from HuggingFace. DB setting: `tts.provider`. |
+
+!!! note "DB-backed egress toggles"
+    Some egress controls are runtime settings (not env vars): `web_search.enabled` and `web_scraping.allow_external` (household), and `updates.allow_check` (command-center, gates the node-update GitHub check). Manage these via the mobile app / settings server. See the [offline-mode guide](../security/offline-mode.md#outbound-egress-toggles).
+
 ## Environment Files
 
 - `.env` files are gitignored and never committed

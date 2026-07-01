@@ -2,6 +2,9 @@
 
 Jarvis is designed with privacy and security as core principles. All data stays on your network by default, with no cloud dependencies required.
 
+!!! tip "Staying fully local"
+    Every outbound-internet capability is opt-in and defaults to off. See [Network Egress & Offline Mode](offline-mode.md) for the complete list of toggles and how to run air-gapped — or how to enable updates.
+
 ## Zero-Trust Architecture
 
 Jarvis follows a **zero-trust security model** --- no service, node, or client is implicitly trusted, regardless of network location. Every request is authenticated and verified independently at every boundary.
