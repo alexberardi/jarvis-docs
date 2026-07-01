@@ -168,6 +168,7 @@ nav:
     - Authentication: mobile/auth.md
   - Security:
     - security/index.md
+    - Network Egress & Offline Mode: security/offline-mode.md
     - Compliance Roadmap: security/compliance-roadmap.md
     - Privacy Policy: security/privacy-policy.md
   - Contributing:

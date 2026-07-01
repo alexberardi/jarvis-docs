@@ -53,6 +53,9 @@ graph TB
 
 Each cloud service is stateless or nearly so, meaning you can run your own instance or use a shared one.
 
+!!! note "Every external path is opt-in"
+    Beyond these cloud services, individual capabilities that reach the public internet (update checks, model downloads, web search, push) are each gated behind a setting that defaults to off. See [Network Egress & Offline Mode](../security/offline-mode.md) for the full list.
+
 ---
 
 ## Pantry (Command Store)
