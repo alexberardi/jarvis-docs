@@ -35,8 +35,22 @@ After setup, the same binary serves the admin dashboard:
 - **Dashboard** -- Container status overview, service health, LLM status
 - **Services** -- Registered services, config/auth status, health checks
 - **Models** -- Installed models, suggested downloads, custom HuggingFace downloads
+- **Quick Sets** -- Named LLM configuration presets; apply or create to switch the active model without editing raw settings
 - **Settings** -- Runtime configuration across all services (via settings-server proxy)
 - **Nodes** -- Registered voice nodes
+
+## Quick Sets
+
+The **Quick Sets** page lets you create and apply named LLM configuration presets. A preset bundles a backend, model path, chat format, prompt provider, and context window into a single named profile that can be applied in one click.
+
+### Model Path Dropdown
+
+Added in jarvis-admin#6. The **Model file path** field on the apply panel now shows a dropdown of models installed on disk, populated from `GET /api/models/installed` (served by jarvis-llm-proxy-api). Values are `.models/<name>`-prefixed to match what the backend writes to `model.live.name` / `model.background.name`.
+
+- When models are installed, the dropdown appears and pre-selects the current model if it matches an installed entry.
+- Selecting **Other (custom path / HF ID)…** reveals the original free-text input for HuggingFace model IDs or paths not yet downloaded.
+- When no models are installed the field falls back to free-text only.
+- Freshly downloaded models appear in the dropdown without restarting admin — the endpoint scans `.models/` on each request.
 
 ## Architecture
 
