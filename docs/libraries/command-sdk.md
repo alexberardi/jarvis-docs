@@ -58,7 +58,7 @@ data = storage.get("cache:Miami")
 all_data = storage.get_all()
 ```
 
-See [Datastore](../extending/infrastructure/datastore.md#jarvisStorage-sdk-persistence-facade) for the full API.
+See [Datastore](../extending/infrastructure/datastore.md#jarvisstorage-sdk-persistence-facade) for the full API.
 
 ## Data Browser Hooks
 

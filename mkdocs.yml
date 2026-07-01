@@ -146,6 +146,7 @@ nav:
     - Rejections: pantry/rejections.md
   - Libraries:
     - libraries/index.md
+    - Command SDK: libraries/command-sdk.md
     - Log Client: libraries/log-client.md
     - Config Client: libraries/config-client.md
     - Settings Client: libraries/settings-client.md

@@ -146,7 +146,7 @@ This lets the node call the protocol's `on_removed` hook to release any external
 | Payload fields | `entity_id`, `protocol`, `domain`, `cloud_id`, `local_ip`, `mac_address`, `name` |
 | Failure policy | Warning logged; delete proceeds regardless |
 
-See [`on_removed` — Device Deletion Hook](../extending/devices/protocols.md#on_removed--device-deletion-hook-sdk-v042) for the protocol authoring side.
+See [`on_removed` — Device Deletion Hook](../extending/devices/protocols.md#on_removed-device-deletion-hook-sdk-v042) for the protocol authoring side.
 
 ## Key Components
 
@@ -272,7 +272,7 @@ These settings are persisted in PostgreSQL and editable via **Admin → Settings
 | Key | Default | Description |
 |---|---|---|
 | `web_search.enabled` | `false` (per-household) | Master toggle for `quick_search` + `deep_research`. Fail-closed. See [Web Search](#web-search). |
-| `web_scraping.allow_external` | `false` (per-household) | Opt-in gate for the r.jina.ai reader-proxy fallback in deep research. Fail-closed. Household-admin controllable via mobile. See [Jina Reader Proxy](#jina-reader-proxy--web_scrapingallow_external). |
+| `web_scraping.allow_external` | `false` (per-household) | Opt-in gate for the r.jina.ai reader-proxy fallback in deep research. Fail-closed. Household-admin controllable via mobile. See [Jina Reader Proxy](#jina-reader-proxy-web_scrapingallow_external). |
 | `updates.allow_check` | `false` (global) | Allow outbound version lookups to api.github.com for node release checks. Explicit version installs bypass this gate. Fail-closed. See [Update Checks](#update-checks). |
 
 

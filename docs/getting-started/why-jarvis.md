@@ -61,7 +61,7 @@ Out of the box:
 
 **To use it day-to-day?** Absolutely not. It's a voice assistant. You talk to it.
 
-**To extend it?** A little. Adding new commands requires basic Python. But the Pantry has pre-built packages for most common needs, and the [Forge](../architecture/cloud.md#forge) lets you describe what you want in plain English and generates the code for you.
+**To extend it?** A little. Adding new commands requires basic Python. But the Pantry has pre-built packages for most common needs, and the [Forge](../architecture/cloud.md#pantry-command-store) lets you describe what you want in plain English and generates the code for you.
 
 ### How Is This Different from Home Assistant?
 
