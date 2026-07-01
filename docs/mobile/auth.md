@@ -26,6 +26,15 @@ After enrolling, the app rewrites your refresh token in the OS keychain with bio
 - The checkbox only appears when the device has strong biometrics enrolled. On Android this additionally requires an app build that includes the `USE_BIOMETRIC` permission.
 - To toggle biometric login after enrolment, go to **Settings → Security**.
 
+## Session Lifetime
+
+After a successful login, the app maintains your session silently:
+
+- The **refresh token** is valid for up to 14 days. The app renews your access token automatically in the background every 10 minutes and once each time you bring the app to the foreground.
+- Renewal calls are **single-flight** — concurrent refresh attempts (background timer, foreground resume, and request interceptor) coalesce into one server call, so the rotated refresh token is never double-spent.
+- When a session truly expires or is invalidated server-side, the app detects it on the next refresh and takes you directly to the login screen. You will not see a broken node or device screen behind an expired session.
+- **Transient network errors** during refresh do not log you out — the app stays signed in and retries on the next cycle.
+
 ## Multi-Household
 
 Users can belong to multiple households. Switch between them in **Settings > Household**.
