@@ -100,6 +100,7 @@ Added in jarvis-command-center#20. A dedicated router (`app/api/mobile_household
 | Key | Type | Description |
 |---|---|---|
 | `web_search.enabled` | `bool` | Master toggle for outbound-web tools (`quick_search` + `deep_research`). Default `false`. |
+| `web_scraping.allow_external` | `bool` | Allow deep research to fall back to the r.jina.ai reader proxy when a page cannot be fetched directly. Enables egress to a third party — opt-in per household. Default `false`. |
 
 Any key not on the allowlist returns `404` — the allowlist is the security boundary that prevents this endpoint from becoming a household-admin write path to arbitrary command-center settings.
 
@@ -201,6 +202,19 @@ Both tools are gated behind the per-household `web_search.enabled` DB setting (*
 
 Household admins toggle the setting from **Household Settings** in the mobile app (see [Mobile Household Settings API](#mobile-household-settings-api) above). It can also be set via **Admin → Settings → web_search** in the command-center admin UI.
 
+### Jina Reader Proxy — `web_scraping.allow_external`
+
+Added in jarvis-command-center#22. Deep research may encounter pages that reject direct fetches (paywalls, bot-blocks). The web scraper can fall back to the public **r.jina.ai** reader proxy, but that proxy receives the target URL — egress to a third party.
+
+This fallback is an independent per-household gate, **`web_scraping.allow_external`** (**default `false`, fail-closed**):
+
+- `false` (default): deep research fails closed on hard-to-fetch pages — no URLs leave the household network via Jina.
+- `true`: the Jina fallback is enabled for that household. Pages that cannot be fetched directly are sent to r.jina.ai.
+
+Household admins toggle this from **Household Settings** in the mobile app (same screen as `web_search.enabled`). Enabling `web_search.enabled` alone does **not** enable the Jina fallback — these are independent gates.
+
+**Fail-closed:** any settings error → treated as `false`.
+
 ### Voice-Only Limitation
 
 Web search is **voice-only today**. The mobile/web chat path routes every tool call to the node over MQTT and never executes command-center server tools in-process, so `quick_search` and `deep_research` do not work in the chat UI. Making web search work in chat requires teaching the chat path to execute server tools locally (distinguishing server tools from node tools) — a separate piece of work.
@@ -208,6 +222,21 @@ Web search is **voice-only today**. The mobile/web chat path routes every tool c
 ### Double-Egress Gotcha
 
 The `web_search.enabled` gate controls **server tools only**. The legacy `jarvis-cmd-web-search` node plugin (if installed on a node) is merged into the warmup prompt and routed directly to the node — it is **not** governed by this setting. "Disable web search = zero outbound egress" only holds if that plugin is not installed. Check the node's installed plugins if strict no-egress is required.
+
+## Update Checks
+
+Added in jarvis-command-center#22. When a node update is triggered, the command center can look up the latest node-setup release on GitHub (`api.github.com`) to resolve the "latest" target version. This outbound lookup is gated behind a global `updates.allow_check` setting (**default `false`, fail-closed**).
+
+### Gate — `updates.allow_check`
+
+- `false` (default): no outbound request to api.github.com. Requests for the "latest" version return `None`; the node-update endpoint returns `503` if no explicit version was provided.
+- `true`: version lookups to `api.github.com/repos/alexberardi/jarvis-node-setup/releases/latest` are permitted.
+
+**Fail-closed:** any settings error → treated as `false`; no outbound GitHub egress.
+
+**Explicit versions bypass the gate:** providing a specific version (e.g. `v0.3.1`) to the node-update endpoint never touches GitHub — it installs that exact version regardless of `updates.allow_check`.
+
+**Scope:** global (not per-household). The update-check call site is unauthenticated in the JWT/household sense, so this is a box-level toggle set via **Admin → Settings → updates**.
 
 ## not_for_me Detection
 
@@ -243,6 +272,8 @@ These settings are persisted in PostgreSQL and editable via **Admin → Settings
 | Key | Default | Description |
 |---|---|---|
 | `web_search.enabled` | `false` (per-household) | Master toggle for `quick_search` + `deep_research`. Fail-closed. See [Web Search](#web-search). |
+| `web_scraping.allow_external` | `false` (per-household) | Opt-in gate for the r.jina.ai reader-proxy fallback in deep research. Fail-closed. Household-admin controllable via mobile. See [Jina Reader Proxy](#jina-reader-proxy--web_scrapingallow_external). |
+| `updates.allow_check` | `false` (global) | Allow outbound version lookups to api.github.com for node release checks. Explicit version installs bypass this gate. Fail-closed. See [Update Checks](#update-checks). |
 
 
 ## Prompt Providers
