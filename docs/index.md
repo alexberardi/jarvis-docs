@@ -5,9 +5,11 @@
 !!! tip "TLDR"
     Jarvis is a self-hosted, open-source voice assistant. Cheap Pi Zero nodes in each room connect to a server you control. An on-device AI understands your commands, controls your smart home, and remembers your preferences. No cloud. No subscriptions. No one listening. Install in 10 minutes with one command:
 
+    <!-- jarvis:install-cmd:start -->
     ```bash
     curl -fsSL https://raw.githubusercontent.com/alexberardi/jarvis-admin/main/install.sh | sh
     ```
+    <!-- jarvis:install-cmd:end -->
 
     New to this? Read **[Why Jarvis?](getting-started/why-jarvis.md)** for the full picture.
 

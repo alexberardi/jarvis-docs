@@ -68,9 +68,11 @@ It's also not a home automation platform. If you want to build automations in a 
 
 The fastest path is the one-line installer:
 
+<!-- jarvis:install-cmd:start -->
 ```bash
 curl -fsSL https://raw.githubusercontent.com/alexberardi/jarvis-admin/main/install.sh | sh
 ```
+<!-- jarvis:install-cmd:end -->
 
 Open `http://localhost:7711` and the setup wizard handles the rest — hardware detection, service selection, account creation, model download.
 

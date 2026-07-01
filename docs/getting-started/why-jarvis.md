@@ -87,6 +87,8 @@ No subscriptions. No cloud fees. No one selling your data.
 
 Head to the [Installation guide](installation.md). The one-liner gets you up and running in about 10 minutes:
 
+<!-- jarvis:install-cmd:start -->
 ```bash
 curl -fsSL https://raw.githubusercontent.com/alexberardi/jarvis-admin/main/install.sh | sh
 ```
+<!-- jarvis:install-cmd:end -->

@@ -92,9 +92,11 @@ Before installing, make sure you have Docker and Docker Compose:
 
 Download the `jarvis-admin` binary, which includes a guided setup wizard:
 
+<!-- jarvis:install-cmd:start -->
 ```bash
 curl -fsSL https://raw.githubusercontent.com/alexberardi/jarvis-admin/main/install.sh | sh
 ```
+<!-- jarvis:install-cmd:end -->
 
 This detects your OS and architecture, downloads the latest release, and installs to `~/.jarvis/bin/`. The installer also:
 
