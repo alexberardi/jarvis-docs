@@ -76,6 +76,7 @@ scraper = WebScraper(config=config)
 | `max_chars` | `8000` | Maximum characters returned per page (truncates at word boundary) |
 | `max_redirects` | `5` | Maximum HTTP redirects to follow |
 | `block_private_hosts` | `True` | Block requests to private/loopback IP ranges (SSRF protection) |
+| `enable_jina_fallback` | `False` | Allow the [r.jina.ai](https://r.jina.ai) third-party reader-proxy as a fallback on `401`/`403`/timeout. **Off by default** — with this unset the scraper never egresses to an external proxy. Enable only when the caller has user consent (e.g. via the `web_scraping.allow_external` household setting in command-center). |
 | `user_agent` | *(default UA)* | User-Agent header |
 | `headers` | `{}` | Additional HTTP headers |
 
@@ -85,8 +86,9 @@ scraper = WebScraper(config=config)
 - Returns clean text suitable for LLM context windows
 - Handles common web page structures and formats
 - Private IP blocking protects against SSRF in multi-tenant setups
+- Third-party proxy egress (`r.jina.ai`) is **opt-in only** — `enable_jina_fallback` defaults to `False`
 
 ## Consumers
 
-- **jarvis-command-center** — deep research tool (web search → scrape → summarize)
+- **jarvis-command-center** — deep research tool (web search → scrape → summarize); controls `enable_jina_fallback` via household setting `web_scraping.allow_external`
 - **jarvis-recipes-server** — URL recipe import (HTML parsing)
