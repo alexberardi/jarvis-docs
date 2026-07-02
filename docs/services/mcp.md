@@ -12,6 +12,14 @@ The MCP (Model Context Protocol) service provides tool integration for Claude Co
 | **Framework** | FastAPI + Uvicorn |
 | **Tier** | 4 - Management |
 
+## Network Exposure
+
+`jarvis-mcp` is **unauthenticated** and can drive Docker on the host, so the host port publish is scoped to loopback only (`127.0.0.1:7709`, both dev and prod compose) rather than all interfaces.
+
+- **Claude Code** reaches it via `http://localhost:7709` (or `127.0.0.1:7709`) on the same host.
+- **In-stack consumers** (other Jarvis containers) reach it over the Docker network by container name/hostname, not through the published host port.
+- It is **not reachable from other hosts on the LAN** — there is no supported way to drive Jarvis MCP tools from a remote machine. If you need remote access, tunnel over SSH (e.g. `ssh -L 7709:localhost:7709 <host>`) rather than re-exposing the port on all interfaces.
+
 ## Tool Groups
 
 Tools are organized into groups. The active set is controlled by `JARVIS_MCP_TOOLS` (comma-separated group names). All groups except `tests` and `db` are enabled by default.
