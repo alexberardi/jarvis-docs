@@ -83,6 +83,15 @@ Pi Zero nodes store secrets (API keys, OAuth tokens, command credentials) in a l
 
 Settings sync between the mobile app and nodes uses a shared AES-256 key (K2), exchanged during provisioning.
 
+## Setup Wizard Probe Endpoint (SSRF Hardening)
+
+The `jarvis-admin` setup wizard's `/probe` endpoint (used to validate a service URL the operator enters before it's saved) is unauthenticated by design --- there's no superuser account yet at that point in the flow. To keep this from being a standing SSRF primitive:
+
+- **Pre-install only.** Once setup has completed, `/probe` returns `403` on every call.
+- **Cloud-metadata and link-local targets are blocked**, even during setup: `169.254.0.0/16` (including the `169.254.169.254` cloud-metadata address) and `fe80::/10`. This is checked against the resolved IP, not just the hostname string, so a DNS name that resolves into a blocked range is caught too.
+- **RFC1918 and localhost stay allowed** --- the wizard legitimately needs to probe LAN service URLs (e.g. `http://10.0.0.5:7701`, `http://localhost:7700`).
+- Probe requests never follow redirects (`redirect: 'manual'`), so a target can't 3xx-redirect the probe into a blocked address after the initial check passes.
+
 ## No Cloud Dependencies
 
 By default, Jarvis runs entirely on your local network:
