@@ -63,6 +63,8 @@ Push notifications are forwarded to `jarvis-relay`, a stateless Expo Push API pr
 | `NOTIFICATION_LOG_RETENTION_DAYS` | Days to retain notification log entries |
 | `TOKEN_CLEANUP_INTERVAL_HOURS` | Hours between expired token cleanup runs |
 
+`AUTH_SECRET_KEY` and `ADMIN_API_KEY` must each be a real secret of at least 16 characters. The service refuses to start if either is empty, a known placeholder (`change-me`, `__SET_ME__`), or shorter than 16 characters — generate one with `openssl rand -hex 32`.
+
 ## Dependencies
 
 - **PostgreSQL** -- device tokens, notification log, inbox items
