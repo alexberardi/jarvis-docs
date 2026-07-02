@@ -12,6 +12,10 @@ The MCP (Model Context Protocol) service provides tool integration for Claude Co
 | **Framework** | FastAPI + Uvicorn |
 | **Tier** | 4 - Management |
 
+## Network Exposure
+
+`jarvis-mcp` is unauthenticated and can drive Docker, so the host port is published on **loopback only** (`127.0.0.1:7709`) in both the dev and prod Compose files — it is not reachable from other machines on the network. Claude Code reaches it via `localhost`; other Jarvis containers reach it over the Docker network instead of the published host port.
+
 ## Tool Groups
 
 Tools are organized into groups. The active set is controlled by `JARVIS_MCP_TOOLS` (comma-separated group names). All groups except `tests` and `db` are enabled by default.
