@@ -32,6 +32,10 @@ if the postgres image does not include pgvector. `pgvector/pgvector:pg16` is the
 !!! warning "Do not swap the postgres image"
     Replacing `pgvector/pgvector:pg16` with `postgres:16` or `postgres:16-alpine` in installer-generated compose files causes `jarvis-command-center` to fail at startup.
 
+## Generated Secrets
+
+The installer mints a fresh, random secret for every sensitive credential in `SECRET_KEYS` (`src/lib/secret-generator.ts`) rather than shipping fixed defaults — this includes database passwords, `ADMIN_API_KEY`, and `GRAFANA_ADMIN_PASSWORD` (the Grafana container's `GF_SECURITY_ADMIN_PASSWORD`). Earlier installer versions hardcoded the Grafana admin password to the literal `jarvis`; it's now generated per-install like the other secrets and baked into the exported compose file.
+
 ## Service Registry
 
 Service definitions live in `public/service-registry.json`. Each entry defines the Docker image, configurable ports, required environment variables, and named volumes. Two generators consume this file:
