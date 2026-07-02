@@ -91,7 +91,7 @@ The primary local backend. Works on all platforms.
 | **Library** | `llama-cpp-python` |
 | **GPU** | Metal (macOS), CUDA (Linux) |
 | **Adapter support** | Constructor-based reload (destroys + recreates model with `lora_path`) |
-| **Multi-GPU** | Yes, via `JARVIS_GGUF_TENSOR_SPLIT` (e.g., `"0.5,0.5"` for 2 GPUs) |
+| **Multi-GPU** | Opt-in — default `JARVIS_GGUF_SPLIT_MODE=0` uses only `JARVIS_GGUF_MAIN_GPU` (single GPU). Set `JARVIS_GGUF_SPLIT_MODE=1` (layer split) or `2` (row split) + `JARVIS_GGUF_TENSOR_SPLIT` (e.g., `"0.5,0.5"` for 2 GPUs) to spread across GPUs. Auto-splitting across every visible GPU is opt-in on purpose — it's a footgun on mixed boxes (e.g. a dGPU plus a CPU iGPU with no compiled kernels can fault during warmup). |
 
 Features:
 
@@ -101,7 +101,7 @@ Features:
 - Mirostat sampling
 - Warmup inference on load
 
-Key env vars: `JARVIS_N_GPU_LAYERS` (-1 for all), `JARVIS_N_THREADS`, `JARVIS_N_BATCH` (512), `JARVIS_FLASH_ATTN` (true), `JARVIS_GGUF_SPLIT_MODE`, `JARVIS_GGUF_TENSOR_SPLIT`.
+Key env vars: `JARVIS_N_GPU_LAYERS` (-1 for all), `JARVIS_N_THREADS`, `JARVIS_N_BATCH` (512), `JARVIS_FLASH_ATTN` (true), `JARVIS_GGUF_SPLIT_MODE` (0 = single GPU), `JARVIS_GGUF_MAIN_GPU` (0), `JARVIS_GGUF_TENSOR_SPLIT`.
 
 ### MLX (Apple Silicon)
 
