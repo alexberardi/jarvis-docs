@@ -59,6 +59,15 @@ A 10-second in-process grace window (`REFRESH_TOKEN_GRACE_SECONDS`) lets a benig
 
 **Stale replay behavior (default):** a replay of an already-rotated token is rejected (`401`) but does **not** revoke the entire token family. The live tail of the chain keeps working, so the session survives auth restarts and benign double-submits over flaky connections. Enable strict whole-family revocation with `REFRESH_TOKEN_REVOKE_FAMILY_ON_REUSE=true` if you need theft detection and can accept periodic spurious logouts from mobile clients on unreliable links.
 
+## Boot-Time Secret Guard
+
+On startup, auth checks `AUTH_SECRET_KEY` and `JARVIS_AUTH_ADMIN_TOKEN` for known placeholders (`change-me`, `__SET_ME__`, etc.) or values under 16 characters — either one being a forgeable/publicly-known secret would let an attacker sign valid JWTs or hit `/admin/*` endpoints.
+
+- **`JARVIS_ENV` unset or not `production`** (the default): an insecure secret logs a loud warning but the service still boots — so a dev box or a not-yet-hardened self-host install isn't bricked by a shipped default.
+- **`JARVIS_ENV=production`**: an insecure secret is a **hard boot failure**. Set this in production deployments to opt into strict enforcement.
+
+Generate strong values with `openssl rand -hex 32`.
+
 ## Environment Variables
 
 | Variable | Description |
@@ -73,6 +82,7 @@ A 10-second in-process grace window (`REFRESH_TOKEN_GRACE_SECONDS`) lets a benig
 | `REFRESH_TOKEN_REVOKE_FAMILY_ON_REUSE` | When a stale rotated token is replayed, revoke the **entire token family** (default `false`). Off is recommended for most setups — a mobile client on a flaky link replays far more often than tokens are stolen. Enable only if you need stricter theft response and can tolerate the resulting spurious logouts. |
 | `TEMP_PASSWORD_EXPIRE_HOURS` | Expiry window for a superuser-issued temp password (default `24`). Login rejects an expired temp password with a distinct `401` telling the user to request a new one. |
 | `JARVIS_AUTH_ADMIN_TOKEN` | Token for admin endpoints — generate with `openssl rand -hex 32` |
+| `JARVIS_ENV` | Deployment environment (default `development`). Set to `production` to make the [boot-time secret guard](#boot-time-secret-guard) fatal on a weak/placeholder `AUTH_SECRET_KEY` or `JARVIS_AUTH_ADMIN_TOKEN`; otherwise it only warns. |
 | `JARVIS_APP_ID` | App identity for service-to-service auth with jarvis-logs (default `jarvis-auth`) |
 | `JARVIS_APP_KEY` | App key for service-to-service auth with jarvis-logs |
 | `JARVIS_LOG_CONSOLE_LEVEL` | Console log level (default `INFO`) |
