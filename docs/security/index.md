@@ -92,6 +92,10 @@ The `jarvis-admin` setup wizard's `/probe` endpoint (used to validate a service 
 - **RFC1918 and localhost stay allowed** --- the wizard legitimately needs to probe LAN service URLs (e.g. `http://10.0.0.5:7701`, `http://localhost:7700`).
 - Probe requests never follow redirects (`redirect: 'manual'`), so a target can't 3xx-redirect the probe into a blocked address after the initial check passes.
 
+## Node-Scoped Endpoint Authorization
+
+Command-center's node-scoped provisioning and action endpoints resolve the household from the **target node's row** and enforce it, so an authenticated user cannot act on another household's node. Covered routes: package install/uninstall/revert (request + poll), node command actions (`/actions`, `/node-config`, `/led/preview`), node update requests (request/get/cancel/list), Bluetooth scan/pair/disconnect/discoverable requests, and test-install requests. Admin-key callers (infrastructure) bypass this check; node-auth callbacks (`/results`, `/ack`) are unaffected.
+
 ## No Cloud Dependencies
 
 By default, Jarvis runs entirely on your local network:
