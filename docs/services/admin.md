@@ -111,6 +111,15 @@ The compose file is generated from `service-registry.json` which defines:
 - **GPU config**: NVIDIA deploy resources for LLM proxy (Linux only)
 - **Volumes**: Named Docker volumes declared per-service in the registry
 
+### Production Hardening (JARVIS_ENV)
+
+Since jarvis-admin#17, both `compose-generator.ts` and `env-generator.ts` opt every generated install into jarvis-auth's boot-time secret guard (see [jarvis-auth: secret guard](auth.md)):
+
+- Every service and worker `environment:` block emits `JARVIS_ENV: "production"`.
+- `env-generator.ts` never writes an empty `SECRET_KEY` — a missing value (e.g. reconstructing a gappy `.env`) is filled with a fresh strong secret (16 bytes for passwords, 32 for tokens/keys) instead of `""`, so a reconstructed install can't emit an empty secret under production enforcement.
+
+This is safe by construction: admin's generators already produced strong secrets (no `"changeme"` fallback bug), so enabling the guard has nothing to trip on.
+
 ### Notable Service Configurations
 
 | Service | Notes |
