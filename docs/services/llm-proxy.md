@@ -1,4 +1,4 @@
-# LLM Proxy
+## LLM Proxy
 
 The LLM proxy provides a unified inference API across multiple backends --- MLX (Apple Silicon), GGUF (llama.cpp), vLLM (NVIDIA), Transformers (HuggingFace), and REST (remote APIs). It runs a **2-model system** (`live` for real-time voice commands, `background` for async tasks), manages LoRA adapter training and loading, and processes async jobs via a Redis queue.
 
@@ -102,6 +102,15 @@ Features:
 - Warmup inference on load
 
 Key env vars: `JARVIS_N_GPU_LAYERS` (-1 for all), `JARVIS_N_THREADS`, `JARVIS_N_BATCH` (512), `JARVIS_FLASH_ATTN` (true), `JARVIS_GGUF_SPLIT_MODE` (0 = single GPU), `JARVIS_GGUF_MAIN_GPU` (0), `JARVIS_GGUF_TENSOR_SPLIT`.
+
+#### Discrete-GPU Auto-Select (Vulkan / ROCm)
+
+Since jarvis-llm-proxy-api#18, `gpu_select.select_discrete_gpu()` runs at model-service startup — before `ModelManager()` triggers llama.cpp's Vulkan/HIP init — and pins the backend to the **discrete GPU chosen by device type**, not enumeration index:
+
+- **Vulkan** -- `vulkaninfo --summary` (or a stdlib `ctypes` libvulkan fallback) locates the `DISCRETE_GPU` device and sets `GGML_VK_VISIBLE_DEVICES`.
+- **ROCm** -- `hipGetDevicePropertiesR0600().integrated` (or a `rocminfo` fallback) locates the non-integrated device and sets `HIP_VISIBLE_DEVICES`.
+
+This addresses the dGPU+iGPU footgun called out in the Multi-GPU row above: on a box with both a discrete GPU and an integrated GPU (e.g. an RX 9070 next to a Ryzen iGPU), the iGPU can enumerate as device 0, so hardcoding the device index binds the wrong adapter. Auto-select is stdlib-only, always respects an operator-set `GGML_VK_VISIBLE_DEVICES` / `HIP_VISIBLE_DEVICES` / `ROCR_VISIBLE_DEVICES` / `CUDA_VISIBLE_DEVICES`, and is a no-op (leaves the backend default in place) if no discrete GPU is detected or on CPU/CUDA/Metal images, where the required tooling isn't present.
 
 ### MLX (Apple Silicon)
 
