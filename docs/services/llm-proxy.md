@@ -7,14 +7,14 @@ The LLM proxy provides a unified inference API across multiple backends --- MLX 
 | | |
 |---|---|
 | **Ports** | 7704 (API server), 7705 (model service) |
-| **Health endpoint** | `GET /health` |
+| **Health endpoint** | `GET /health` — API (:7704) status code is what the docker healthcheck consumes; see [Health & Supervision](#health-supervision) |
 | **Source** | `jarvis-llm-proxy-api/` |
 | **Framework** | FastAPI + Uvicorn |
 | **Tier** | 2 --- Command Processing |
 
 ## Architecture
 
-The service runs as **three processes**, started by `run.sh`:
+The service runs as **three processes**, started by `run.sh` (or `scripts/serve.sh`, see below):
 
 ```mermaid
 graph LR
@@ -45,6 +45,14 @@ graph LR
 
 !!! note "macOS exception"
     On macOS, the model service is disabled (`RUN_MODEL_SERVICE=false`). The API server loads models in-process to access Metal/MLX directly. The `jarvis` CLI handles this automatically.
+
+### Health & Supervision
+
+Model loading is fault-isolated per slot and does not block process startup:
+
+- The model service (:7705) binds immediately and loads models in a background thread; a failed load records that slot as `failed` instead of crashing the process, and a retry loop re-attempts with 60s→600s exponential cooldown. Its `GET /health` returns 200 whenever the process is alive, with per-slot state (`slots`, `uptime_s`) in the body.
+- The API server's `GET /health` (:7704) is the one the docker healthcheck actually watches (it only sees the status code, not the body), so it returns honest codes: **503** when the model service is unreachable, the live-model load failed, or loading has exceeded a 900s grace window; **200** with `initializing` inside the grace window; **200** with `busy` on a health-probe read-timeout (a long completion blocks the model service's single-worker event loop and must not flap the container unhealthy). The grace-window clock lives in the API process so a `serve.sh` respawn of the model service can't hide behind a fresh uptime counter.
+- `scripts/serve.sh` is the new default container CMD: execs the API server as PID 1 (migrations run first) and supervises the model service as a child, respawning it with capped backoff to catch native llama.cpp crashes that Python-level fault isolation can't. Compose files that still override the CMD directly should migrate to `bash scripts/serve.sh` to get supervision.
 
 ## 2-Model System
 
@@ -467,7 +475,7 @@ Runs on CPU independently of the LLM backends (384 dimensions by default).
 | `GET` | `/settings/` | Combined auth | List all settings |
 | `PUT` | `/settings/{key}` | Combined auth | Update setting |
 | `POST` | `/internal/queue/enqueue` | App auth | Submit async job |
-| `GET` | `/health` | None | Health check |
+| `GET` | `/health` | None | Health check — 503/200 status codes reflect model load state; see [Health & Supervision](#health-supervision) |
 
 ### Internal API (Port 7705)
 
@@ -478,7 +486,7 @@ Runs on CPU independently of the LLM backends (384 dimensions by default).
 | `GET` | `/internal/model/models` | Internal token | List loaded models |
 | `POST` | `/internal/model/unload` | Internal token | Unload all models |
 | `POST` | `/internal/model/reload` | Internal token | Reload models |
-| `GET` | `/health` | None | Model service health |
+| `GET` | `/health` | None | Model service health — always 200 while the process is alive; body reports per-slot state (`slots`, `uptime_s`) |
 
 ## Dependencies
 
