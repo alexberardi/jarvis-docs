@@ -24,6 +24,7 @@ The command center is the voice command orchestrator. It receives transcribed te
 | `GET` | `/api/v0/memories` | List user memories |
 | `POST` | `/api/v0/memories` | Create a user memory |
 | `DELETE` | `/api/v0/memories/{id}` | Delete a user memory |
+| `GET` | `/api/v0/node/mqtt-credentials` | Shared MQTT broker credentials for the authenticated node (see [MQTT Broker Auth](#mqtt-broker-auth-transition)) |
 
 For mobile data-browser routes see [Mobile Command-Data API](#mobile-command-data-api) below.
 
@@ -181,6 +182,20 @@ All liveness updates are **best-effort**: they never raise into an auth path or 
 
 `touch_node_last_seen` skips the DB write if `last_seen` was already updated within the last 60 seconds. This keeps writes bounded on busy paths (at most ~1 write/minute/node from the hot path) while keeping liveness well within the 15-minute threshold.
 
+## MQTT Broker Auth (Transition)
+
+Added in jarvis-command-center#33. Steps 2–3 of the broker-auth rollout: command-center can now authenticate to the MQTT broker itself, and hands the same shared credential to authenticated nodes. Both changes are **inert until broker auth is actually enabled** on the broker (still anonymous-allowed today), so this ships ahead of the broker config + node-side changes with no behavior change on current installs.
+
+- **`mqtt_client`** reads a shared broker credential from `MQTT_USERNAME` / `MQTT_PASSWORD` and calls `username_pw_set()` before connecting. Unset (today's default) → connects anonymously exactly as before.
+- **`GET /api/v0/node/mqtt-credentials`** (node `X-API-Key` auth) hands the authenticated node the shared credential over its already-trusted HTTP channel — never over MQTT itself, which would be circular. Returns `{"username": null, "password": null}` while unset, so the node stays anonymous until the broker is actually locked down.
+
+**Rollout sequence:**
+
+1. Command-center authenticates + serves credentials (this PR) — inert until env vars are set.
+2. Admin generates the broker password file (broker still has `allow_anonymous true`).
+3. Node fetches + uses the credential, with an anonymous fallback.
+4. Operator flips `allow_anonymous false` on the broker once all clients have adopted the credential.
+
 ## Web Search
 
 Added in jarvis-command-center#20. The command center exposes two outbound-web **server tools** that let Jarvis answer queries using live internet data:
@@ -337,6 +352,13 @@ JARVIS_SYSTEM_PROMPT_PROVIDER=ChatGPTOpenAI
 | `JARVIS_AUTH_APP_KEY` | App key for service-to-service auth |
 | `JARVIS_AUTH_SECRET_KEY` | JWT secret key — must match `AUTH_SECRET_KEY` in jarvis-auth. Required for mobile app JWT validation. |
 | `NODE_AUTH_CACHE_TTL` | Auth validation cache TTL in seconds (default `60`) |
+
+### MQTT Broker Auth
+
+| Variable | Description |
+|----------|-------------|
+| `MQTT_USERNAME` | Shared MQTT broker username. Unset (default) → command-center connects to the broker anonymously and `/api/v0/node/mqtt-credentials` returns `null`. See [MQTT Broker Auth](#mqtt-broker-auth-transition). |
+| `MQTT_PASSWORD` | Shared MQTT broker password, paired with `MQTT_USERNAME`. |
 
 ### Service Discovery
 
