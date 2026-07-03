@@ -56,6 +56,12 @@ Since jarvis-installer#9, the **Configuration** step surfaces a `whisperBackend`
 
 The installer mints a fresh, random secret for every sensitive credential in `SECRET_KEYS` (`src/lib/secret-generator.ts`) rather than shipping fixed defaults — this includes database passwords, `ADMIN_API_KEY`, and `GRAFANA_ADMIN_PASSWORD` (the Grafana container's `GF_SECURITY_ADMIN_PASSWORD`). Earlier installer versions hardcoded the Grafana admin password to the literal `jarvis`; it's now generated per-install like the other secrets and baked into the exported compose file.
 
+### Compose Export: Consistent Strong Secrets + Production Mode
+
+Since jarvis-installer#12, the downloadable `compose-export-generator.ts` path resolves every secret **once** via a memoized `resolveSecret()` and reuses that same value everywhere it's referenced: a wizard-provided value wins, otherwise a strong random secret is generated. This fixes a mismatch where the export's `SecretsMap` fell back to the literal `"changeme"` while the generic per-service env loop fell back to `""` for the same secret ref — producing different values for what should be one shared secret (e.g. `AUTH_SECRET_KEY`) and silently breaking fleet-wide JWT validation on a partial-wizard export. `"changeme"` is also on jarvis-auth's boot-time secret guard blocklist (see [jarvis-auth: secret guard](auth.md)), so a prod export using it was a latent boot-breaker.
+
+The export also now emits `JARVIS_ENV: "production"` on every service, opting a fresh install into that boot-time secret enforcement. This is safe by construction — the export always bakes strong, consistent secrets, so the guard has nothing to trip on.
+
 ## Service Registry
 
 Service definitions live in `public/service-registry.json`. Each entry defines the Docker image, configurable ports, required environment variables, and named volumes. Two generators consume this file:
