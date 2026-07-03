@@ -92,6 +92,10 @@ The `jarvis-admin` setup wizard's `/probe` endpoint (used to validate a service 
 - **RFC1918 and localhost stay allowed** --- the wizard legitimately needs to probe LAN service URLs (e.g. `http://10.0.0.5:7701`, `http://localhost:7700`).
 - Probe requests never follow redirects (`redirect: 'manual'`), so a target can't 3xx-redirect the probe into a blocked address after the initial check passes.
 
+## Admin Traces Endpoint Authorization
+
+Command-center's admin trace router (`/api/v0/admin/traces`, raw voice/chat transcripts across every household) is now gated behind `verify_admin_key` (the same `X-Api-Key` admin token the admin dashboard already sends), matching the mobile trace router which already required a JWT. A missing or wrong key returns `400`/`401`.
+
 ## No Cloud Dependencies
 
 By default, Jarvis runs entirely on your local network:
