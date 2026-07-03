@@ -32,6 +32,26 @@ if the postgres image does not include pgvector. `pgvector/pgvector:pg16` is the
 !!! warning "Do not swap the postgres image"
     Replacing `pgvector/pgvector:pg16` with `postgres:16` or `postgres:16-alpine` in installer-generated compose files causes `jarvis-command-center` to fail at startup.
 
+## Whisper GPU Backend
+
+Since jarvis-installer#8, `WizardState.whisperBackend` (`cpu` | `cuda` | `vulkan` | `rocm`, default **cpu**) lets you pick Whisper's GPU backend **independently** of the LLM's auto-detected `gpuType`. Previously Whisper's image variant just followed the LLM's GPU type, and AMD/Vulkan boxes were hardcoded to CPU.
+
+| Backend | Image suffix | Device passthrough |
+|---------|--------------|---------------------|
+| `cpu` (default) | none | none |
+| `cuda` | `-cuda` | NVIDIA deploy block |
+| `vulkan` | `-vulkan` | `/dev/dri` + render group |
+| `rocm` | `-rocm` | `/dev/dri` + `/dev/kfd` |
+
+Default `cpu` keeps Whisper off the GPU — `base.en` is fast enough on CPU, leaving the GPU free for the LLM.
+
+Both generators implement this via a whisper-scoped image lookup + a whisper-aware GPU config helper:
+
+- **`compose-export-generator.ts`** (downloadable file) — since #8.
+- **`compose-generator.ts`** (interactive preview) — since jarvis-installer#10, for full parity with the export path and the admin sync generator.
+
+Since jarvis-installer#9, the **Configuration** step surfaces a `whisperBackend` selector (CPU default / NVIDIA CUDA / AMD Vulkan / AMD ROCm) next to the Whisper model picker, dispatching `SET_WHISPER_BACKEND`. Default `cpu` means zero behavior change for existing installs — this is opt-in GPU-accelerated speech-to-text.
+
 ## Generated Secrets
 
 The installer mints a fresh, random secret for every sensitive credential in `SECRET_KEYS` (`src/lib/secret-generator.ts`) rather than shipping fixed defaults — this includes database passwords, `ADMIN_API_KEY`, and `GRAFANA_ADMIN_PASSWORD` (the Grafana container's `GF_SECURITY_ADMIN_PASSWORD`). Earlier installer versions hardcoded the Grafana admin password to the literal `jarvis`; it's now generated per-install like the other secrets and baked into the exported compose file.
