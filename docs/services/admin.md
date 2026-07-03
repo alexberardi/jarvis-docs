@@ -116,7 +116,7 @@ The compose file is generated from `service-registry.json` which defines:
 | Service | Notes |
 |---------|-------|
 | **command-center** | Runs `alembic upgrade head` before uvicorn; python-based health check (no curl in image); mounts `command-center-prompt-providers` volume at `/app/core/prompt_providers_custom` |
-| **llm-proxy** | Starts model service (7705) + API (7704) in one container; 120s health check start period |
+| **llm-proxy** | Starts model service (7705) + API (7704) in one container; 120s health check start period. Emits `MODEL_SERVICE_TOKEN` (generated secret) on both the API and worker for internal auth to the model service — without it the model service 503s all inference while `/health` stays green (fixed in jarvis-admin#11, was previously missing from generated composes). On AMD GPUs also emits `JARVIS_FLASH_ATTN=false` (the gfx1201/RDNA4 HIP flash-attention kernel faults), matching the installer. Discrete-GPU device selection is handled in-image (see [LLM Proxy: Discrete-GPU Auto-Select](llm-proxy.md#discrete-gpu-auto-select-vulkan-rocm)), so the generator does not emit `*_VISIBLE_DEVICES`. |
 | **settings-server** | Gets `JARVIS_AUTH_SECRET_KEY` from shared auth secret |
 | **postgres** | Uses `pgvector/pgvector:pg16` (command-center needs vector extension) |
 
