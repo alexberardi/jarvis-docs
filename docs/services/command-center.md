@@ -192,9 +192,9 @@ Added in jarvis-command-center#33. Steps 2–3 of the broker-auth rollout: comma
 **Rollout sequence:**
 
 1. Command-center authenticates + serves credentials (this PR) — inert until env vars are set.
-2. Admin generates the broker password file (broker still has `allow_anonymous true`).
+2. Admin generates the broker password file. Since jarvis-admin#27 / jarvis-installer#18 (P0.4), **fresh** installs generate the broker locked (`MQTT_ALLOW_ANON=false`) from first boot — see [Admin: MQTT Broker Lock](admin.md#mqtt-broker-lock-fresh-installs). Installs upgrading from a pre-P0.4 `.env` still get the transition window (`allow_anonymous true`) unless already migrated.
 3. Node fetches + uses the credential, with an anonymous fallback.
-4. Operator flips `allow_anonymous false` on the broker once all clients have adopted the credential.
+4. Operator on an upgraded (pre-P0.4) fleet flips `allow_anonymous false` on the broker once all clients have adopted the credential; fresh installs are already locked and need no operator action.
 
 ## Web Search
 
