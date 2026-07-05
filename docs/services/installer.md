@@ -62,6 +62,12 @@ Since jarvis-installer#12, the downloadable `compose-export-generator.ts` path r
 
 The export also now emits `JARVIS_ENV: "production"` on every service, opting a fresh install into that boot-time secret enforcement. This is safe by construction — the export always bakes strong, consistent secrets, so the guard has nothing to trip on.
 
+### MQTT Broker Lock (Fresh Installs)
+
+Since jarvis-installer#18 (P0.4), `compose-export-generator.ts` defaults the exported broker to `MQTT_ALLOW_ANON=false` — Mosquitto starts authenticated-only from first boot. The installer only ever produces **fresh** installs, which never need the anonymous-broker transition window: command-center reads `MQTT_PASSWORD` from its own env, and every node fetches broker credentials over authenticated HTTP before it opens an MQTT connection (see [Command Center: MQTT Broker Auth](command-center.md#mqtt-broker-auth-transition)).
+
+This is parity with the admin generator's fresh-install behavior (see [Admin: MQTT Broker Lock](admin.md#mqtt-broker-lock-fresh-installs)) — the installer SPA has no upgrade path, so it always takes the locked default and never needs the admin generator's pre-existing-`.env` carve-out.
+
 ## Service Registry
 
 Service definitions live in `public/service-registry.json`. Each entry defines the Docker image, configurable ports, required environment variables, and named volumes. Two generators consume this file:
