@@ -5,3 +5,14 @@ The Pantry is the community package store for Jarvis. It is where contributors p
 Before anything reaches the store, every submission runs through a validation pipeline. The pipeline performs static analysis of command source, manifest validation, repository-structure checks, routine (JSON component) checks, APT and post-install operation allow-list checks, and dependency/lockfile resolution. Each stage looks for problems that would make a package unsafe, unverifiable, or incompatible with the runtime.
 
 When a check fails, the result is not a free-form error message. Every blocking failure (and some non-blocking warnings) is reported as a structured finding carrying a stable reason code. Those codes, what they mean, why we flag them, and how to fix them are documented on the [Rejection codes](rejections.md) page. If your submission was rejected and you followed a link here, start with the [Rejection codes](rejections.md) reference to find the specific code attached to your finding.
+
+## Install Pinning: Immutable Commit SHA, Not the Tag
+
+When a node installs a command, the download endpoint hands it a fetch ref pinned to the **immutable commit SHA** that was validated at publish time, not the git tag. A tag is mutable — an author could force-repoint `v1.0.0` to an un-reviewed commit *after* the pipeline above approved it, and every node installing `v1.0.0` afterward would silently pull the un-reviewed code. Commit SHAs can't be forged the same way, so pinning to the SHA closes that gap.
+
+- GitHub archive URLs (the node's primary fetch path) accept a full commit SHA, so the node downloads exactly the tree Pantry reviewed.
+- The response also surfaces the pinned commit explicitly as `git_commit_sha`, for any client that wants to verify `HEAD` itself.
+- `manifest.version` is unaffected and still drives version display — pinning the fetch ref by SHA doesn't change what version a node reports as installed.
+- Grandfathered rows published before this change with no recorded SHA still fall back to the tag; rows with neither fall back to floating `main` until resubmitted.
+
+No node-side change was required: nodes already fetch whatever ref the download endpoint returns.
