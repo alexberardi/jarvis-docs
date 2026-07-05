@@ -85,6 +85,17 @@ On a full-stack restart, the node can start **before config-service is ready**. 
 - `utils/service_discovery.get_mqtt_broker_url()`'s JSON-config fallback now also reads `mqtt_broker_host` / `mqtt_broker_port` — the keys the Docker and admin-generated configs actually write — in addition to the legacy `mqtt_broker` / `mqtt_port` keys, which still take precedence if both are present. Previously, a node whose config-service was unreachable at resolve time would miss its broker host entirely under the new key names and collapse to the `localhost` default, which reaches nothing inside a container.
 - Retries run on the MQTT thread only, so a slow reconnect never blocks the rest of the node (wake word, agents, button handling).
 
+### Wake Word Model Restoration Across Updates
+
+The openWakeWord models live **inside the venv** (`site-packages/openwakeword/resources/models/`), and every node update replaces the venv wholesale — the CI-built tarball never bundles the models, and a full `rebuild_venv` wipes them entirely. Since autodownload defaults to opt-in-off, the boot-time re-download that used to silently repair this loss no longer runs, so every update permanently killed wake word while the node otherwise reported healthy (MQTT connected, heartbeats green).
+
+`install.sh` now runs `restore_wake_models()` immediately after `restore_pantry_pip_deps`:
+
+- Copies `*.onnx` / `*.tflite` files forward from the `${INSTALL_DIR}.bak` venv, globbing the Python version on both sides so the copy survives a cross-version rebuild.
+- Resolves the destination by asking the **new** venv's own Python where `openwakeword` is installed — no hardcoded version path.
+- Never clobbers models a node has already re-staged itself (autodownload-enabled nodes keep their freshly downloaded files).
+- Is best-effort: a missing `.bak` venv or an un-importable `openwakeword` degrades to a loud warning with remediation (enable `wake_word_model_autodownload_enabled`, or copy the models manually) — never a failed install.
+
 ## Wake Behavior
 
 ### Wake Acceptance Gate
