@@ -25,6 +25,7 @@ The command center is the voice command orchestrator. It receives transcribed te
 | `POST` | `/api/v0/memories` | Create a user memory |
 | `DELETE` | `/api/v0/memories/{id}` | Delete a user memory |
 | `GET` | `/api/v0/node/mqtt-credentials` | Shared MQTT broker credentials for the authenticated node (see [MQTT Broker Auth](#mqtt-broker-auth-transition)) |
+| `POST` | `/api/v0/nodes/tasks/{task_id}/status` | Node self-reports a terminal status for its own task (see [Node Task Status Reporting](#node-task-status-reporting)) |
 
 For mobile data-browser routes see [Mobile Command-Data API](#mobile-command-data-api) below.
 
@@ -252,6 +253,18 @@ Added in jarvis-command-center#22. When a node update is triggered, the command 
 **Explicit versions bypass the gate:** providing a specific version (e.g. `v0.3.1`) to the node-update endpoint never touches GitHub — it installs that exact version regardless of `updates.allow_check`.
 
 **Scope:** global (not per-household). The update-check call site is unauthenticated in the JWT/household sense, so this is a box-level toggle set via **Admin → Settings → updates**.
+
+## Node Task Status Reporting
+
+Added in jarvis-command-center#35. Nodes can self-report a terminal status for their own tasks via `POST /api/v0/nodes/tasks/{task_id}/status` (node `X-API-Key` auth) — introduced so a node's `allow_updates` consent-gate refusal (see [node-setup: Update Policy](../clients/node-setup.md#update-policy)) surfaces immediately instead of dying ~15 minutes later as a misleading sweeper "no heartbeat" timeout.
+
+**Behaviour:**
+
+- A node may only fail **its own** `kind="update"` tasks — cross-node, wrong-kind, and unknown task IDs all return the same 404, so task IDs cannot be enumerated.
+- State is whitelisted to `failed` (a `Literal`, not a free string) — success is still inferred only from the post-upgrade heartbeat version, so a node cannot self-report a completed update.
+- Terminal-state immutability is enforced with a conditional `UPDATE` (not check-then-write), so this can never race the 2-minute sweeper or the cancel endpoint into clobbering an existing terminal state (e.g. "Cancelled by user").
+
+A node posting to an older command center that predates this endpoint gets a swallowed 404; the sweeper timeout remains the backstop in that case. The mobile app renders `task.error_message` verbatim on failure, so no separate mobile-side change was needed to surface the reason.
 
 ## not_for_me Detection
 
