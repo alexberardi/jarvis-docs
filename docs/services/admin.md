@@ -1,3 +1,4 @@
+
 # Admin
 
 The admin service provides both a setup wizard for first-time installation and a web dashboard for ongoing management. It runs as a standalone binary (not a Python/FastAPI service) and manages all other Jarvis services via Docker.
@@ -120,6 +121,12 @@ Since jarvis-admin#17, both `compose-generator.ts` and `env-generator.ts` opt ev
 
 This is safe by construction: admin's generators already produced strong secrets (no `"changeme"` fallback bug), so enabling the guard has nothing to trip on.
 
+### MQTT Broker Lock (Fresh Installs)
+
+Since jarvis-admin#27, `env-generator.ts` writes `MQTT_ALLOW_ANON=false` into every fresh install's `.env` — Mosquitto starts authenticated-only (`allow_anonymous false`) from first boot. A fresh install never needs the anonymous-broker window: command-center reads `MQTT_PASSWORD` from its own env, and every node fetches broker credentials over authenticated HTTP before it opens an MQTT connection (see [Command Center: MQTT Broker Auth](command-center.md#mqtt-broker-auth-transition)).
+
+`compose-upgrader.ts` (used when regenerating `.env` for an existing install) preserves whatever value is already present. If the existing `.env` predates this change (no `MQTT_ALLOW_ANON` key at all), the upgrader explicitly writes `MQTT_ALLOW_ANON=true` — the transition window stays open for fleets that may still have un-migrated nodes, until the operator flips it. An explicit operator override always wins. Mirrors the installer SPA's export generator (see [Installer: MQTT Broker Lock](installer.md#mqtt-broker-lock-fresh-installs)).
+
 ### Notable Service Configurations
 
 | Service | Notes |
@@ -147,6 +154,7 @@ To add custom prompt providers, place them in the Docker volume. The volume is m
 | `PORT` | Admin server port (default: 7711) |
 | `DOCKER_SOCKET` | Docker socket path (default: `/var/run/docker.sock`) |
 | `MODELS_DIR` | Override models directory for local fallback |
+| `MQTT_ALLOW_ANON` | Mosquitto `allow_anonymous` toggle written to `.env` by the generators (default: `false` on fresh install, `true` when upgrading a pre-existing `.env` that lacks the key). See [MQTT Broker Lock](#mqtt-broker-lock-fresh-installs). |
 
 ## Dependencies
 
