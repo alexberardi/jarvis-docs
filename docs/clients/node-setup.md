@@ -76,6 +76,15 @@ The node runs multiple supervised threads:
 - **Agent scheduler** -- Runs background agents on configurable intervals (reminders, device discovery, token refresh).
 - **ButtonShortPress thread** -- Handles ReSpeaker GPIO17 short-press events. Speaks queued alerts via local TTS without blocking the GPIO callback. Started after TTS, LED, and alert-queue services are ready.
 
+### MQTT Broker Resolution: Never Goes Dark After a Startup Race
+
+On a full-stack restart, the node can start **before config-service is ready**. `start_mqtt_listener` now handles this instead of giving up:
+
+- The connect loop re-attempts service discovery init and **re-resolves the broker URL on every retry**, not just once at boot. As soon as config-service comes up, the node is promoted from whatever it resolved on attempt 1 (which may have been a dead fallback) to the real broker address.
+- Retries are **unbounded with capped exponential backoff** (up to 60 s between attempts) instead of giving up after a fixed 5 tries and logging "continuing without MQTT" — which previously left the node permanently off MQTT (no chat tool-routing, no pushed updates) until a manual restart.
+- `utils/service_discovery.get_mqtt_broker_url()`'s JSON-config fallback now also reads `mqtt_broker_host` / `mqtt_broker_port` — the keys the Docker and admin-generated configs actually write — in addition to the legacy `mqtt_broker` / `mqtt_port` keys, which still take precedence if both are present. Previously, a node whose config-service was unreachable at resolve time would miss its broker host entirely under the new key names and collapse to the `localhost` default, which reaches nothing inside a container.
+- Retries run on the MQTT thread only, so a slow reconnect never blocks the rest of the node (wake word, agents, button handling).
+
 ## Wake Behavior
 
 ### Wake Acceptance Gate
