@@ -138,6 +138,28 @@ suppress_wake_for(seconds=30.0, reason="my-signal")
 
 The gate advances only if the new deadline is further out than the current one. The `reason` string appears in `wake-gate-extended` log lines for debuggability.
 
+## Update Policy
+
+### Update Consent Gate (`allow_updates`)
+
+Nodes carry an `allow_updates` consent flag governing whether an update task is applied. Refusing an update now reports back to the command center via `POST /api/v0/nodes/tasks/{id}/status` (see [Command Center: Node Task Status Reporting](../services/command-center.md#node-task-status-reporting)) with an actionable reason — previously a refusal was silent, and the task instead died ~15 minutes later as a misleading sweeper "no heartbeat" timeout.
+
+`allow_updates`, `wake_word_model_autodownload_enabled`, and `release_track` are surfaced read-only in the node's settings snapshot so the mobile app can render consent controls, and are hidden entirely for nodes that predate this gate (key absence is the capability signal).
+
+**Pushing policy changes:** these three keys are written exclusively through a new `node_config` config-push type:
+
+- **Strict allowlist** — only `allow_updates`, `wake_word_model_autodownload_enabled`, `release_track` (∈ `stable`/`dev`) may be set this way.
+- **Real-boolean validation** — a string `"false"` is rejected rather than read back truthy.
+- **Replay guard** — each push carries an `__issued_at` timestamp; the node persists a monotonic watermark and rejects anything not strictly newer, so a compromised command center re-serving a stale `allow_updates: true` payload after revocation is refused.
+- The node restarts (delayed, guarded) if the boot-time autodownload flag changes.
+
+The legacy plaintext `update_node_config` channel now explicitly **rejects** these policy keys (and any `_`-prefixed internal key) — that channel is forgeable by anything that can reach the command center or the broker, which must never be enough to flip a consent flag.
+
+All four of the node's `config.json` writers now go through a locked, atomic (write-temp + `os.replace`) update path, closing a prior lost-update / torn-write risk that could silently un-revoke consent or drop `node_id`/`api_key` from the file.
+
+!!! note "Fielded nodes need one manual opt-in"
+    Nodes on 0.1.130–0.1.136 have the underlying gate but predate this exposure — they need one SSH opt-in (or a direct `config.json` edit) before they can be updated to a version ≥ this one.
+
 ## Plugin Architecture
 
 Commands live in the `commands/` directory. Each command implements the `IJarvisCommand` interface:
@@ -323,7 +345,9 @@ Key config fields:
 | `command_center_url` | URL of the command center |
 | `room` | Room name (e.g., "kitchen", "office") |
 | `household_id` | Household UUID for multi-tenant isolation |
-| `release_track` | Update channel: `"stable"` (default) or `"dev"` |
+| `release_track` | Update channel: `"stable"` (default) or `"dev"`. Mobile-managed via the `node_config` config-push (see [Update Policy](#update-policy)). |
+| `allow_updates` | Consent gate for update tasks — a node refuses (and reports) unsolicited updates unless `true`. Read-only in the settings snapshot; only settable via the `node_config` config-push. See [Update Policy](#update-policy). |
+| `wake_word_model_autodownload_enabled` | Whether openWakeWord model files auto-download at boot. Read-only in the settings snapshot; only settable via the `node_config` config-push. See [Update Policy](#update-policy). |
 | `volume_percent` | Persisted speaker volume (0–100); written on every volume command |
 | `led_enabled` | Whether the LED ring is active on boot (HAT nodes only) |
 | `led_brightness_percent` | LED brightness applied at startup (0–100, default 100) |
