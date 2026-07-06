@@ -1,4 +1,3 @@
-
 # Admin
 
 The admin service provides both a setup wizard for first-time installation and a web dashboard for ongoing management. It runs as a standalone binary (not a Python/FastAPI service) and manages all other Jarvis services via Docker.
@@ -127,6 +126,12 @@ Since jarvis-admin#27, `env-generator.ts` writes `MQTT_ALLOW_ANON=false` into ev
 
 `compose-upgrader.ts` (used when regenerating `.env` for an existing install) preserves whatever value is already present. If the existing `.env` predates this change (no `MQTT_ALLOW_ANON` key at all), the upgrader explicitly writes `MQTT_ALLOW_ANON=true` — the transition window stays open for fleets that may still have un-migrated nodes, until the operator flips it. An explicit operator override always wins. Mirrors the installer SPA's export generator (see [Installer: MQTT Broker Lock](installer.md#mqtt-broker-lock-fresh-installs)).
 
+### Command-Center Admin Key Wiring
+
+Since jarvis-admin#31, the generator also emits `COMMAND_CENTER_ADMIN_KEY` (sourced from the shared `ADMIN_API_KEY` secret) into jarvis-admin's own container environment. The dashboard's **Nodes** train-adapter action and the Request Traces page authenticate to command-center's admin API (`/api/v0/admin/traces`, `/api/v0/nodes/{id}/commands`) with this key; it was previously never wired, so those calls silently sent an empty `X-API-Key` and command-center returned 401 once traces auth was enforced (jarvis-command-center#26).
+
+Every route that proxies to a command-center admin endpoint now guards the key at request time: if `COMMAND_CENTER_ADMIN_KEY` is unset, the route fails loudly with `500` and a `COMMAND_CENTER_ADMIN_KEY is not configured` error instead of forwarding an empty key. See [Troubleshooting](#request-traces-or-node-actions-return-500-command_center_admin_key-is-not-configured).
+
 ### Notable Service Configurations
 
 | Service | Notes |
@@ -155,6 +160,7 @@ To add custom prompt providers, place them in the Docker volume. The volume is m
 | `DOCKER_SOCKET` | Docker socket path (default: `/var/run/docker.sock`) |
 | `MODELS_DIR` | Override models directory for local fallback |
 | `MQTT_ALLOW_ANON` | Mosquitto `allow_anonymous` toggle written to `.env` by the generators (default: `false` on fresh install, `true` when upgrading a pre-existing `.env` that lacks the key). See [MQTT Broker Lock](#mqtt-broker-lock-fresh-installs). |
+| `COMMAND_CENTER_ADMIN_KEY` | Admin API key used to authenticate to command-center's admin API (Request Traces, node train-adapter). Required; shares the `ADMIN_API_KEY` secret via `secretRef`. Emitted into jarvis-admin's own container since jarvis-admin#31 — see [Command-Center Admin Key Wiring](#command-center-admin-key-wiring). |
 
 ## Dependencies
 
@@ -205,3 +211,7 @@ The `.models` directory may be owned by root (created by Docker). Fix with:
 ```bash
 sudo chown -R $USER:$USER ~/.jarvis/compose/.models/
 ```
+
+### Request Traces or node actions return 500 `COMMAND_CENTER_ADMIN_KEY is not configured`
+
+Since jarvis-admin#31, the Request Traces page and the Nodes train-adapter action fail loudly with a `500` instead of a confusing `401` when `COMMAND_CENTER_ADMIN_KEY` is missing from the admin container's environment. Regenerate `.env` (or re-run the setup wizard) so the generator wires the key from the shared `ADMIN_API_KEY` secret — see [Command-Center Admin Key Wiring](#command-center-admin-key-wiring).
