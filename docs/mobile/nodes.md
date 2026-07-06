@@ -48,6 +48,16 @@ To import a key from a backup QR code, tap **Import Key** (key icon, top-right o
 2. For a **password-protected** backup, enter the password when prompted --- the app decrypts the key locally using Argon2id + AES-256-GCM.
 3. On success, the node is re-paired to your device.
 
+## Software Updates
+
+The node's detail screen shows an update control gated by the node's `allow_updates` consent flag (node-setup >= 0.1.137; see [Update Policy](../clients/node-setup.md#update-policy)):
+
+- **Consent granted** --- An **Update** button appears when a new version is available, plus a **Remote updates enabled** toggle to revoke consent at any time.
+- **Consent refused** --- The Update button is replaced by an **Enable updates** button. Tapping it shows a confirmation modal explaining that the node will be allowed to download and install releases; confirming flips the gate on.
+- **Older nodes** --- Nodes that predate the consent gate (node-setup < 0.1.137) show the previous Update button with no consent controls.
+
+Consent changes are written end-to-end through the K2-encrypted config-push channel --- the command center transports ciphertext only and cannot forge or replay a consent flip.
+
 ## Node Settings
 
 From a node's detail screen you can:
