@@ -132,6 +132,12 @@ Since jarvis-admin#31, the generator also emits `COMMAND_CENTER_ADMIN_KEY` (sour
 
 Every route that proxies to a command-center admin endpoint now guards the key at request time: if `COMMAND_CENTER_ADMIN_KEY` is unset, the route fails loudly with `500` and a `COMMAND_CENTER_ADMIN_KEY is not configured` error instead of forwarding an empty key. See [Troubleshooting](#request-traces-or-node-actions-return-500-command_center_admin_key-is-not-configured).
 
+### Update Stack to Latest (Download)
+
+Since jarvis-admin#35, the Sync Compose / reconcile flow has an **"Update stack to latest"** button (`regenerateComposeFilesLatest()`, `POST /api/install/regenerate-download?latest=true`) that downloads a regenerated `docker-compose.yml` with image digests refreshed from GHCR — the newest published builds — rather than the frozen digest map baked into the admin binary at build time. Like the existing plain "Download updated compose" button, it never touches the running stack: the operator applies it themselves with `docker compose pull && docker compose up -d`. Because the operator applies it out-of-band, this is also the only way to update **jarvis-admin itself** — the in-place reconcile can't recreate the container it's running in. It's banner-independent (always available, not gated behind the release-driven Dashboard update banner). The default (no `latest` flag) path is unchanged config-only regeneration at the current pins.
+
+The GHCR digest resolver (`refreshDigestsForTrack`) now resolves all tags concurrently rather than sequentially — the sequential version cost the *sum* of ~17 GHCR round-trips per refresh (seconds per upgrade, and it blew `compose-upgrader` unit-test timeouts under full-suite load). Each `resolveManifestDigest` call still self-contains its own error + timeout, so the concurrent `Promise.all` never rejects; a per-tag resolver failure just keeps the bundled digest.
+
 ### Notable Service Configurations
 
 | Service | Notes |
