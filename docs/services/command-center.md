@@ -266,6 +266,19 @@ Added in jarvis-command-center#35. Nodes can self-report a terminal status for t
 
 A node posting to an older command center that predates this endpoint gets a swallowed 404; the sweeper timeout remains the backstop in that case. The mobile app renders `task.error_message` verbatim on failure, so no separate mobile-side change was needed to surface the reason.
 
+## Secret Boot Guard (`ADMIN_API_KEY` / `JARVIS_AUTH_SECRET_KEY`)
+
+Added in jarvis-command-center#37, closing the last fail-open-default gap in the audit's H2 family (mirrors jarvis-auth's `settings.enforce_secret_security` and jarvis-notifications' `validate_security`). Previously `.env.example` shipped `ADMIN_API_KEY=change-me` and `verify_admin_key` accepted it as valid — it only failed closed when the var was completely unset.
+
+On startup, `enforce_secret_security()` checks `ADMIN_API_KEY` and `JARVIS_AUTH_SECRET_KEY` against a placeholder list (`change-me`, `changeme`, `change_me`, `__set_me__`, plus the verbatim `env.template` values, case-insensitive) and a 16-character minimum length:
+
+- **Empty, placeholder, or too short:** always logs a loud warning. **Fatal (startup aborts)** only when `JARVIS_ENV=production`. Dev boots and compose-mode installs that don't set `JARVIS_ENV` are unaffected.
+- **Strong values:** silent, no warning.
+
+`.env.example` now ships `ADMIN_API_KEY=__SET_ME__` instead of `change-me` (still caught by the guard if copied verbatim). `JARVIS_APP_KEY` and similar outbound-credential vars are intentionally **not** covered — those are credentials command-center *presents* to other services, not ones it validates locally, so a weak value there doesn't fail open the same way.
+
+**To harden a production deploy:** set `JARVIS_ENV=production` and generate strong values with `openssl rand -hex 32` for both `ADMIN_API_KEY` and `JARVIS_AUTH_SECRET_KEY`.
+
 ## not_for_me Detection
 
 The command center uses a `<not_for_me/>` sentinel in LLM responses to reject transcripts that were not directed at Jarvis. Since jarvis-command-center#11, the classification behavior is conditional on the direction hint the node ships with each transcript.
@@ -355,7 +368,7 @@ JARVIS_SYSTEM_PROMPT_PROVIDER=ChatGPTOpenAI
 | `DB_URL` | PostgreSQL connection string (must point to a pgvector-enabled instance) |
 | `MIGRATIONS_DATABASE_URL` | PostgreSQL connection string for Alembic migrations |
 | `PORT` | API port (default `7703`) |
-| `ADMIN_API_KEY` | API key for admin endpoints |
+| `ADMIN_API_KEY` | API key for admin endpoints. Placeholder/short values are rejected at boot in production — see [Secret Boot Guard](#secret-boot-guard-admin_api_key-jarvis_auth_secret_key) |
 
 ### Authentication
 
@@ -363,7 +376,7 @@ JARVIS_SYSTEM_PROMPT_PROVIDER=ChatGPTOpenAI
 |----------|-------------|
 | `JARVIS_AUTH_APP_ID` | App identity for service-to-service auth (default `command-center`) |
 | `JARVIS_AUTH_APP_KEY` | App key for service-to-service auth |
-| `JARVIS_AUTH_SECRET_KEY` | JWT secret key — must match `AUTH_SECRET_KEY` in jarvis-auth. Required for mobile app JWT validation. |
+| `JARVIS_AUTH_SECRET_KEY` | JWT secret key — must match `AUTH_SECRET_KEY` in jarvis-auth. Required for mobile app JWT validation. Placeholder/short values are rejected at boot in production — see [Secret Boot Guard](#secret-boot-guard-admin_api_key-jarvis_auth_secret_key) |
 | `NODE_AUTH_CACHE_TTL` | Auth validation cache TTL in seconds (default `60`) |
 
 ### MQTT Broker Auth
