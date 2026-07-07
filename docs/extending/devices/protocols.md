@@ -89,6 +89,14 @@ class IJarvisDeviceProtocol(ABC):
         """
         ...
 
+    async def get_stream_source(self, device: Any) -> str | None:
+        """Return a go2rtc source URL for live-streaming this camera device.
+
+        Return None if this protocol has no camera-stream support or the
+        device isn't configured. Default: None (SDK v0.5.0+).
+        """
+        ...
+
     def validate_secrets(self) -> list[str]:
         """Returns a list of validation error messages (empty = valid)."""
         ...
@@ -112,6 +120,26 @@ async def on_removed(self, device: Any, **kwargs: Any) -> None:
 - **Node dispatch:** the node's MQTT listener receives the `device_removed` command from command-center and dispatches it off-thread to `direct_device_service.remove_device()`, which calls `on_removed` via a `hasattr` guard. The tool cache is always invalidated afterward, even if `on_removed` raises.
 
 See [Protocol Cleanup on Delete](../../services/command-center.md#protocol-cleanup-on-delete) for the command-center side of this flow.
+
+### `get_stream_source` — Camera Streaming Hook (SDK v0.5.0+)
+
+Protocols that support camera streaming can override `get_stream_source(device)` to build a [go2rtc](https://github.com/AlexxIT/go2rtc) source string for live video:
+
+```python
+async def get_stream_source(self, device: DiscoveredDevice) -> str | None:
+    if not self._has_camera_support():
+        return None
+    return f"mydevice:?device_id={device.cloud_id}&token={await self._get_token()}"
+```
+
+The node hands the returned string to command-center, which registers it with go2rtc **verbatim** — so the protocol, not command-center, owns the source format and the choice of streaming transport (e.g. WebRTC vs RTSP).
+
+**Behaviour:**
+
+- **Async:** implementations can do I/O (e.g. a capability lookup) before returning a source string.
+- **Default:** `None` — protocols without camera support are inert; existing protocols require no changes to compile or run.
+- **Node dispatch:** the node's `camera_credentials_handler` resolves the protocol adapter for the requesting device via `DeviceFamilyDiscoveryService.get_family()`, awaits `get_stream_source(device)`, and POSTs `{"stream_source": "..."}` back to command-center at `/api/v0/camera-credentials/{request_id}` — or `{"error": "..."}` if the adapter predates this hook (older SDK), returns `None` (camera not configured), or raises. Requires **jarvis-command-sdk >= 0.5.0**.
+- **Reference implementation:** jarvis-device-nest's `NestProtocol.get_stream_source()` builds a `nest:` go2rtc source, preferring WebRTC (omitting the `protocols` param) and setting `protocols=RTSP` only for devices that support RTSP but not WebRTC — a forced RTSP request gets HTTP 400 from WebRTC-only devices (e.g. the battery Nest Doorbell). On an SDM capability-lookup failure, it falls back to WebRTC rather than RTSP, since an incorrect RTSP fallback would re-break those same devices.
 
 ### `needs_pairing` — Pairing State Signal (v0.1.130+)
 

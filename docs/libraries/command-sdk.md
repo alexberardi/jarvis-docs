@@ -3,7 +3,7 @@
 The `jarvis-command-sdk` Python package is the foundation for building Jarvis voice commands. It defines the `IJarvisCommand` interface that all Pantry-distributed and built-in commands implement, along with supporting types such as `FieldSpec` and `JarvisStorage`.
 
 **Package:** `jarvis-command-sdk`  
-**Current version:** `0.4.1`  
+**Current version:** `0.5.0`  
 **Install:** `pip install jarvis-command-sdk`
 
 ## Core Interfaces
@@ -59,6 +59,10 @@ all_data = storage.get_all()
 ```
 
 See [Datastore](../extending/infrastructure/datastore.md#jarvisstorage-sdk-persistence-facade) for the full API.
+
+### `IJarvisDeviceProtocol`
+
+Interface for direct LAN/cloud device control plugins (LIFX, Kasa, Nest, etc.), including the optional `get_stream_source` camera-streaming hook added in 0.5.0. See [Device Protocols](../extending/devices/protocols.md) for the full interface and hook reference.
 
 ## Data Browser Hooks
 
@@ -117,5 +121,6 @@ Marks a field as settable at record creation but immutable on edit (e.g. record 
 
 | Version | What changed |
 |---------|-------------|
+| 0.5.0 | `IJarvisDeviceProtocol.get_stream_source` optional async camera-streaming hook — see [Device Protocols](../extending/devices/protocols.md#get_stream_source--camera-streaming-hook-sdk-v050) |
 | 0.4.1 | `data_browser_supports_create`, `data_browser_create`, `FieldSpec.create_only` |
 | ≤ 0.3.x | `FieldSpec`, `JarvisStorage`, `data_browser_mode`, `display_summary` |
