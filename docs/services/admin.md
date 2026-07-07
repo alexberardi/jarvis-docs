@@ -1,4 +1,4 @@
-# Admin
+## Admin
 
 The admin service provides both a setup wizard for first-time installation and a web dashboard for ongoing management. It runs as a standalone binary (not a Python/FastAPI service) and manages all other Jarvis services via Docker.
 
@@ -132,12 +132,16 @@ Since jarvis-admin#31, the generator also emits `COMMAND_CENTER_ADMIN_KEY` (sour
 
 Every route that proxies to a command-center admin endpoint now guards the key at request time: if `COMMAND_CENTER_ADMIN_KEY` is unset, the route fails loudly with `500` and a `COMMAND_CENTER_ADMIN_KEY is not configured` error instead of forwarding an empty key. See [Troubleshooting](#request-traces-or-node-actions-return-500-command_center_admin_key-is-not-configured).
 
+### Supervised llm-proxy Launch (serve.sh)
+
+Since jarvis-admin#34, the generated `llm-proxy` container's `command` is `["bash", "scripts/serve.sh"]` (the supervised launcher the image ships, added in jarvis-llm-proxy-api#21) rather than a raw unsupervised dual-uvicorn shell command. `serve.sh` runs the API server in the foreground and supervises the model service, respawning it with backoff on a native crash (e.g. a llama.cpp segfault) — previously a crashed model service was never restarted, and the API 503'd every request indefinitely while the container itself still looked healthy (the 2026-07-02 outage class, [roadmap#59](https://github.com/alexberardi/jarvis-roadmap/issues/59)). Existing installs pick up the new command on their next compose regen/upgrade/reconcile, not immediately — a running stack keeps the old command until then.
+
 ### Notable Service Configurations
 
 | Service | Notes |
 |---------|-------|
 | **command-center** | Runs `alembic upgrade head` before uvicorn; python-based health check (no curl in image); mounts `command-center-prompt-providers` volume at `/app/core/prompt_providers_custom` |
-| **llm-proxy** | Starts model service (7705) + API (7704) in one container; 120s health check start period. Emits `MODEL_SERVICE_TOKEN` (generated secret) on both the API and worker for internal auth to the model service — without it the model service 503s all inference while `/health` stays green (fixed in jarvis-admin#11, was previously missing from generated composes). On AMD GPUs also emits `JARVIS_FLASH_ATTN=false` (the gfx1201/RDNA4 HIP flash-attention kernel faults), matching the installer. Discrete-GPU device selection is handled in-image (see [LLM Proxy: Discrete-GPU Auto-Select](llm-proxy.md#discrete-gpu-auto-select-vulkan-rocm)), so the generator does not emit `*_VISIBLE_DEVICES`. |
+| **llm-proxy** | Launches via the supervised `scripts/serve.sh` entrypoint (see [Supervised llm-proxy Launch](#supervised-llm-proxy-launch-servesh)), which starts model service (7705) + API (7704) in one container; 120s health check start period. Emits `MODEL_SERVICE_TOKEN` (generated secret) on both the API and worker for internal auth to the model service — without it the model service 503s all inference while `/health` stays green (fixed in jarvis-admin#11, was previously missing from generated composes). On AMD GPUs also emits `JARVIS_FLASH_ATTN=false` (the gfx1201/RDNA4 HIP flash-attention kernel faults), matching the installer. Discrete-GPU device selection is handled in-image (see [LLM Proxy: Discrete-GPU Auto-Select](llm-proxy.md#discrete-gpu-auto-select-vulkan-rocm)), so the generator does not emit `*_VISIBLE_DEVICES`. |
 | **whisper-api** | Since jarvis-admin#12, the sync generator selects Whisper's image variant + device passthrough from an **optional** `WizardState.whisperBackend` (`cpu` | `cuda` | `vulkan` | `rocm`, default `cpu` when unset) — independently of the LLM's auto-detected `gpuType`, mirroring the installer SPA's generator (see [Installer: Whisper GPU Backend](installer.md#whisper-gpu-backend)). Optional and defaulted so the upgrade state-reconstructor and older clients keep working with no fanout. Also wired end-to-end through the admin **reconcile (sync)** flow — a GPU-backend select on the Whisper section of ReconcilePage — so existing installs can switch Whisper's backend without a fresh install. A UI control in the initial setup wizard is a planned follow-up (shared with the installer wizard). |
 | **settings-server** | Gets `JARVIS_AUTH_SECRET_KEY` from shared auth secret |
 | **postgres** | Uses `pgvector/pgvector:pg16` (command-center needs vector extension) |
