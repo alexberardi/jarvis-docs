@@ -31,6 +31,8 @@ For mobile data-browser routes see [Mobile Command-Data API](#mobile-command-dat
 
 For household settings routes (e.g. web search toggle) see [Mobile Household Settings API](#mobile-household-settings-api) below.
 
+For camera streaming routes see [Camera Streaming](#camera-streaming) below.
+
 ## Mobile Command-Data API
 
 The mobile app manages command records through a set of REST routes that proxy to the node's MQTT data-browser protocol. All routes require a valid mobile JWT.
@@ -149,6 +151,32 @@ This lets the node call the protocol's `on_removed` hook to release any external
 | Failure policy | Warning logged; delete proceeds regardless |
 
 See [`on_removed` — Device Deletion Hook](../extending/devices/protocols.md#on_removed-device-deletion-hook-sdk-v042) for the protocol authoring side.
+
+### Camera Streaming
+
+Reworked in jarvis-command-center#38 (the last of a 4-repo change: jarvis-command-sdk → jarvis-device-nest → jarvis-node-setup → jarvis-command-center). Command-center no longer builds the go2rtc source URL itself — it asks the owning node for one and registers whatever comes back **verbatim**, with no protocol-specific knowledge of its own.
+
+**Flow:**
+
+1. Mobile calls `POST /api/v0/households/{household_id}/cameras/{device_id}/stream` with an **empty body** — no credentials are ever sent by the client.
+2. CC publishes `{request_id, protocol, cloud_id, entity_id, domain}` to `jarvis/nodes/{node_id}/camera-credentials` over MQTT (full, unstripped `cloud_id`).
+3. The node resolves the device-protocol plugin for `protocol` and awaits its `get_stream_source(device)` hook — see [`get_stream_source` — Camera Streaming Hook](../extending/devices/protocols.md#get_stream_source-camera-streaming-hook-sdk-v050).
+4. The node POSTs `{"stream_source": "..."}` (or `{"error": "..."}`) back to `POST /api/v0/camera-credentials/{request_id}` (node `X-API-Key` auth).
+5. CC registers `stream_source` with go2rtc verbatim and returns a proxied HLS URL.
+
+**Breaking change:** `StartStreamRequest` dropped its legacy body fields (`refresh_token`, `client_id`, `client_secret`, `project_id`, `protocols`) along with the `nest:` URL builder and the hardcoded `protocols=RTSP` default. That default forced `400`s (then retry `429`s) from WebRTC-only cameras like the battery Nest Doorbell — the node-side protocol plugin now picks the transport instead (see the Nest reference implementation in the protocols doc). Callers must send an empty body; credentials are never client-supplied.
+
+**Endpoints:**
+
+| Method | Path | Auth | Description |
+|---|---|---|---|
+| `GET` | `/api/v0/households/{household_id}/cameras` | Household member | List camera devices for a household |
+| `POST` | `/api/v0/households/{household_id}/cameras/{device_id}/stream` | Household member | Start a stream; registers the node's go2rtc source |
+| `DELETE` | `/api/v0/households/{household_id}/cameras/{device_id}/stream` | Household member | Stop a stream and remove it from go2rtc |
+| `POST` | `/api/v0/camera-credentials/{request_id}` | Node `X-API-Key` | Node callback with the built stream source (or an error) |
+| `GET` | `/api/v0/cameras/stream/{stream_name}/{path}` | Household member (stream owner) | Proxy HLS/MP4 segments from go2rtc |
+
+The HLS proxy restricts `{path}` to media file suffixes (`.m3u8`, `.ts`, `.mp4`, `.m4s`, `.aac`, `.vtt`, `.key`) so it cannot be pivoted to go2rtc control endpoints like `/api/config`, which would disclose every household's camera/OAuth credentials.
 
 ## Key Components
 
