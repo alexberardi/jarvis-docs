@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+
+{#
+  Cloudflare Web Analytics — cookieless, measures real human page loads.
+  Injected programmatically and gated to the production hostname so local
+  `mkdocs serve` and Cloudflare Pages preview deploys never report pageviews.
+  The beacon token is public by design (it ships in page source).
+#}
+{% block extrahead %}
+  {{ super() }}
+  <script>
+    if (location.hostname === "docs.jarvisautomation.dev") {
+      var s = document.createElement("script");
+      s.defer = true;
+      s.src = "https://static.cloudflareinsights.com/beacon.min.js";
+      s.setAttribute("data-cf-beacon", JSON.stringify({ token: "8ab1d8fdf7a548e09d2d316660e3520c" }));
+      document.head.appendChild(s);
+    }
+  </script>
+{% endblock %}
