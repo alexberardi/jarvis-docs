@@ -138,13 +138,34 @@ Since jarvis-admin#35, the Sync Compose / reconcile flow has an **"Update stack 
 
 The GHCR digest resolver (`refreshDigestsForTrack`) now resolves all tags concurrently rather than sequentially — the sequential version cost the *sum* of ~17 GHCR round-trips per refresh (seconds per upgrade, and it blew `compose-upgrader` unit-test timeouts under full-suite load). Each `resolveManifestDigest` call still self-contains its own error + timeout, so the concurrent `Promise.all` never rejects; a per-tag resolver failure just keeps the bundled digest.
 
+### GPU Backend Persistence (Reconcile)
+
+Since jarvis-admin#36, the reconcile (sync) flow persists Whisper's and TTS's GPU backend selections in `.env` and reads them back on every reconcile — fixing an incident class where a plain reconcile/regenerate silently reverted GPU configuration to CPU, because nothing had recorded the previous choice (prod 2026-07-04: whisper CUDA→CPU regressed STT from ~90ms to ~16s; prod 2026-07-06: a reconcile stripped TTS's GPU passthrough too, and the ReconcilePage selectors always reset to `cpu` since they never hydrated from the running install's options).
+
+- **`WHISPER_BACKEND`** and **`TTS_BACKEND`** (+ **`TTS_GPU_DEVICE`** when `TTS_BACKEND=cuda`) are written to `.env` by `env-generator.ts` and read back by `state-reconstructor.ts` on every reconcile. An unrecognized or missing `WHISPER_BACKEND` value degrades to `cpu` rather than failing the reconcile.
+- TTS GPU support is **device passthrough only** — the stock `jarvis-tts` image ships CUDA-capable Torch, so there's no `-cuda` image variant to select, unlike Whisper. The compose reservation pins a single GPU via `device_ids: ['${TTS_GPU_DEVICE:-0}']` (default `0`); using `count: all` OOM'd next to a 20GB LLM already on GPU0 in the 2026-07-05 incident.
+- `GET /api/install/options` (consumed by the reconcile UI) now returns both `whisperBackend` and `ttsBackend`, and **ReconcilePage** hydrates its selectors from that response on load instead of defaulting to `cpu` every time the page opens.
+- A new **Text-to-speech** section on the reconcile page lets operators switch the Kokoro TTS inference device (CPU default / NVIDIA CUDA), mirroring the existing Whisper GPU-backend selector (see [Whisper GPU Backend](installer.md#whisper-gpu-backend) for the underlying backend concept).
+- See [TTS: Provider Selection](tts.md#provider-selection) for the Piper/Kokoro provider system this backend choice applies to.
+
+### Floating Tags by Default (PIN_IMAGES Opt-In)
+
+Since jarvis-admin#38 (2026-07-06 decision), image digest pinning is **opt-in** instead of the default: generated compose files use floating tags (`${JARVIS_IMAGE_TAG:-latest}<variant>`) for every image unless `PIN_IMAGES=true` is set in `.env`. Pinning-by-default meant `docker compose pull` could never actually update anything, and a stale bundled digest map silently downgraded GPU-variant images back to CPU builds — the same underlying incident class as [GPU Backend Persistence](#gpu-backend-persistence-reconcile) above, and a stuck non-expert operator had no supported way out short of a full regenerate.
+
+- **`PIN_IMAGES`** (env var, default unset → `false`) — set to `true` to opt back into digest pinning, for supply-chain-hardened installs where a GHCR tag can be overwritten but a `@sha256` pin cannot.
+- The `dev` release track always floats regardless of `PIN_IMAGES` (unchanged behavior — dev exists to run the freshest CI-built images).
+- **Migration is automatic**: a pre-existing install with a digest-pinned compose heals to floating tags on its next reconcile/regenerate, since a missing `PIN_IMAGES` key reconstructs as `false`. There is no separate migration step.
+- The reconcile UI exposes this as a **"Pin images by digest"** checkbox (advanced, off by default) on the Sync Compose page.
+- A new golden regression test (`prod-shape-regression.test.ts`) reconstructs wizard state from a prod-shaped `.env` and asserts GPU backends, broker credentials, and image pinning all regenerate correctly together in both the floating and `PIN_IMAGES=true` modes — covering the exact combination of settings the 2026-07-04/06 incidents broke at once.
+
 ### Notable Service Configurations
 
 | Service | Notes |
 |---------|-------|
 | **command-center** | Runs `alembic upgrade head` before uvicorn; python-based health check (no curl in image); mounts `command-center-prompt-providers` volume at `/app/core/prompt_providers_custom` |
 | **llm-proxy** | Starts model service (7705) + API (7704) in one container; 120s health check start period. Emits `MODEL_SERVICE_TOKEN` (generated secret) on both the API and worker for internal auth to the model service — without it the model service 503s all inference while `/health` stays green (fixed in jarvis-admin#11, was previously missing from generated composes). On AMD GPUs also emits `JARVIS_FLASH_ATTN=false` (the gfx1201/RDNA4 HIP flash-attention kernel faults), matching the installer. Discrete-GPU device selection is handled in-image (see [LLM Proxy: Discrete-GPU Auto-Select](llm-proxy.md#discrete-gpu-auto-select-vulkan-rocm)), so the generator does not emit `*_VISIBLE_DEVICES`. |
-| **whisper-api** | Since jarvis-admin#12, the sync generator selects Whisper's image variant + device passthrough from an **optional** `WizardState.whisperBackend` (`cpu` | `cuda` | `vulkan` | `rocm`, default `cpu` when unset) — independently of the LLM's auto-detected `gpuType`, mirroring the installer SPA's generator (see [Installer: Whisper GPU Backend](installer.md#whisper-gpu-backend)). Optional and defaulted so the upgrade state-reconstructor and older clients keep working with no fanout. Also wired end-to-end through the admin **reconcile (sync)** flow — a GPU-backend select on the Whisper section of ReconcilePage — so existing installs can switch Whisper's backend without a fresh install. A UI control in the initial setup wizard is a planned follow-up (shared with the installer wizard). |
+| **whisper-api** | Since jarvis-admin#12, the sync generator selects Whisper's image variant + device passthrough from an **optional** `WizardState.whisperBackend` (`cpu` | `cuda` | `vulkan` | `rocm`, default `cpu` when unset) — independently of the LLM's auto-detected `gpuType`, mirroring the installer SPA's generator (see [Installer: Whisper GPU Backend](installer.md#whisper-gpu-backend)). Optional and defaulted so the upgrade state-reconstructor and older clients keep working with no fanout. Also wired end-to-end through the admin **reconcile (sync)** flow — a GPU-backend select on the Whisper section of ReconcilePage — so existing installs can switch Whisper's backend without a fresh install. Since jarvis-admin#36, this selection is persisted in `.env` (`WHISPER_BACKEND`) and read back on every reconcile, instead of silently reverting to `cpu` on regen (see [GPU Backend Persistence](#gpu-backend-persistence-reconcile)). |
+| **tts** | Since jarvis-admin#36, the sync generator selects TTS's Kokoro inference **device** (CPU default / NVIDIA CUDA) from an optional `WizardState.ttsBackend`, persisted in `.env` (`TTS_BACKEND`, + `TTS_GPU_DEVICE` when `cuda`) and read back on reconcile — see [GPU Backend Persistence](#gpu-backend-persistence-reconcile). Unlike Whisper, this is device passthrough only; there's no separate `-cuda` image variant. |
 | **settings-server** | Gets `JARVIS_AUTH_SECRET_KEY` from shared auth secret |
 | **postgres** | Uses `pgvector/pgvector:pg16` (command-center needs vector extension) |
 
@@ -167,6 +188,10 @@ To add custom prompt providers, place them in the Docker volume. The volume is m
 | `MODELS_DIR` | Override models directory for local fallback |
 | `MQTT_ALLOW_ANON` | Mosquitto `allow_anonymous` toggle written to `.env` by the generators (default: `false` on fresh install, `true` when upgrading a pre-existing `.env` that lacks the key). See [MQTT Broker Lock](#mqtt-broker-lock-fresh-installs). |
 | `COMMAND_CENTER_ADMIN_KEY` | Admin API key used to authenticate to command-center's admin API (Request Traces, node train-adapter). Required; shares the `ADMIN_API_KEY` secret via `secretRef`. Emitted into jarvis-admin's own container since jarvis-admin#31 — see [Command-Center Admin Key Wiring](#command-center-admin-key-wiring). |
+| `WHISPER_BACKEND` | Whisper's GPU backend (`cpu` \| `cuda` \| `vulkan` \| `rocm`, default `cpu`), written to the generated `.env` and read back on reconcile since jarvis-admin#36. See [GPU Backend Persistence](#gpu-backend-persistence-reconcile). |
+| `TTS_BACKEND` | TTS's Kokoro inference device (`cpu` \| `cuda`, default `cpu`), written to the generated `.env` and read back on reconcile since jarvis-admin#36. See [GPU Backend Persistence](#gpu-backend-persistence-reconcile). |
+| `TTS_GPU_DEVICE` | Which GPU index the `jarvis-tts` container reserves when `TTS_BACKEND=cuda` (default `0`). Re-pin when GPU0 is already full of LLM + Whisper. |
+| `PIN_IMAGES` | Opt-in to digest-pinned images instead of floating tags (default unset → `false`). Since jarvis-admin#38 — see [Floating Tags by Default](#floating-tags-by-default-pin_images-opt-in). |
 
 ## Dependencies
 
