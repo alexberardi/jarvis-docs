@@ -138,6 +138,16 @@ Since jarvis-admin#35, the Sync Compose / reconcile flow has an **"Update stack 
 
 The GHCR digest resolver (`refreshDigestsForTrack`) now resolves all tags concurrently rather than sequentially — the sequential version cost the *sum* of ~17 GHCR round-trips per refresh (seconds per upgrade, and it blew `compose-upgrader` unit-test timeouts under full-suite load). Each `resolveManifestDigest` call still self-contains its own error + timeout, so the concurrent `Promise.all` never rejects; a per-tag resolver failure just keeps the bundled digest.
 
+### Floating Tags by Default (PIN_IMAGES Opt-In)
+
+Since jarvis-admin#38 (2026-07-06 decision), image digest pinning is **opt-in** instead of the default: generated compose files use floating tags (`${JARVIS_IMAGE_TAG:-latest}<variant>`) for every image unless `PIN_IMAGES=true` is set in `.env`. Pinning-by-default meant `docker compose pull` could never actually update anything, and a stale bundled digest map could silently downgrade GPU-variant images back to CPU builds or pin `llm-proxy` to a build whose migration tree predated the database (the 2026-07-04/06 incidents) — a stuck non-expert operator had no supported way out short of a full regenerate.
+
+- **`PIN_IMAGES`** (env var, default unset → `false`) — set to `true` to opt back into digest pinning, for supply-chain-hardened installs where a GHCR tag can be overwritten but a `@sha256` pin cannot.
+- The `dev` release track always floats regardless of `PIN_IMAGES` (unchanged behavior, mirrors jarvis-installer#17 — dev exists to run the freshest CI-built images).
+- **Migration is automatic**: a pre-existing install with a digest-pinned compose heals to floating tags on its next reconcile/regenerate, since a missing `PIN_IMAGES` key reconstructs as `false`. There is no separate migration step.
+- The reconcile UI exposes this as a **"Pin images by digest"** checkbox (advanced, off by default) on the Sync Compose page.
+- A new golden regression test (`prod-shape-regression.test.ts`, supersedes the jarvis-admin#37 draft) reconstructs wizard state from a prod-shaped `.env` and asserts GPU backends, broker credentials, and image pinning all regenerate correctly together in both the floating and `PIN_IMAGES=true` modes — covering the exact combination of settings the 2026-07-04/06 incidents broke at once.
+
 ### Notable Service Configurations
 
 | Service | Notes |
@@ -167,6 +177,7 @@ To add custom prompt providers, place them in the Docker volume. The volume is m
 | `MODELS_DIR` | Override models directory for local fallback |
 | `MQTT_ALLOW_ANON` | Mosquitto `allow_anonymous` toggle written to `.env` by the generators (default: `false` on fresh install, `true` when upgrading a pre-existing `.env` that lacks the key). See [MQTT Broker Lock](#mqtt-broker-lock-fresh-installs). |
 | `COMMAND_CENTER_ADMIN_KEY` | Admin API key used to authenticate to command-center's admin API (Request Traces, node train-adapter). Required; shares the `ADMIN_API_KEY` secret via `secretRef`. Emitted into jarvis-admin's own container since jarvis-admin#31 — see [Command-Center Admin Key Wiring](#command-center-admin-key-wiring). |
+| `PIN_IMAGES` | Opt-in to digest-pinned images instead of floating tags (default unset → `false`). Since jarvis-admin#38 — see [Floating Tags by Default](#floating-tags-by-default-pin_images-opt-in). |
 
 ## Dependencies
 
