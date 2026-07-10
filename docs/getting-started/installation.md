@@ -29,12 +29,39 @@ Before installing, make sure you have Docker and Docker Compose:
 
 === "macOS"
 
-    Install [Docker Desktop](https://www.docker.com/products/docker-desktop/) which includes Docker Compose v2.
+    **1. Docker Desktop** — for the services that run in containers.
+    Install [Docker Desktop](https://www.docker.com/products/docker-desktop/) (includes Docker Compose v2).
+
+    **2. Native build toolchain** — on Apple Silicon, the GPU services run
+    *natively* (not in Docker) so they can reach Metal and Apple Vision — see
+    [Platform Notes](#macos-apple-silicon). Two of them compile native code from
+    source on first launch (`jarvis-llm-proxy-api` builds `llama.cpp` via
+    `llama-cpp-python`; `jarvis-whisper-api` builds `whisper.cpp` via
+    `pywhispercpp`), so you need a C/C++ toolchain, CMake, and Python 3.11+:
 
     ```bash
+    # Xcode Command Line Tools — the C/C++ compiler (clang) that builds
+    # llama.cpp and whisper.cpp. The full Xcode app is NOT required.
+    xcode-select --install
+
+    # Homebrew (if you don't have it) — https://brew.sh
+    /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+
+    # CMake (build backend for both native GPU services) + Python 3.11+
+    brew install cmake python@3.11
+
     # Verify
     docker compose version
+    xcode-select -p          # -> /Library/Developer/CommandLineTools
+    cmake --version
+    python3.11 --version
     ```
+
+    !!! warning "Missing the toolchain fails with a cryptic compiler error"
+        Without Xcode Command Line Tools, the first launch of the LLM proxy or
+        Whisper fails mid-`pip install` with an error like `clang: command not
+        found` or a CMake compiler-detection failure — not an obvious "install
+        Xcode" message. Install the tools above **before** running the installer.
 
 === "Linux (NVIDIA GPU)"
 
