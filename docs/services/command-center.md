@@ -427,7 +427,7 @@ The command center uses a fastText model to pre-route commands to the right tool
 
 ## Dependencies
 
-- **PostgreSQL** (`pgvector/pgvector:pg15` required) -- nodes, memories, command history. Alembic migration `e9f0a1b2c3d4` runs `CREATE EXTENSION IF NOT EXISTS vector` and adds a `vector(384)` embedding column with an HNSW index on `user_memories`. Stock `postgres:15` does not ship the `vector` extension and will abort on fresh install with `extension "vector" does not exist`. Use `pgvector/pgvector:pg15` (drop-in for `postgres:15`). The installer and generated `docker-compose.prod.yaml` both use this image automatically.
+- **PostgreSQL** (`pgvector/pgvector:pg16` required) -- nodes, memories, command history. Alembic migration `e9f0a1b2c3d4` runs `CREATE EXTENSION IF NOT EXISTS vector` and adds a `vector(384)` embedding column with an HNSW index on `user_memories`. Stock `postgres:16` does not ship the `vector` extension and will abort on fresh install with `extension "vector" does not exist`. Use `pgvector/pgvector:pg16` (drop-in for `postgres:16`). The installer and generated `docker-compose.prod.yaml` both use this image automatically. Bumped from `pg15` in jarvis-command-center#39 to align with jarvis-installer (the source of truth); pg15 and pg16 data directories are **not** compatible — existing installs upgrading from pg15 must migrate first, see the [pg15 → pg16 migration guide](https://github.com/alexberardi/jarvis-command-center/blob/main/docs/postgres-pg15-to-pg16-migration.md).
 - **jarvis-auth** -- node auth and app-to-app auth
 - **jarvis-config-service** -- service discovery
 - **jarvis-llm-proxy-api** -- LLM inference for intent parsing
