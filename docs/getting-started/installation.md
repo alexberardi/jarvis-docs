@@ -305,6 +305,8 @@ GPU-dependent services run **locally** (not in Docker) to access Metal and Apple
 - `jarvis-llm-proxy-api` -- Uses MLX or llama.cpp with Metal acceleration
 - `jarvis-ocr-service` -- Uses Apple Vision framework
 
+`jarvis-admin` also always runs natively on macOS, regardless of GPU access — the compose generator excludes it from the darwin compose unconditionally. A containerized admin can't manage the compose from Docker Desktop: it resolves bind-mounted paths (e.g. `/host/compose/init-db.sh`) against its own container filesystem, which Docker Desktop refuses to share, stalling Postgres startup and crash-looping the DB-backed services. The native binary that runs the setup wizard is the same process that serves the ongoing dashboard on macOS.
+
 The `jarvis` CLI detects Darwin and handles this automatically.
 
 ### Linux (NVIDIA GPU)
