@@ -334,10 +334,6 @@ TrueNAS SCALE 24.10+ (Electric Eel) includes Docker but runs it in a managed env
 
 If you previously installed Jarvis as a TrueNAS App and need to clean up, remove it from the TrueNAS Apps UI first, then follow the [Manual Cleanup](#manual-cleanup-without-docker-compose) steps below via SSH.
 
-## Container Deployment
-
-The voice node ships a Docker image (`Dockerfile.audio`) for running the full voice runtime — mic capture, wake word, STT, TTS playback — on any 64-bit Linux host, with or without Pi hardware.
-
 ## Reinstalling
 
 To start fresh while keeping Docker images cached:
