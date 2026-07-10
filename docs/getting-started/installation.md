@@ -121,7 +121,7 @@ Download the `jarvis-admin` binary, which includes a guided setup wizard:
 
 <!-- jarvis:install-cmd:start -->
 ```bash
-curl -fsSL https://raw.githubusercontent.com/alexberardi/jarvis-admin/main/install.sh | sh
+curl -fsSL https://raw.githubusercontent.com/alexberardi/jarvis-admin/v0.1.76/install.sh | sh
 ```
 <!-- jarvis:install-cmd:end -->
 
@@ -350,7 +350,7 @@ cd ~/.jarvis/compose && docker compose down -v
 rm -rf ~/.jarvis/compose ~/.jarvis/admin.json ~/.jarvis/bin/jarvis-admin
 
 # Re-install
-cd ~ && curl -fsSL https://raw.githubusercontent.com/alexberardi/jarvis-admin/main/install.sh | sh
+cd ~ && curl -fsSL https://raw.githubusercontent.com/alexberardi/jarvis-admin/v0.1.76/install.sh | sh
 ```
 
 ## Uninstalling
