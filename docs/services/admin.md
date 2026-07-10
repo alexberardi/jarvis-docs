@@ -221,3 +221,9 @@ sudo chown -R $USER:$USER ~/.jarvis/compose/.models/
 ### Request Traces or node actions return 500 `COMMAND_CENTER_ADMIN_KEY is not configured`
 
 Since jarvis-admin#31, the Request Traces page and the Nodes train-adapter action fail loudly with a `500` instead of a confusing `401` when `COMMAND_CENTER_ADMIN_KEY` is missing from the admin container's environment. Regenerate `.env` (or re-run the setup wizard) so the generator wires the key from the shared `ADMIN_API_KEY` secret — see [Command-Center Admin Key Wiring](#command-center-admin-key-wiring).
+
+### macOS install stalls with only config + auth running
+
+On macOS, `whisper-api` and `llm-proxy` run natively (excluded from the generated compose so they can reach Metal — see [Platform Notes](installation.md#macos-apple-silicon)), but the wizard's `tieredStartup` step still passed their service names to `docker compose up -d ...`. Docker validates every service name up front and aborts the *entire* batch on the first `no such service: jarvis-whisper-api`, so the install stalled after config-service and auth came up healthy and nothing else ever started.
+
+Since jarvis-admin#41, the wizard introspects the generated compose (`docker compose config --services`) before starting the remaining services and only `up`s services that are actually defined in it (`selectRemainingToStart()`). If the introspection call itself fails, the wizard falls back to the unfiltered list rather than blocking the install.
