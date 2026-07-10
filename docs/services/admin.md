@@ -6,7 +6,7 @@ The admin service provides both a setup wizard for first-time installation and a
 
 | | |
 |---|---|
-| **Port** | 7711 (installer binary) / 7710 (Docker dev container) |
+| **Port** | 7711 (installer binary; on macOS this is also the permanent dashboard port — native only, never containerized) / 7710 (Docker container, Linux) |
 | **Health endpoint** | `GET /health` |
 | **Source** | `jarvis-admin/` |
 | **Framework** | Fastify (backend) + React (frontend), compiled with Bun |
@@ -199,6 +199,17 @@ journalctl --user -u jarvis-admin --no-pager --since "10 min ago"
 # Stop
 systemctl --user stop jarvis-admin
 ```
+
+## macOS: Native Binary Persists After Install
+
+Since jarvis-admin#44, on macOS the native admin binary does **not** self-terminate after a successful install. Previously the install-completion handler assumed a *containerized* admin would take over the dashboard port and always killed itself (`disableAutostart()` + `process.exit(0)`) — but macOS never containerizes admin (see [Installation: Platform Notes](../getting-started/installation.md#macos-apple-silicon)), so the dashboard and the native-services install step that follows lost their backend entirely.
+
+On macOS the native binary now:
+
+- Stays alive after install and serves the full dashboard app itself (instead of redirecting to a container port nothing listens on).
+- Keeps the same port throughout — the CLI success message reads "your admin dashboard stays at the same `http://localhost:7711`" rather than pointing at a different post-install port.
+
+This only affects macOS. On Linux, the native installer binary still hands off to the containerized admin on port 7710 and self-terminates as before.
 
 ## Troubleshooting
 
