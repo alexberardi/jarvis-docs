@@ -146,6 +146,9 @@ The wizard guides you through seven steps:
 | **Account** | Create your superuser account (auto-promoted, auto-logged-in) |
 | **LLM** | Select and download a language model |
 
+!!! note "Core vs. optional services"
+    **Core** services are pre-selected on the Services step and can't be deselected; **optional** services can be toggled off. Since jarvis-admin#42, `jarvis-admin` itself (the dashboard you're using right now) moved from `optional` to `core` — earlier installs could deselect the admin dashboard and end up with no web UI to manage the stack afterward.
+
 #### Install Step Details
 
 The installer starts services in dependency order:
