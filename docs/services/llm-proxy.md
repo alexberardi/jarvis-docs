@@ -46,6 +46,8 @@ graph LR
 !!! note "macOS exception"
     On macOS, the model service is disabled (`RUN_MODEL_SERVICE=false`). The API server loads models in-process to access Metal/MLX directly. The `jarvis` CLI handles this automatically.
 
+Since jarvis-llm-proxy-api#30, if `jarvis-auth` or `jarvis-logs` can't be resolved via `JARVIS_CONFIG_URL` at import time (native macOS, before `init()` runs), the service falls back to hardcoded localhost defaults (`http://localhost:7701` for auth, `http://localhost:7702` for logs) — never reached in Docker, where compose sets these env vars explicitly.
+
 ## 2-Model System
 
 The service maintains two model slots to balance latency and capability:
