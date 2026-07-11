@@ -55,6 +55,7 @@ jarvis-node-setup/
 ├── provisioning/              # Headless provisioning system
 └── utils/
     ├── audio_volume.py        # PulseAudio volume/mute control
+    ├── config_env.py          # Shared JARVIS_CONFIG_URL_STYLE resolution (main.py + entrypoint.py)
     └── config_service.py      # Configuration loader
 ```
 
@@ -84,6 +85,20 @@ On a full-stack restart, the node can start **before config-service is ready**. 
 - Retries are **unbounded with capped exponential backoff** (up to 60 s between attempts) instead of giving up after a fixed 5 tries and logging "continuing without MQTT" — which previously left the node permanently off MQTT (no chat tool-routing, no pushed updates) until a manual restart.
 - `utils/service_discovery.get_mqtt_broker_url()`'s JSON-config fallback now also reads `mqtt_broker_host` / `mqtt_broker_port` — the keys the Docker and admin-generated configs actually write — in addition to the legacy `mqtt_broker` / `mqtt_port` keys, which still take precedence if both are present. Previously, a node whose config-service was unreachable at resolve time would miss its broker host entirely under the new key names and collapse to the `localhost` default, which reaches nothing inside a container.
 - Retries run on the MQTT thread only, so a slow reconnect never blocks the rest of the node (wake word, agents, button handling).
+
+### Config-URL Style Resolved at Runtime (Pi Included)
+
+Since jarvis-node-setup#56, `scripts/main.py` computes `JARVIS_CONFIG_URL_STYLE` from the config-service host in `config.json` at startup (`os.environ.setdefault`, so an explicit env override still wins). This mirrors logic `scripts/entrypoint.py` already had for containers — both now share it via `utils/config_env.py` — but critically now also runs on the **Pi / bare-metal path**, which starts via `python -m scripts.main` directly and never touches `entrypoint.py`.
+
+The style is picked from the vantage the config-service host reveals:
+
+| Config-service host | Style | Effect |
+|---|---|---|
+| A real IP or hostname (e.g. a LAN Pi's server address) | `external` | Rewrites **both** the localhost-registered broker and container-name HTTP rows (e.g. command-center) to the server host |
+| `host.docker.internal` | `dockerized` | localhost rows rewrite to `host.docker.internal` |
+| `localhost` / `127.0.0.1` / empty | *(none)* | config-service's URLs are used as-is (same box) |
+
+`install.sh` no longer hardcodes `JARVIS_CONFIG_URL_STYLE=remote` into the systemd unit — that forced every provisioned Pi into `remote`, which only rewrites localhost-registered rows and left container-name services (like command-center) unreachable off-box (a Pi would get `http://host.docker.internal:7703`, which it can't resolve). A reinstall regenerates the unit (no `remote` line) and self-corrects on restart — **no reprovision needed**, since `config.json` already holds the right config-service URL and `scripts.main` derives the style from it.
 
 ### Wake Word Model Restoration Across Updates
 
