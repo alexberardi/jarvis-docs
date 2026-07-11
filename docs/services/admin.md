@@ -211,6 +211,18 @@ On macOS the native binary now:
 
 This only affects macOS. On Linux, the native installer binary still hands off to the containerized admin on port 7710 and self-terminates as before.
 
+## macOS: Model Setup Step Ordering + Whisper Model Fetch
+
+Since jarvis-admin#48, the setup wizard's LLM step downloads and configures the chosen LLM model **before** attempting the optional whisper STT auto-download. Previously whisper ran first; a transient failure restarting whisper (e.g. it crash-looping because its model doesn't exist yet) aborted the whole flow before the LLM was ever downloaded.
+
+The wizard now runs the Models step in this order:
+
+1. Downloads and configures the chosen LLM — this step must succeed, or the wizard reports the failure and stops here.
+2. Restarts the native `jarvis-llm-proxy-api` service (macOS `launchctl kickstart`) — best-effort; if the kickstart is transiently rejected, launchd's `KeepAlive` restarts the service anyway.
+3. Runs whisper STT auto-download (if enabled) last — best-effort; a failure here is logged to the browser console and does **not** undo the already-downloaded, already-configured LLM.
+
+Since jarvis-admin#50, step 3 fetches the whisper model directly: `POST /api/models/whisper-autodownload` `curl`s `ggml-base.en.bin` (~148MB, from `ggerganov/whisper.cpp`) straight to whisper's default `model_path`, so whisper simply finds a local file on next start. This replaced an earlier approach that wrote the setting through the settings-DB gateway — that path doesn't work natively, since whisper's settings table doesn't exist there and the DB-backed write silently no-oped while whisper was crash-looping on the missing model. The endpoint still upserts `WHISPER_ALLOW_MODEL_AUTODOWNLOAD` into `.env` and best-effort-restarts the native whisper service afterward.
+
 ## Troubleshooting
 
 ### Services show "Connection refused" on Services page
