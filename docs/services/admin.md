@@ -167,6 +167,7 @@ To add custom prompt providers, place them in the Docker volume. The volume is m
 | `MODELS_DIR` | Override models directory for local fallback |
 | `MQTT_ALLOW_ANON` | Mosquitto `allow_anonymous` toggle written to `.env` by the generators (default: `false` on fresh install, `true` when upgrading a pre-existing `.env` that lacks the key). See [MQTT Broker Lock](#mqtt-broker-lock-fresh-installs). |
 | `COMMAND_CENTER_ADMIN_KEY` | Admin API key used to authenticate to command-center's admin API (Request Traces, node train-adapter). Required; shares the `ADMIN_API_KEY` secret via `secretRef`. Emitted into jarvis-admin's own container since jarvis-admin#31 — see [Command-Center Admin Key Wiring](#command-center-admin-key-wiring). |
+| `HUGGINGFACE_HUB_TOKEN` | Persisted to `~/.jarvis/compose/.env` when a HuggingFace token is supplied during the Models step's LLM download, so gated repos can still be pulled at service runtime. Since jarvis-admin#49 — see [macOS: Native Model Downloads via curl](#macos-native-model-downloads-via-curl-no-venv). |
 
 ## Dependencies
 
@@ -210,6 +211,18 @@ On macOS the native binary now:
 - Keeps the same port throughout — the CLI success message reads "your admin dashboard stays at the same `http://localhost:7711`" rather than pointing at a different post-install port.
 
 This only affects macOS. On Linux, the native installer binary still hands off to the containerized admin on port 7710 and self-terminates as before.
+
+## macOS: Native Model Downloads via curl (No venv)
+
+The setup wizard's Models step (formerly the LLM step) was extended to work on native macOS installs in jarvis-admin#46, and its same-day follow-ups #47/#48 fixed the wizard actually reaching that step and reordered its apply sequence (LLM first, Whisper best-effort after) — see the separate doc PR covering that batch.
+
+jarvis-admin#49 and #50 fixed the download path itself for a real-world field failure ("Download failed: 500"): the native `jarvis-llm-proxy-api` builds its Python venv asynchronously after install, so it usually isn't up — or its venv `huggingface_hub` isn't installed yet — when the Models step actually runs.
+
+- **LLM GGUF download (#49)** — single-file GGUF downloads now go straight through `curl` (the HuggingFace resolve URL, with an `Authorization: Bearer` header when a token is supplied) instead of shelling out to the llm-proxy venv's Python. Full-repo snapshots (no explicit filename — used by the vLLM backend) still require the local venv python and `huggingface_hub`.
+- **Model configuration persisted to `.env` (#49)** — `POST /api/llm-setup/configure` now writes `JARVIS_MODEL_NAME`, `JARVIS_MODEL_BACKEND`, `JARVIS_MODEL_CHAT_FORMAT`, and `JARVIS_MODEL_CONTEXT_WINDOW` into `~/.jarvis/compose/.env` on darwin *before* attempting the HTTP settings write. llm-proxy's settings seed reads these as env-fallbacks on first start, so the chosen model sticks even if llm-proxy isn't reachable yet — a non-200 from the HTTP write no longer fails the request on darwin.
+- **Whisper STT model (#50)** — `POST /api/models/whisper-autodownload` no longer relies solely on setting `WHISPER_ALLOW_MODEL_AUTODOWNLOAD` and restarting whisper to trigger its own download. Whisper's autodownload gate reads a DB-backed setting (not the env var), and that settings table doesn't exist until the service is up natively — so the endpoint now `curl`s `ggml-base.en.bin` (~148 MB, from `ggerganov/whisper.cpp`) straight to whisper's default model path, and whisper simply finds the file locally on next start. The env var is still written for completeness, and the native service is still best-effort kickstarted (`launchctl kickstart -k`) afterward — a kickstart failure doesn't fail the request; launchd's `KeepAlive` restarts the service anyway.
+
+A HuggingFace token supplied during the LLM download is persisted to `HUGGINGFACE_HUB_TOKEN` in `.env` so gated models keep working on subsequent runtime pulls, not just the initial wizard download.
 
 ## Troubleshooting
 
