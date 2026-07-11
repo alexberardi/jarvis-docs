@@ -78,6 +78,9 @@ Voice profiles are enrolled as WAV samples. The service uses [resemblyzer](https
 | `JARVIS_LOG_CONSOLE_LEVEL` | Console log level (default `INFO`) |
 | `JARVIS_LOG_REMOTE_LEVEL` | Remote log level sent to jarvis-logs (default `DEBUG`) |
 
+!!! note "Native macOS fallback"
+    Since jarvis-whisper-api#18, if `JARVIS_AUTH_BASE_URL` can't be resolved at import time (native macOS run, before service-discovery `init()` runs), the service falls back to a hardcoded `http://localhost:7701` default for `jarvis-auth` — never reached in Docker, where compose sets `JARVIS_AUTH_BASE_URL` explicitly.
+
 ## Dependencies
 
 - **whisper.cpp** -- speech-to-text engine
