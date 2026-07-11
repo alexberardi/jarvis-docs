@@ -211,6 +211,16 @@ On macOS the native binary now:
 
 This only affects macOS. On Linux, the native installer binary still hands off to the containerized admin on port 7710 and self-terminates as before.
 
+## macOS: Model Setup Step Ordering
+
+Since jarvis-admin#48, the setup wizard's LLM step downloads and configures the chosen LLM model **before** attempting the optional whisper STT auto-download. Previously whisper ran first; a transient failure restarting whisper (e.g. it crash-looping because its model doesn't exist yet) aborted the whole flow before the LLM was ever downloaded.
+
+The wizard now runs the Models step in this order:
+
+1. Downloads and configures the chosen LLM — this step must succeed, or the wizard reports the failure and stops here.
+2. Restarts the native `jarvis-llm-proxy-api` service (macOS `launchctl kickstart`) — best-effort; if the kickstart is transiently rejected, launchd's `KeepAlive` restarts the service anyway.
+3. Runs whisper STT auto-download (if enabled) last — best-effort; a failure here is logged to the browser console and does **not** undo the already-downloaded, already-configured LLM.
+
 ## Troubleshooting
 
 ### Services show "Connection refused" on Services page
