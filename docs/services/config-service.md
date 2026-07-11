@@ -34,8 +34,9 @@ The `/services` and `/services/{name}` endpoints accept an optional `style` quer
 |-----------|-------|-------------|
 | `style` | *(default)* | Returns container-name URLs (e.g. `http://jarvis-auth:7701`) — used by Docker services on the shared network |
 | `style` | `dockerized` | Returns `host.docker.internal` URLs — used when containers need to reach services running directly on the host (e.g. LLM proxy on macOS) |
-| `style` | `remote` | Returns URLs using `JARVIS_REMOTE_HOST` as the hostname |
-| `remote_host` | *hostname* | Override the remote host for this request only (used with `style=remote`) |
+| `style` | `remote` | Returns URLs using `JARVIS_REMOTE_HOST` as the hostname. Only rewrites `localhost`-registered rows — a service registered under a container name (e.g. `jarvis-command-center`) has no `localhost` to swap, so it's returned unreachable from off-box. |
+| `style` | `external` | Since jarvis-config-client#4 — returns each service's published `external_host`/`external_port` coordinates when set, falling back to the same `localhost` → `remote_host` swap as `remote` otherwise. This resolves container-name HTTP rows correctly too, not just `localhost`-registered infra — the correct style for off-box consumers (LAN voice nodes, dockerized nodes) that need to reach *every* registered service, not just the ones registered as `localhost`. |
+| `remote_host` | *hostname* | Override the remote host for this request only (used with `style=remote` or `style=external`) |
 
 ## Environment Variables
 
@@ -43,8 +44,8 @@ The `/services` and `/services/{name}` endpoints accept an optional `style` quer
 |----------|-------------|
 | `DATABASE_URL` | PostgreSQL connection string |
 | `JARVIS_AUTH_BASE_URL` | Auth service URL for validating admin/app requests |
-| `JARVIS_CONFIG_URL_STYLE` | Default URL style for all responses (`dockerized` returns `host.docker.internal` URLs) |
-| `JARVIS_REMOTE_HOST` | Hostname used when `style=remote` is requested |
+| `JARVIS_CONFIG_URL_STYLE` | Default URL style for all responses (`dockerized` returns `host.docker.internal` URLs, `external` returns published external coordinates — see [URL Style Query Parameters](#url-style-query-parameters)) |
+| `JARVIS_REMOTE_HOST` | Hostname used when `style=remote` or `style=external` is requested |
 | `PORT` | API port (default `7700`) |
 
 ## Dependencies
