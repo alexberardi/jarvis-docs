@@ -46,6 +46,8 @@ graph LR
 !!! note "macOS exception"
     On macOS, the model service is disabled (`RUN_MODEL_SERVICE=false`). The API server loads models in-process to access Metal/MLX directly. The `jarvis` CLI handles this automatically.
 
+Since jarvis-llm-proxy-api#29, native macOS runs (`run-prod.sh`) also auto-set `JARVIS_CONFIG_URL=http://localhost:${CONFIG_SERVICE_PORT:-7700}` when unset — without it the service can't discover `jarvis-auth` via config-service and refuses to start.
+
 ## 2-Model System
 
 The service maintains two model slots to balance latency and capability:
