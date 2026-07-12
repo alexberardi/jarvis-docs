@@ -111,7 +111,8 @@ Service URLs are cached locally and refreshed in the background every `refresh_i
 
 ## URL Styles
 
-The config service supports two URL styles controlled by `JARVIS_CONFIG_URL_STYLE`:
+The config service supports these URL styles, controlled by `JARVIS_CONFIG_URL_STYLE`:
 
 - **Default** — returns container names (e.g. `http://jarvis-auth:7701`), used by Docker services on the shared network
 - **`dockerized`** — returns `host.docker.internal` URLs, used when Docker containers need to reach locally-running services (e.g. LLM proxy on macOS)
+- **`external`** *(requires `jarvis-config-client` ≥ 0.2.1)* — returns each service's published external coordinates (e.g. `localhost`), for off-box or native consumers that can't resolve `host.docker.internal` — e.g. a native macOS service (TTS, Whisper, Admin) reaching a Dockerized peer via its launchd plist
