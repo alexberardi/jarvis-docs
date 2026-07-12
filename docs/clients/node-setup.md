@@ -5,7 +5,7 @@ The Jarvis node is the primary voice interface for Jarvis. It runs on Raspberry 
 ## Quick Install
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/alexberardi/jarvis-node-setup/v0.1.137/install.sh | sudo bash
+curl -fsSL https://raw.githubusercontent.com/alexberardi/jarvis-node-setup/v0.1.143/install.sh | sudo bash
 ```
 
 This installs to `/opt/jarvis-node`, sets up a systemd service, and configures audio. After install, pair the node with your server using the mobile app or `authorize_node.py`.
@@ -16,7 +16,7 @@ Flags:
 |------|-------------|
 | `--no-audio` | Skip ALSA / I2S DAC configuration |
 | `--force` | Reinstall even if already at latest version |
-| `--version TAG` | Install a specific version (e.g. `v0.1.137`) |
+| `--version TAG` | Install a specific version (e.g. `v0.1.143`) |
 
 ## What It Does
 
