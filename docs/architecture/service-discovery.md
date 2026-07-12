@@ -31,10 +31,13 @@ Config service returns different URLs depending on the network mode. This is con
 |-----------|------------|----------|
 | `dockerized` | Container name (`http://jarvis-auth:7701`) | Docker container talking to another Docker container |
 | `host` | Host gateway (`http://host.docker.internal:7701`) | Docker container talking to a service running locally on the host |
+| `external` | Loopback (`http://localhost:7701`) | A native (non-Docker) process reaching a Dockerized peer via its host-published port |
 
 ### Why This Matters
 
 On macOS, GPU-dependent services (LLM Proxy, OCR) run locally to access Metal/Apple Vision, while everything else runs in Docker. Docker containers need `host.docker.internal` URLs to reach local services, but container-name URLs to reach other Docker services.
+
+Native services that call *into* Docker (rather than being called) need the reverse: `external` style, so config-service hands back `localhost` URLs a non-container process can actually resolve. `host.docker.internal` only resolves from inside a container — a native process gets `[Errno 8] nodename nor servname provided, or not known`. jarvis-tts and jarvis-llm-proxy-api set `JARVIS_CONFIG_URL_STYLE=external` in their native macOS launchd plists for exactly this reason (requires `jarvis-config-client` >= 0.2.1, which is the first version to honor the style).
 
 The config service handles this automatically based on how it is configured.
 
