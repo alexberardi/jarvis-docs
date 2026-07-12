@@ -13,7 +13,7 @@ These variables are used by multiple services:
 | `ADMIN_API_KEY` | command-center | Protects admin endpoints (node management, training jobs). Sent as a header or query parameter. |
 | `JARVIS_AUTH_BASE_URL` | ocr, command-center, logs, others | URL of the auth service for validating app-to-app and node credentials. |
 | `JARVIS_CONFIG_URL` | all services | URL of `jarvis-config-service` for service discovery. |
-| `JARVIS_CONFIG_URL_STYLE` | config-service | URL format returned by config-service: `dockerized` (container names) or `host` (localhost/host.docker.internal). |
+| `JARVIS_CONFIG_URL_STYLE` | config-service | URL format returned by config-service: `dockerized` (container names), `host` (localhost/host.docker.internal), or `external` (loopback `localhost`, for a native/non-Docker process reaching a Dockerized peer via its host-published port — e.g. jarvis-tts and jarvis-llm-proxy-api on native macOS installs; requires `jarvis-config-client` >= 0.2.1). See [Service Discovery](../architecture/service-discovery.md#url-resolution). |
 | `DOCKER_HOST_ALIAS` | config-service | Override the hostname Docker containers use to reach the host. Default: `host.docker.internal`. |
 | `JARVIS_NETWORK_MODE` | jarvis CLI | Network mode: `bridge` (default), `host`, or `standalone`. |
 
