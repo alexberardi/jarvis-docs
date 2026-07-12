@@ -1,3 +1,4 @@
+
 # Troubleshooting
 
 Quick fixes for common Jarvis issues. If your problem is not listed here, check the [Getting Help](#getting-help) section at the bottom.
@@ -285,6 +286,18 @@ The default MQTT broker port is **1883** (internal) / **1884** (external). Verif
     ```bash
     docker restart <node-container>
     ```
+
+### Chat shows "0 tools loaded" or the settings/secrets screen never loads
+
+**Symptom:** A node is provisioned and otherwise reachable, but chat reports no tools registered, and the mobile app's secrets/settings screen never populates.
+
+**Cause:** Command-center is resolving to `host.docker.internal` instead of the node's real network path. Before jarvis-node-setup v0.1.141, the systemd unit template (`setup/jarvis-node.service`) hardcoded the retired `remote` `JARVIS_CONFIG_URL_STYLE`, which can't resolve container-name URLs off-box -- a reinstalled or freshly-templated Pi kept forcing it even after the fallback path was fixed.
+
+**Fix:** Since jarvis-node-setup#57, a stale `remote` value is treated as unset: `scripts.main` and `scripts.entrypoint` recompute the correct style from the config-service host on every start, so the node self-heals **without needing its systemd unit regenerated**. Restart the node to trigger the recomputation:
+```bash
+docker restart <node-container>
+```
+For a bare-metal Pi, restart the `jarvis-node` service instead. If the node is still stuck afterward, confirm it is running jarvis-node-setup v0.1.141 or later.
 
 ### Commands not available after install
 
