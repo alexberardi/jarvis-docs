@@ -55,6 +55,10 @@ Changes take effect within ~60 seconds (the settings service has a 60s cache). N
 
 Kokoro weights download lazily via `huggingface_hub` on first use. The Docker image mounts a named volume at `HF_HOME=/app/models/hf_cache` so weights persist across container restarts — otherwise each cold start re-downloads ~300 MB. The installer (jarvis-admin) and the `docker-compose.*.yaml` files in the service declare this volume (`jarvis-tts-hf-cache`).
 
+## Native macOS Discovery
+
+When run natively on macOS (outside Docker), the service reaches Dockerized peers like jarvis-auth via their host-published `localhost` ports rather than `host.docker.internal` (which a native process can't resolve). The native launchd plist sets `JARVIS_CONFIG_URL_STYLE=external` so config-service hands back `localhost` URLs — see [Service Discovery: URL Resolution](../architecture/service-discovery.md#url-resolution). This requires `jarvis-config-client` >= 0.2.1, the first version to honor the `external` style.
+
 ## Environment Variables
 
 | Variable | Description |
