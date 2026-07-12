@@ -46,6 +46,8 @@ graph LR
 !!! note "macOS exception"
     On macOS, the model service is disabled (`RUN_MODEL_SERVICE=false`). The API server loads models in-process to access Metal/MLX directly. The `jarvis` CLI handles this automatically.
 
+    The native macOS launchd plist also sets `JARVIS_CONFIG_URL_STYLE=external` so the API server can resolve app-to-app auth calls to Dockerized peers (like jarvis-auth) via their host-published `localhost` ports — `host.docker.internal` doesn't resolve from a native, non-Docker process. Requires `jarvis-config-client` >= 0.2.1. See [Service Discovery: URL Resolution](../architecture/service-discovery.md#url-resolution).
+
 ## 2-Model System
 
 The service maintains two model slots to balance latency and capability:
