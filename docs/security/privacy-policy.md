@@ -1,6 +1,6 @@
 # Privacy Policy
 
-**Last updated:** June 15, 2026
+**Last updated:** July 13, 2026
 
 This privacy policy describes how Jarvis Automation ("we", "us", "Jarvis") handles information collected through the Jarvis platform, including the **Jarvis Automation** mobile app, the self-hosted backend services, and optional cloud services.
 
@@ -99,7 +99,7 @@ To avoid disrupting other people who share your setup, you cannot delete your ac
 - Pantry packages you have published: retained while your account is active. You can delete individual packages at any time.
 - Mobile app diagnostic logs (if you opt to send them): retained for 30 days.
 
-To delete data held by Jarvis Automation's cloud services (such as the Pantry package store), email <alex@alexberardi.net> from the address on file, or remove your individual packages from within the app.
+To delete data held by Jarvis Automation's cloud services (such as the Pantry package store), email <admin@jarvisautomation.io> from the address on file, or remove your individual packages from within the app.
 
 ## Children
 
@@ -119,6 +119,6 @@ We may update this privacy policy from time to time. Material changes will be an
 
 For privacy questions or data deletion requests:
 
-**Email:** <alex@alexberardi.net>
+**Email:** <admin@jarvisautomation.io>
 
 We aim to respond within 30 days.
