@@ -6,4 +6,4 @@ Notes on self-hosted voice, local LLMs, and how Jarvis is built — written for 
 
 ## [Self-hosted voice assistants in the LLM era](llm-era-voice-assistant.md)
 
-Why the old open-source options — Mycroft, OVOS, Rhasspy, Home Assistant Assist — leave a real gap in 2026, and what an LLM-first, private voice assistant actually looks like.
+An honest look at the landscape — what Rhasspy, OVOS and Home Assistant Assist each actually do in 2026 — and what we built Jarvis to close: an assistant that knows *who* is talking, no outbound connections by default, and a package store for voice capabilities.

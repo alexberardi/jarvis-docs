@@ -1,72 +1,87 @@
 ---
 title: "Self-hosted voice assistants in the LLM era"
-description: "Why the old self-hosted voice options don't cut it in the LLM era — and how Jarvis closes the gap with speaker recognition, true zero-cloud, and an extensible command ecosystem."
+description: "What we built with Jarvis and why: speaker recognition, an assistant-first architecture, a package store for voice capabilities, and no outbound connections by default."
 ---
 
-# Self-hosted voice assistants in the LLM era: why the old options don't cut it anymore
+# Self-hosted voice assistants in the LLM era: what we built, and why
 
 Mycroft shut down in May 2023. That was supposed to be the moment the open-source voice assistant community rallied around something new.
 
-Three years later, the options are mostly the same ones that existed before: Home Assistant Assist, OVOS (the Mycroft community fork), Rhasspy. They're all fine projects. But they were all designed for a world that no longer exists — a world before large language models changed what a voice assistant could actually do.
-
-If you want a private, self-hosted voice assistant in 2026 that can hold a conversation, know who's talking, understand a question it's never been programmed to answer, and extend itself with new capabilities — the old options leave a real gap. This post is about what that gap is, and why we built Jarvis to close it.
+Three years on, the landscape is healthier than that sounds — but there's still a gap, and it isn't the one people usually name. This post is about what that gap actually is, what we built to close it, and the parts where the honest answer is "somebody else already does this."
 
 ---
 
-## What changed when LLMs arrived
+## Let's get the landscape right first
 
-Before LLMs, a voice assistant worked like this: you said something, the system matched your words against a set of predefined intents ("turn on [device]", "set a timer for [duration]"), and ran the corresponding handler. If you said something it wasn't programmed to handle, it failed.
+A lot of "why our voice assistant is different" posts start by claiming everything else is a dumb pattern matcher. That was true a few years ago. It isn't anymore, and pretending otherwise is a good way to lose the audience in the first paragraph.
 
-This worked well for home automation. It works poorly for anything else. "What was that movie with the guy from Breaking Bad?" is not an intent you can preprogram. Neither is "remind me to call the vet after I finish this meeting" or "what should I make for dinner with what's in my fridge?"
+**Rhasspy and OVOS are intent-based.** You define phrases, they match them, they run a handler. They're good at that — predictable, fast, light on resources. But intent matching is a ceiling: you can extend the phrases they recognize, you can't teach them to reason.
 
-Rhasspy and OVOS are both intent-based systems. They're good at what they do — predictable phrase matching, low resource usage, excellent home automation integration. But intent matching is a ceiling. You can extend what phrases they recognize, but you can't teach them to reason.
+**Home Assistant Assist is not.** HA has shipped [LLM conversation agents with tool calling](https://developers.home-assistant.io/docs/core/llm/) since 2024.6. Custom intents are exposed to the model *as tools*, and its "prefer handling commands locally" setting runs the fast deterministic matcher first and falls back to the LLM when nothing matches. If you've read a post claiming HA Assist can only handle preprogrammed sentences, it was out of date.
 
-Home Assistant Assist added Whisper for local STT and Piper for local TTS, which is genuinely great. But HA Assist is an add-on to a home automation platform. If you don't already run Home Assistant, you're installing an entire home automation system to get a voice interface. And even then, the LLM integration is limited — Assist routes recognized commands to HA entities, but it doesn't give you a general-purpose assistant backed by a model that can reason.
+So "we use an LLM and they don't" is not our differentiator, and we're not going to pretend it is. **Jarvis also runs a fast pre-route pass before falling back to the model** — that's a good design, and HA arrived at the same one.
+
+The gap is somewhere else.
 
 ---
 
-## The gap: a standalone, LLM-first, private voice assistant
+## The gap: nobody knows who's talking
 
-What the self-hosted space has been missing since Mycroft is a project that starts from a different premise: *the LLM is the core, not an add-on*.
+Every self-hosted voice assistant we could find answers the question *"what was said?"* — and then stops.
 
-That means:
+None of them answer *"who said it?"*
 
-- The voice pipeline (STT → intent → TTS) routes through a real LLM, not a pattern matcher
-- Commands are tools the LLM can call, not the entire routing system
-- Unknown questions get answered, not failed
-- The system can reason about context across a conversation
+That sounds like a detail until you live with a household assistant. "Remind me to take my meds" is a different reminder depending on who says it. "Play my playlist" is a different playlist. "What's on my calendar" is a different calendar. Without speaker identity, a household assistant is really a single-user assistant that several people take turns using, and every piece of personal context has to be re-stated out loud.
 
-This is what Jarvis is built around. The architecture isn't "intent recognition with an optional LLM fallback." It's an LLM with a tool-calling pipeline that includes structured commands, device control, memories, and routines.
+Jarvis identifies the speaker from their voice and scopes everything to that person: memories, preferences, command context, and what they're allowed to do. Enrolled voice profiles live per household member. It is, as far as we can tell, the only self-hosted option that does this — HA Assist and Rhasspy both have it as an open feature request rather than a shipped feature.
+
+This is the thing we'd point at first.
+
+---
+
+## The second gap: assistant-first, not home-automation-first
+
+Home Assistant is a home automation platform with an excellent voice interface attached. Its LLM API is oriented around the home: entities, areas, intents.
+
+Jarvis is an *assistant* that happens to control your home. Memory, routines, timers, reminders, email, calendar, drive time, medication tracking, web search — the smart home is one capability among many, not the center of gravity. That's a different product, not a better Home Assistant, and the distinction matters when you're deciding which one you want.
+
+To be explicit about it: **we're not trying to replace Home Assistant.** There's a Jarvis package for HA, and if you already run it, Jarvis talks to your existing devices through it. Jarvis also ships its own device layer — Hue, Kasa, LIFX, Nest, Govee, Schlage, SimpliSafe, Z-Wave, HomeKit, Home Connect, Resideo, Apple TV — so HA is optional in either direction. Run both, run one, run neither.
 
 ---
 
 ## What Jarvis actually does
 
-A few things that don't exist anywhere else in the self-hosted space:
+**Speaker recognition.** Covered above. It's the headline.
 
-**Speaker recognition.** Jarvis knows who's talking. Each household member gets a voice profile, and the system routes accordingly — different preferences, different command context, different response style. You say "play my playlist" and it knows which playlist is yours. Your kids ask for a bedtime story and they get one. This is table-stakes for a household assistant and basically absent from every other self-hosted option.
+**A voice pipeline that's local end to end.** Wake word on the node, speech-to-text via whisper.cpp, inference via llama.cpp / vLLM / MLX, speech synthesis via Piper or Kokoro. All of it on your hardware.
 
-**True zero-cloud when you want it.** Most "private" voice projects still phone home for STT or TTS. Jarvis runs whisper.cpp locally for speech recognition, Kokoro for synthesis, and your choice of LLM — llama.cpp, vLLM, or MLX on your own hardware. Nothing leaves your network unless you explicitly point it at a cloud API. (You can, if you want — Claude, GPT, Ollama all work. It's your call, not ours.)
+**No outbound connections by default — including update checks.** This is the part self-hosters tend to care about and nobody advertises. Jarvis makes no calls off your network unless you turn them on. The update checker is opt-in and off by default: with it off, the server never contacts GitHub at all. Turn it on and updates are cryptographically signed (minisign) and verified before anything is executed. You can point the LLM proxy at a cloud API — Claude, GPT, Ollama all work — and if you do, your transcripts go to that provider. That's a real trade, and it should be your call, made deliberately, rather than a default you discover later.
 
-**A command ecosystem that actually extends.** 30+ capabilities ship built-in: weather, timers, web search, calendar, email, Spotify, Pandora, Rotten Tomatoes, ESPN scores, drive time, Philips Hue, Govee, Nest, Schlage, SimpliSafe — the full list is in the [Pantry community store](https://pantry.jarvisautomation.io). Each one is a standalone package you can install, modify, or replace.
+**A package store for voice capabilities.** The core ships with conversation, memories, timers, reminders, routines, web search, smart-home control, and node administration. Another **25+ packages** are one click away in the [Pantry](https://pantry.jarvisautomation.io): weather, news, sports, music (Spotify, Pandora, Music Assistant), calendar, email, drive time, movies, and the device integrations above. Each is a standalone repo you can fork, modify, or replace. Adding your own means implementing one Python interface.
 
-**The AI Forge.** This is the part nothing else has. Describe what you want in plain text — "a command that checks the price of any stock ticker using the Polygon API" — and the Forge generates a complete, tested Jarvis package: Python implementation, manifest, README, and sandbox test run. One click to publish to the community store. It's backed by the command SDK, which decorates every interface with metadata so the LLM always knows the current interface contracts without any manual prompt engineering.
+There's plenty of prior art for distributing *integrations* — HACS does it well. We're not aware of anyone distributing *voice capabilities* with a sandboxed container-test pipeline in front of them, which is what the Pantry submission flow runs before anything is published.
 
-**Pi Zero voice nodes.** A ~$15 Raspberry Pi Zero 2 W with a mic/speaker HAT becomes a room-scale voice endpoint. Headless-provisioned from the mobile app. No screen, no fuss.
+**The AI Forge (experimental).** Describe a capability in plain English — "a command that checks the price of any stock ticker" — and the Forge generates a complete package: implementation, manifest, README, license. It runs static analysis and an automated safety review, then a full containerized test run before it can be published. Under the hood the SDK introspects its own interfaces to build the model's prompt, so the contracts it generates against are always current instead of drifting from a hand-maintained prompt.
+
+Treat this as an experiment, not a promise. It works, it's genuinely useful, and it will also sometimes hand you code you need to fix. As with any package store — AUR, npm, PyPI — we screen and sandbox, but installing a community package is ultimately a decision you're making.
+
+**Cheap voice nodes.** A Raspberry Pi Zero 2 W with a ReSpeaker 2-Mics HAT and a small speaker is roughly $15–25 per room, headless-provisioned from the mobile app. Pi 4 and Pi 5 work too.
+
+**Multi-household.** One install serves more than one household — each gets isolated voice profiles, devices, and routines. Useful if you're hosting for family or roommates and don't want to run separate hardware per group.
 
 ---
 
 ## What it's not
 
-Jarvis is not a turnkey consumer product. You need Docker, a server to run it on (8 GB RAM minimum for cloud LLM, more for local inference), and some comfort navigating a setup wizard. The self-hosted crowd can handle this. Your parents probably can't — yet.
+**Not turnkey.** You need Docker and a machine to run it on. The setup wizard handles the rest — hardware detection, service selection, model download — and a fresh install takes about six minutes on a Mac mini including pulling an LLM and a Whisper model. But it's still a self-hosted stack, and it expects a self-hoster.
 
-It's also not a home automation platform. If you want to build automations in a visual editor and happen to want voice control, Home Assistant is probably the right choice. If you want a voice-first assistant that also controls your home, Jarvis is the right choice.
+**Not a home automation platform.** If what you want is a visual automation editor and a decade of device integrations, that's Home Assistant, and it's very good at it. Use both.
+
+**Not finished.** It's a beta. The Forge is experimental. Some rough edges are documented, some aren't yet.
 
 ---
 
 ## Getting started
-
-The fastest path is the one-line installer:
 
 <!-- jarvis:install-cmd:start -->
 ```bash
@@ -74,12 +89,12 @@ curl -fsSL https://raw.githubusercontent.com/alexberardi/jarvis-admin/main/insta
 ```
 <!-- jarvis:install-cmd:end -->
 
-Open `http://localhost:7711` and the setup wizard handles the rest — hardware detection, service selection, account creation, model download.
+Open `http://localhost:7711` and the wizard takes it from there. If piping curl into a shell isn't your thing — entirely fair — the [installation guide](https://docs.jarvisautomation.dev/getting-started/installation/) covers the manual path.
 
-Docs are at [docs.jarvisautomation.dev](https://docs.jarvisautomation.dev). The community package store is at [pantry.jarvisautomation.io](https://pantry.jarvisautomation.io). Source is at [github.com/alexberardi/jarvis](https://github.com/alexberardi/jarvis), MIT licensed.
+Docs: [docs.jarvisautomation.dev](https://docs.jarvisautomation.dev). Package store: [pantry.jarvisautomation.io](https://pantry.jarvisautomation.io). Source: [github.com/alexberardi/jarvis](https://github.com/alexberardi/jarvis).
 
-If you're coming from Mycroft or OVOS and want to understand the differences in architecture, the [command SDK docs](https://docs.jarvisautomation.dev/extending/commands/) are a good starting point — the interface will look familiar, but the routing layer is completely different.
+Licensing is split: the server-side services are **AGPL-3.0**, and the SDK, client libraries, command/device packages, and mobile apps are **Apache-2.0** — so you can build and ship your own commands and integrations without copyleft obligations. No paywalled features, no open-core holdbacks.
 
 ---
 
-*Questions, feedback, or "you got X wrong about Rhasspy" — find me in the comments. I'd rather have this be accurate than defensive.*
+*If I've got something wrong about Rhasspy, OVOS, or Home Assistant — and the HA ecosystem in particular moves fast — tell me and I'll fix the post. I'd rather this be accurate than flattering.*
