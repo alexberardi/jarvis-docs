@@ -180,6 +180,7 @@ nav:
   - Troubleshooting: troubleshooting/index.md
   - Blog:
     - blog/index.md
+    - "Everything was green": blog/everything-was-green.md
     - "Self-hosted voice assistants in the LLM era": blog/llm-era-voice-assistant.md
   - Reference:
     - CLI: reference/cli.md
