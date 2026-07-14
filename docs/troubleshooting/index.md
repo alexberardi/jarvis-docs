@@ -245,7 +245,7 @@ docker exec jarvis-postgres pg_isready -U postgres
     ```bash
     curl -s http://localhost:7703/health
     ```
-2. Is the node's API key correct? Compare `node_id` and `api_key` in the node's config file against what is registered in the command center.
+2. Is the node's API key correct? Compare `node_id` and `api_key` in the node's config file against what is registered in the command center. Before jarvis-node-setup#58, re-provisioning a node could register a fresh identity with command-center while the device silently kept its old (now-deactivated) credentials, causing persistent `401`s and MQTT `rc=5` ("not authorised"). This is now fixed -- a completed provisioning handshake always overwrites stale credentials with the new ones. If a node is still stranded on an old identity, re-run provisioning to pick up the fix.
 3. Is the command center reachable from the node's network? If the node is on a different machine, use the server's IP address, not `localhost`.
 4. Check firewall rules -- port 7703 must be open for inbound TCP.
 
