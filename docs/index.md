@@ -2,6 +2,8 @@
 
 **A voice assistant you own completely.** Runs on your network, keeps your data private, and does what you tell it -- not what a corporation decides.
 
+[:fontawesome-brands-discord: **Join the Discord**](https://discord.com/invite/kMfKr7EZZ){ .md-button } &nbsp; [:fontawesome-brands-github: GitHub](https://github.com/alexberardi/jarvis){ .md-button }
+
 !!! tip "TLDR"
     Jarvis is a self-hosted, open-source voice assistant. Cheap Pi Zero nodes in each room connect to a server you control. An on-device AI understands your commands, controls your smart home, and remembers your preferences. No cloud. No subscriptions. No one listening. Install in 10 minutes with one command:
 
