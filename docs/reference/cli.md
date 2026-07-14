@@ -140,6 +140,6 @@ Services are started in tier order:
 | 2 | Command Center (7703), LLM Proxy (7704) |
 | 3 | TTS (7707), Whisper (7706), OCR (7031), Recipes (7030), Notifications (7712) |
 | 4 | Settings Server (7708), MCP (7709) |
-| 5 | Admin UI (7710) |
+| 5 | Admin UI (7710 — source-checkout dev frontend; the installed admin dashboard serves on 7711) |
 
 Stop order is reversed (Tier 5 first, Tier 0 last).

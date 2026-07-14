@@ -38,7 +38,7 @@ After setup, the same binary serves the admin dashboard:
 - **Models** -- Installed models, suggested downloads, custom HuggingFace downloads
 - **Quick Sets** -- Named LLM configuration presets; apply or create to switch the active model without editing raw settings
 - **Updates** -- Turn update checks on/off and run an update; see [Update Opt-In Toggle](#update-opt-in-toggle)
-- **Settings** -- Runtime configuration across all services (via settings-server proxy)
+- **Settings** -- Runtime configuration across all services (proxied to config-service `/v1/settings/*`)
 - **Nodes** -- Registered voice nodes
 
 ## Quick Sets
@@ -77,7 +77,7 @@ Since jarvis-admin#54, the **Updates** page has a switch to turn update checks o
 jarvis-admin (Bun binary)
 ├── Server (Fastify)
 │   ├── /api/auth/*          → Proxy to jarvis-auth
-│   ├── /api/settings/*      → Proxy to jarvis-settings-server
+│   ├── /api/settings/*      → Proxy to config-service /v1/settings/*
 │   ├── /api/install/*       → Setup wizard (generate, pull, start, register)
 │   ├── /api/models/*        → Model management (list, download, delete, whisper-autodownload)
 │   ├── /api/containers/*    → Docker container status
@@ -163,7 +163,7 @@ The GHCR digest resolver (`refreshDigestsForTrack`) now resolves all tags concur
 
 ### Supervised llm-proxy Launch (serve.sh)
 
-Since jarvis-admin#34, the generated `llm-proxy` container's `command` is `["bash", "scripts/serve.sh"]` (the supervised launcher the image ships, added in jarvis-llm-proxy-api#21) rather than a raw unsupervised dual-uvicorn shell command. `serve.sh` runs the API server in the foreground and supervises the model service, respawning it with backoff on a native crash (e.g. a llama.cpp segfault) — previously a crashed model service was never restarted, and the API 503'd every request indefinitely while the container itself still looked healthy (the 2026-07-02 outage class, [roadmap#59](https://github.com/alexberardi/jarvis-roadmap/issues/59)). Existing installs pick up the new command on their next compose regen/upgrade/reconcile, not immediately — a running stack keeps the old command until then.
+Since jarvis-admin#34, the generated `llm-proxy` container's `command` is `["bash", "scripts/serve.sh"]` (the supervised launcher the image ships, added in jarvis-llm-proxy-api#21) rather than a raw unsupervised dual-uvicorn shell command. `serve.sh` runs the API server in the foreground and supervises the model service, respawning it with backoff on a native crash (e.g. a llama.cpp segfault) — previously a crashed model service was never restarted, and the API 503'd every request indefinitely while the container itself still looked healthy (the 2026-07-02 outage class, roadmap#59). Existing installs pick up the new command on their next compose regen/upgrade/reconcile, not immediately — a running stack keeps the old command until then.
 
 ### GPU Backend Persistence (Reconcile)
 
@@ -227,7 +227,7 @@ To add custom prompt providers, place them in the Docker volume. The volume is m
 - **Docker** -- manages all Jarvis service containers
 - **jarvis-config-service** -- service discovery and registration
 - **jarvis-auth** -- user authentication, app-to-app credential creation
-- **jarvis-settings-server** -- settings aggregation proxy
+- **jarvis-config-service** -- settings gateway (`/v1/settings/*`) behind the admin Settings page
 
 ## Dependents
 

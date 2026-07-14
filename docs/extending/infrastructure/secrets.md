@@ -181,8 +181,7 @@ The key file is generated during node provisioning and is specific to each node.
 
 ```python
 from services.secret_service import get_secret_value
-from core.ijarvis_command import IJarvisCommand
-from core.jarvis_secret import JarvisSecret
+from jarvis_command_sdk import IJarvisCommand, JarvisSecret
 from models.command_response import CommandResponse
 
 class GetStockPrice(IJarvisCommand):

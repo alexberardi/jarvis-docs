@@ -357,7 +357,7 @@ Here is a minimal example for controlling Hue bulbs over the local Hue Bridge AP
 
 ```python
 from device_families.base import IJarvisDeviceProtocol, DiscoveredDevice, DeviceControlResult
-from core.interfaces import IJarvisSecret
+from jarvis_command_sdk import IJarvisSecret
 
 class HueProtocol(IJarvisDeviceProtocol):
     @property

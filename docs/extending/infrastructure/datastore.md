@@ -275,7 +275,7 @@ from jarvis_command_sdk import JarvisStorage
 storage = JarvisStorage("my_command")
 
 # Save and retrieve
-storage.set("cache:Miami", {"temp": 75, "condition": "sunny"})
+storage.save("cache:Miami", {"temp": 75, "condition": "sunny"})
 data = storage.get("cache:Miami")
 
 # List all keys

@@ -273,7 +273,7 @@ The `context` dict contains the `context_data` from the original response. This 
 The base class provides a default handler for `cancel_click`:
 
 ```python
-# Built-in on JarvisCommandBase -- no need to implement
+# Built-in on IJarvisCommand -- no need to implement
 if action_name == "cancel_click":
     return CommandResponse.final_response(
         context_data={"cancelled": True, "message": "Cancelled."}

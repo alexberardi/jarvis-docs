@@ -17,6 +17,7 @@ Flags:
 | `--no-audio` | Skip ALSA / I2S DAC configuration |
 | `--force` | Reinstall even if already at latest version |
 | `--version TAG` | Install a specific version (e.g. `v0.1.149`) |
+| `--local` | Skip the download and install from a tarball already staged in `/opt/jarvis-node` |
 
 ## What It Does
 

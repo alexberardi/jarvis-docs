@@ -76,7 +76,7 @@ Categories (comma-separated) [weather]: weather, information
 ### 4. Writes the manifest
 
 ```yaml
-schema: 1
+schema_version: 1
 name: my_weather
 display_name: My Weather
 description: Weather forecasts with background alerts

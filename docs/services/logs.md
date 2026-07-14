@@ -23,6 +23,8 @@ The logs service provides centralized structured logging for all Jarvis services
 | `GET` | `/api/v0/logs` | Query logs with filters |
 | `GET` | `/api/v0/logs/stream` | SSE stream — real-time log tail |
 | `GET` | `/api/v0/services` | List services that have submitted logs |
+| `POST` | `/api/v0/node/logs` | Node log ingestion (node `X-API-Key` auth) |
+| `POST` | `/api/v0/node/logs/batch` | Batched node log ingestion |
 
 ## Environment Variables
 

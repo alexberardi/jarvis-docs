@@ -13,9 +13,9 @@ flowchart TD
     D --> E[post_process_tool_call]
     E --> F
 
-    F --> G[_validate_secrets]
+    F --> G[secret presence check]
     G -->|MissingSecretsError| ERR[Error Response]
-    G -->|OK| H[_validate_params]
+    G -->|OK| H[param presence check]
     H -->|Missing required| ERR2[ValueError]
     H -->|OK| I[validate_call]
     I -->|Errors| J{Has suggestions?}
@@ -95,12 +95,12 @@ This method receives the raw voice command as a second argument, which is useful
 
 ### 4. Execute (Orchestration)
 
-`execute()` on `JarvisCommandBase` orchestrates the validation pipeline. You do **not** override this method.
+`execute()` on `IJarvisCommand` orchestrates the validation pipeline. You do **not** override this method. The host builds a `secrets` dict from its secret store and passes it in (`None` skips secret enforcement, e.g. in tests).
 
 ```python
-def execute(self, request_info: RequestInformation, **kwargs) -> CommandResponse:
-    self._validate_secrets()
-    self._validate_params(kwargs)
+def execute(self, request_info: RequestInformation, *, secrets=None, **kwargs) -> CommandResponse:
+    # 1. Secret presence check (only when secrets was provided)
+    # 2. Required-param presence check
 
     results = self.validate_call(**kwargs)
     errors = [r for r in results if not r.success]
@@ -112,19 +112,19 @@ def execute(self, request_info: RequestInformation, **kwargs) -> CommandResponse
         if r.suggested_value is not None:
             kwargs[r.param_name] = r.suggested_value
 
-    return self.run(request_info, **kwargs)
+    return self.run(request_info, secrets=secrets, **kwargs)
 ```
 
 ### 5. Secret Validation
 
-`_validate_secrets()` checks that every secret in `required_secrets` with `required=True` has a non-empty value in the database.
+When the host passes a `secrets` dict, `execute()` checks that every secret in `required_secrets` with `required=True` has a non-empty value in that dict:
 
 ```python
-def _validate_secrets(self):
-    missing = []
-    for secret in self.required_secrets:
-        if secret.required and not get_secret_value(secret.key, secret.scope):
-            missing.append(secret.key)
+if secrets is not None:
+    missing = [
+        s.key for s in self.required_secrets
+        if s.required and not secrets.get(s.key)
+    ]
     if missing:
         raise MissingSecretsError(missing)
 ```
@@ -133,15 +133,14 @@ If secrets are missing, a `MissingSecretsError` is raised. The command center ca
 
 ### 6. Parameter Presence Validation
 
-`_validate_params()` checks that every parameter with `required=True` is present in kwargs.
+`execute()` then checks that every parameter with `required=True` is present in kwargs:
 
 ```python
-def _validate_params(self, kwargs):
-    missing = [
-        p.name for p in self.parameters if p.required and kwargs.get(p.name) is None
-    ]
-    if missing:
-        raise ValueError(f"Missing required params: {', '.join(missing)}")
+missing_params = [
+    p.name for p in self.parameters if p.required and kwargs.get(p.name) is None
+]
+if missing_params:
+    raise ValueError(f"Missing required params: {', '.join(missing_params)}")
 ```
 
 ### 7. Value Validation

@@ -5,6 +5,10 @@ repo_url: https://github.com/alexberardi/jarvis
 repo_name: jarvis
 dev_addr: 0.0.0.0:7730
 
+# Internal-only pages: never publish to the public site
+exclude_docs: |
+  ops/
+
 theme:
   name: material
   palette:

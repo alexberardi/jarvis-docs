@@ -5,12 +5,11 @@ Complete reference for `IJarvisCommand` and all supporting classes. This is the 
 ## Class Hierarchy
 
 ```
-JarvisCommandBase (ABC)
-  └── IJarvisCommand (ABC)
-        └── YourCommand (concrete)
+IJarvisCommand (ABC)
+  └── YourCommand (concrete)
 ```
 
-`JarvisCommandBase` provides the `execute()` orchestration (validation, auto-correction, then `run()`). `IJarvisCommand` adds the full property interface -- command name, description, parameters, secrets, examples, and all optional hooks.
+`IJarvisCommand` provides the `execute()` orchestration (validation, auto-correction, then `run()`) plus the full property interface -- command name, description, parameters, secrets, examples, and all optional hooks.
 
 ---
 
@@ -359,19 +358,15 @@ def store_auth_values(self, values: dict[str, str]) -> None:
 
 **Default:** No-op.
 
-### `refresh_token() -> bool`
+### `refresh_token(*, refresh_token, client_secret=None, timeout_seconds=15.0) -> TokenBundle | None`
 
-Refresh an OAuth2 access token. The default implementation POSTs to `auth.exchange_url` with `grant_type=refresh_token`, stores new tokens via `store_auth_values()`, and persists the expiration time.
+Refresh an OAuth2 access token. The default implementation is a pure HTTP call: it POSTs to `auth.exchange_url` with `grant_type=refresh_token` and returns a `TokenBundle` (`access_token`, `refresh_token`, `expires_in`, `raw`) on success, or `None` if the command has no authentication config or the HTTP call fails. **The caller (the node runtime) persists the returned tokens** — the SDK method itself does not touch the secret store.
 
 Override for non-standard refresh flows.
 
-**Default:** Standard OAuth2 refresh_token grant. Returns `True` on success, `False` on failure (and flags re-auth).
+### `needs_auth(*, secrets, auth_status=None) -> bool`
 
-### `needs_auth() -> bool`
-
-Check whether the mobile app should prompt the user for authentication.
-
-**Default:** If `authentication` is declared, checks that all required secrets are present and that no re-auth flag is set in the `command_auth` table.
+Check whether the mobile app should prompt the user for authentication. Pure check against the host-supplied `secrets` dict: returns `True` when a required secret is missing or when the optional `auth_status` (host-supplied, e.g. set after a prior 401) flags re-auth. Commands with no `authentication` config return `False`.
 
 ### `init_data() -> dict`
 
@@ -388,14 +383,18 @@ def init_data(self) -> dict:
 
 ---
 
-## The `execute()` Method (JarvisCommandBase)
+## The `execute()` Method
 
-You do not override `execute()` -- it is the orchestration method on `JarvisCommandBase` that calls your hooks in order:
+You do not override `execute()` -- it is the orchestration method on `IJarvisCommand` that calls your hooks in order. The host passes in a `secrets` dict built from its secret store (or `None` to skip secret enforcement, e.g. in tests):
 
 ```python
-def execute(self, request_info, **kwargs) -> CommandResponse:
-    self._validate_secrets()       # Check all required secrets present
-    self._validate_params(kwargs)  # Check required params present
+def execute(self, request_info, *, secrets=None, **kwargs) -> CommandResponse:
+    if secrets is not None:        # Check all required secrets present
+        missing = [s.key for s in self.required_secrets
+                   if s.required and not secrets.get(s.key)]
+        if missing:
+            raise MissingSecretsError(missing)
+    # Check required params present (raises ValueError on omissions)
     results = self.validate_call(**kwargs)  # Value validation
     errors = [r for r in results if not r.success]
     if errors:
@@ -403,7 +402,7 @@ def execute(self, request_info, **kwargs) -> CommandResponse:
     for r in results:              # Apply auto-corrections
         if r.suggested_value is not None:
             kwargs[r.param_name] = r.suggested_value
-    return self.run(request_info, **kwargs)
+    return self.run(request_info, secrets=secrets, **kwargs)
 ```
 
 ---

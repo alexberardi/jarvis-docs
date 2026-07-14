@@ -24,7 +24,7 @@ from typing import List
 import httpx
 from jarvis_log_client import JarvisLogger
 
-from core.ijarvis_command import IJarvisCommand, CommandExample, CommandAntipattern
+from jarvis_command_sdk import IJarvisCommand, CommandExample, CommandAntipattern
 from core.ijarvis_parameter import JarvisParameter
 from core.ijarvis_secret import IJarvisSecret, JarvisSecret
 from core.command_response import CommandResponse
@@ -74,7 +74,7 @@ class StockPriceCommand(IJarvisCommand):
 
 Key choices:
 
-- **`scope="integration"`** means this key is shared across all nodes in the household. Use `"node"` for per-node config (like a default location).
+- **`scope="integration"`** means this key is shared across the household (every node sees the same value). Use `"user"` for per-user values like personal credentials.
 - **`is_sensitive=True`** for the API key means it won't appear in settings snapshots sent to the mobile app. The currency preference uses `is_sensitive=False` so the mobile app can display it.
 - **`friendly_name`** is what users see in the mobile settings UI instead of the raw key name.
 

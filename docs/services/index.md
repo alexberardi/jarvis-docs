@@ -16,9 +16,14 @@ Jarvis is composed of small, focused microservices. Each runs as a Docker contai
 | [OCR Service](ocr-service.md) | 7031 | OCR with multiple backends | 3 - Specialized |
 | [Recipes Server](recipes-server.md) | 7030 | Recipe CRUD and meal planning | 3 - Specialized |
 | [Notifications](notifications.md) | 7712 | Push notifications and inbox | 3 - Specialized |
-| [Settings Server](settings-server.md) | 7708 | Settings aggregator | 4 - Management |
-| [MCP](mcp.md) | 7709 | Claude Code integration | 4 - Management |
-| [Admin](admin.md) | 7710 | Web admin UI | 5 - Clients |
+| [Settings Server](settings-server.md) | 7708 | Settings aggregator (deprecation candidate — use config-service `/v1/settings/*`) | 4 - Management |
+| [MCP](mcp.md) | 7709 | Claude Code integration (potentially deprecated) | 4 - Management |
+| [Admin](admin.md) | 7711 (native) / 7710 (Docker) | Web admin UI + setup wizard | 5 - Clients |
+| [Installer](installer.md) | — | Static installer SPA (generates compose bundles) | 5 - Clients |
+| [Pantry Store](pantry-store.md) | 7721 | Cloud package store + AI Forge | Cloud |
+| [Pantry Runner](pantry-runner.md) | — | Sandboxed package validation jobs | Cloud |
+| [Pantry Web](pantry-web.md) | — | Pantry browsing SPA | Cloud |
+| Web Chat (`jarvis-web`) | 7722 | Browser chat (Next.js) | Cloud |
 
 ## Dependency Tiers
 

@@ -45,7 +45,7 @@ Each service reads from a `.env` file in its directory. The `./jarvis init` comm
 | Variable | Used By | Description |
 |----------|---------|-------------|
 | `DATABASE_URL` | Most services | PostgreSQL connection string |
-| `SECRET_KEY` | auth | JWT signing key |
+| `AUTH_SECRET_KEY` | auth | JWT signing key |
 | `ADMIN_API_KEY` | command-center | Admin endpoint protection |
 | `JARVIS_AUTH_BASE_URL` | Most services | Auth service URL |
 | `JARVIS_CONFIG_URL` | Most services | Config service URL |

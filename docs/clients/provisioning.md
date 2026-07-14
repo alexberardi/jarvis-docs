@@ -40,13 +40,14 @@ stateDiagram-v2
 
 The provisioning server runs on port 8080 and exposes:
 
-| Endpoint | Method | Description |
-|----------|--------|-------------|
+| Endpoint | Path | Method | Description |
+|------|--------|-------------|
 | `/api/v1/info` | GET | Node info: id, firmware version, MAC address, capabilities, current state |
 | `/api/v1/scan-networks` | GET | List available WiFi networks with signal strength |
 | `/api/v1/provision/k2` | POST | Send the K2 encryption key for settings sync |
 | `/api/v1/provision` | POST | Send WiFi credentials, room name, and command center URL |
 | `/api/v1/status` | GET | Current provisioning state and progress |
+| `/api/v1/factory-reset` | POST | Wipe credentials and return the node to AP/provisioning mode |
 
 ## K2 Key Exchange
 
@@ -76,6 +77,8 @@ provisioning/
 ├── api.py              # FastAPI endpoints
 ├── models.py           # Pydantic request/response models
 ├── registration.py     # Command center registration logic
+├── factory_reset.py    # Factory-reset handling (wipe credentials, re-enter AP mode)
+├── recovery_watcher.py # Watches for recovery triggers on a provisioned node
 ├── startup.py          # Provisioning detection (check .provisioned marker)
 ├── state_machine.py    # State management
 ├── wifi_credentials.py # Encrypted credential storage

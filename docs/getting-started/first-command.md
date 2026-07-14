@@ -80,31 +80,37 @@ Replace `<ADMIN_API_KEY>` with the value from the previous step, and `<household
 
 ## 4. Send Your First Command
 
-Extract the node credentials from the config file, then send a text command:
+Extract the node credentials from the config file, then send a text command. Voice commands are conversation-scoped, so you start a conversation first (this warms the LLM prompt), then send the command into it:
 
 ```bash
 # Extract credentials
 NODE_ID=$(python3 -c "import json; print(json.load(open('config.json'))['node_id'])")
 API_KEY=$(python3 -c "import json; print(json.load(open('config.json'))['api_key'])")
 
-# Send a command
-curl -s -X POST http://localhost:7703/api/v0/command \
+# Start a conversation (warms the prompt for this session)
+CONV_ID=$(uuidgen)
+curl -s -X POST http://localhost:7703/api/v0/conversation/start \
   -H "X-API-Key: ${NODE_ID}:${API_KEY}" \
   -H "Content-Type: application/json" \
-  -d '{"text": "what is 5 plus 3"}'
+  -d "{\"conversation_id\": \"${CONV_ID}\"}"
+
+# Send a command into the conversation
+curl -s -X POST http://localhost:7703/api/v0/voice/command \
+  -H "X-API-Key: ${NODE_ID}:${API_KEY}" \
+  -H "Content-Type: application/json" \
+  -d "{\"voice_command\": \"what is 5 plus 3\", \"conversation_id\": \"${CONV_ID}\"}"
 ```
 
-**Expected response:**
+**Expected response** (abridged — the response also includes fields like `commands` and `tool_calls`):
 
 ```json
 {
-  "success": true,
-  "response": "5 plus 3 equals 8.",
-  "command": "calculate"
+  "assistant_message": "5 plus 3 equals 8.",
+  "stop_reason": "complete"
 }
 ```
 
-The exact response text varies depending on your LLM model, but the result should include the correct answer (8).
+The exact response text varies depending on your LLM model, but `assistant_message` should include the correct answer (8). If you get `400 Conversation not initialized`, re-run the `conversation/start` call — conversations live in memory and are dropped when command-center restarts.
 
 ### What Happened?
 
@@ -155,7 +161,7 @@ python scripts/install_command.py --all
 Set a secret:
 
 ```bash
-python utils/set_secret.py OPENWEATHER_API_KEY <your-key> integration
+python utils/set_secret.py set --key OPENWEATHER_API_KEY --value <your-key> --scope integration
 ```
 
 Secrets can also be managed through the mobile app's Settings screen.

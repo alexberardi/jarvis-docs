@@ -159,7 +159,7 @@ When `refinable=True`, the parameter schema includes a `_refinable: true` hint. 
 
 Parameters go through three layers of validation in the `execute()` pipeline:
 
-### 1. Presence Validation (`_validate_params`)
+### 1. Presence Validation (in `execute()`)
 
 Checks that all `required=True` parameters are present in kwargs. If any are missing, raises `ValueError`.
 
