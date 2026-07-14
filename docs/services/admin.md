@@ -37,6 +37,7 @@ After setup, the same binary serves the admin dashboard:
 - **Services** -- Registered services, config/auth status, health checks
 - **Models** -- Installed models, suggested downloads, custom HuggingFace downloads
 - **Quick Sets** -- Named LLM configuration presets; apply or create to switch the active model without editing raw settings
+- **Updates** -- Turn update checks on/off and run an update; see [Update Opt-In Toggle](#update-opt-in-toggle)
 - **Settings** -- Runtime configuration across all services (via settings-server proxy)
 - **Nodes** -- Registered voice nodes
 
@@ -61,6 +62,14 @@ The **Sync Compose** page regenerates `docker-compose.yml`, `.env`, and `init-db
 - **Download updated compose** (added in jarvis-admin#15) -- calls `POST /api/install/regenerate-download` and hands the operator the three regenerated files to download instead. Nothing on the server is touched. The operator drops the files in next to their existing compose and runs `docker compose up -d` by hand -- the review-first alternative for compose-managed installs that want to diff before applying.
 
 `.env` merges new keys into existing values and `init-db.sh` covers any new databases, so replacing all three together (not just `docker-compose.yml`) is recommended even with the download path.
+
+## Update Opt-In Toggle
+
+Since jarvis-admin#54, the **Updates** page has a switch to turn update checks on/off — no more hand-editing a launchd plist (native macOS) or a compose `.env` and bootout/bootstrapping the service.
+
+- `GET /api/update/settings` reads the current `allowUpdates` state; `POST /api/update/settings` (superuser only) persists it to `~/.jarvis/admin.json` and applies it to the live config immediately, with no restart required.
+- Both `/check` routes return `updatesEnabled`, so the UI can tell "off, never checked" apart from "checked, you're current" — previously, checks being off silently rendered as "You're running the latest version."
+- The `JARVIS_ALLOW_UPDATES` environment variable still works as a fallback (and remains the right knob for containerized installs); it is simply no longer the only way in. Default stays **off**: no outbound calls to GitHub unless you opt in. See [Network Egress & Offline Mode: Admin auto-update](../security/offline-mode.md#enabling-updates).
 
 ## Architecture
 
@@ -211,6 +220,7 @@ To add custom prompt providers, place them in the Docker volume. The volume is m
 | `TTS_GPU_DEVICE` | Which GPU index the `jarvis-tts` container reserves when `TTS_BACKEND=cuda` (default `0`). Re-pin when GPU0 is already full of LLM + Whisper. |
 | `PIN_IMAGES` | Opt-in to digest-pinned images instead of floating tags (default unset → `false`). Since jarvis-admin#38 — see [Floating Tags by Default](#floating-tags-by-default-pin_images-opt-in). |
 | `HUGGINGFACE_HUB_TOKEN` | Persisted to `~/.jarvis/compose/.env` when a HuggingFace token is supplied during the Models step's LLM download, so gated repos can still be pulled at service runtime. Since jarvis-admin#49 — see [macOS: Native Model Downloads via curl](#macos-native-model-downloads-via-curl-no-venv). |
+| `JARVIS_ALLOW_UPDATES` | Fallback/container knob for the [Update Opt-In Toggle](#update-opt-in-toggle) — same effect as flipping the switch on the Updates page, without a UI. |
 
 ## Dependencies
 
