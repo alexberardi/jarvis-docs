@@ -11,6 +11,7 @@ The admin service provides both a setup wizard for first-time installation and a
 | **Source** | `jarvis-admin/` |
 | **Framework** | Fastify (backend) + React (frontend), compiled with Bun |
 | **Tier** | 5 - Clients |
+| **Registry category** | Core (always installed) — since jarvis-admin#42 |
 | **Auto-start** | systemd (Linux) / launchd (macOS) |
 
 ## What It Does
@@ -119,6 +120,10 @@ The compose file is generated from `service-registry.json` which defines:
 - **Health checks**: Per-service with appropriate `start_period`
 - **GPU config**: NVIDIA deploy resources for LLM proxy (Linux only)
 - **Volumes**: Named Docker volumes declared per-service in the registry
+
+### Registry Category: Core (Always Installed)
+
+Since jarvis-admin#42, jarvis-admin's own entry in `service-registry.json` moved from category `optional` to `core`. jarvis-admin is the management dashboard and the only interface for ongoing service management, but as `optional` it was default-off on the wizard's **Services** step — a fresh install could deselect it and end up with no way to manage the stack afterward. `core` services are pre-selected and cannot be deselected, so jarvis-admin is now guaranteed to be installed. The registry-category tests and the admin→command-center key test (previously "key only in optional block") were updated to match — the key guarantee is now "key only in the admin block, never leaked elsewhere."
 
 ### Production Hardening (JARVIS_ENV)
 
