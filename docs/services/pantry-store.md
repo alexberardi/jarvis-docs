@@ -76,6 +76,19 @@ Submission failed: apt allow-list config not found: /app/config/apt-allowlist.ya
 
 If you are building or rebuilding the Docker image and see this error, verify that `COPY config/ config/` appears in the Dockerfile before the application entrypoint.
 
+## Forge Package Generation
+
+`POST /v1/forge/generate` generates a Jarvis package from a natural-language description. It's BYOK — the caller supplies their own LLM API key (`llm_api_key` in the request body), used once and never stored.
+
+Because the endpoint is unauthenticated and triggers LLM generation, it carries a per-client-IP rate limit — the tightest cap in the app:
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `FORGE_GENERATE_RATE_LIMIT_PER_HOUR` | `5` | Per-IP cap on `/v1/forge/generate` requests per hour |
+| `RATE_LIMIT_DISABLED` | `false` | Set `true` in dev to bypass all rate limits (submission and forge-generation alike) |
+
+Requests over the cap receive `429 Too Many Requests`. The limit check runs before generation starts, so a rate-limited request never reaches the LLM.
+
 ## Deployment
 
 ```bash
