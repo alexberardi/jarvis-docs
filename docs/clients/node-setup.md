@@ -20,7 +20,7 @@ Flags:
 
 ## What It Does
 
-1. **Wake word detection** -- Listens locally for a configured wake word using [openWakeWord](https://github.com/dscripka/openWakeWord). Local ONNX inference — no cloud service or API key required. The model is set via `wake_word_model` in `config.json` (default: `hey_jarvis`); models download automatically on first run. No audio leaves the device until the wake word is heard.
+1. **Wake word detection** -- Listens locally for a configured wake word using [openWakeWord](https://github.com/dscripka/openWakeWord). Local ONNX inference — no cloud service or API key required. The model is set via `wake_word_model` in `config.json` (default: `hey_jarvis`); `install.sh` stages it during install (see [Wake Word Model Staging on Fresh Installs](#wake-word-model-staging-on-fresh-installs)). No audio leaves the device until the wake word is heard.
 2. **Audio capture** -- Records speech until silence is detected.
 3. **Command submission** -- Sends the audio to the command center, which handles transcription, intent classification, and command execution.
 4. **Response playback** -- Receives spoken responses via MQTT (from the TTS service) and plays them through the speaker.
@@ -111,6 +111,16 @@ The openWakeWord models live **inside the venv** (`site-packages/openwakeword/re
 - Resolves the destination by asking the **new** venv's own Python where `openwakeword` is installed — no hardcoded version path.
 - Never clobbers models a node has already re-staged itself (autodownload-enabled nodes keep their freshly downloaded files).
 - Is best-effort: a missing `.bak` venv or an un-importable `openwakeword` degrades to a loud warning with remediation (enable `wake_word_model_autodownload_enabled`, or copy the models manually) — never a failed install.
+
+### Wake Word Model Staging on Fresh Installs
+
+`restore_wake_models()` only helps an *update* — it copies models forward from `${INSTALL_DIR}.bak`, which doesn't exist on a fresh install. Combined with `wake_word_model_autodownload_enabled` defaulting off, a first boot had no `.onnx`/`.tflite` staged at all: the node came up otherwise healthy (MQTT connected, heartbeats green) but permanently voice-headless.
+
+`install.sh` runs `stage_default_wake_model()` immediately after `restore_wake_models`, unless `--no-audio` was passed:
+
+- Probes the new venv for an already-staged `.onnx` model and no-ops if one is present (so a node that already downloaded its own model, or was just restored, isn't re-downloaded).
+- Otherwise downloads the `hey_jarvis` model via openWakeWord's own downloader. Since `install.sh` is already an explicit, user-initiated download from GitHub, this doesn't violate the no-silent-runtime-downloads policy that keeps `wake_word_model_autodownload_enabled` off by default.
+- Is best-effort: an offline/airgapped install warns and continues — the node boots voice-headless exactly as before, with a remediation hint to enable autodownload or stage the model manually.
 
 ## Wake Behavior
 
@@ -363,12 +373,12 @@ Key config fields:
 | `household_id` | Household UUID for multi-tenant isolation |
 | `release_track` | Update channel: `"stable"` (default) or `"dev"`. Mobile-managed via the `node_config` config-push (see [Update Policy](#update-policy)). |
 | `allow_updates` | Consent gate for update tasks — a node refuses (and reports) unsolicited updates unless `true`. Read-only in the settings snapshot; only settable via the `node_config` config-push. See [Update Policy](#update-policy). |
-| `wake_word_model_autodownload_enabled` | Whether openWakeWord model files auto-download at boot. Read-only in the settings snapshot; only settable via the `node_config` config-push. See [Update Policy](#update-policy). |
+| `wake_word_model_autodownload_enabled` | Whether openWakeWord model files auto-download at boot. Defaults off; a fresh install still gets a model via `install.sh`'s one-time staging step instead. Read-only in the settings snapshot; only settable via the `node_config` config-push. See [Update Policy](#update-policy). |
 | `volume_percent` | Persisted speaker volume (0–100); written on every volume command |
 | `led_enabled` | Whether the LED ring is active on boot (HAT nodes only) |
 | `led_brightness_percent` | LED brightness applied at startup (0–100, default 100) |
 | `not_for_me_quiet_seconds` | Seconds the wake gate is held after a `<not_for_me/>` response. Default: `20.0` |
-| `wake_word_model` | openWakeWord model name. Default: `hey_jarvis`. Models are downloaded automatically on first run via `openwakeword.utils.download_models`. |
+| `wake_word_model` | openWakeWord model name. Default: `hey_jarvis`. Staged by `install.sh` on fresh installs and restored across updates (see [Wake Word Model Staging on Fresh Installs](#wake-word-model-staging-on-fresh-installs)); runtime autodownload only applies if `wake_word_model_autodownload_enabled` is set. |
 | `audio_output_device` | ALSA device for playback (e.g. `hw:1,0`, named PulseAudio sink). Overrides auto-detection. Container nodes: set via `JARVIS_AUDIO_OUTPUT_DEVICE` env. |
 
 ## Node Authentication
