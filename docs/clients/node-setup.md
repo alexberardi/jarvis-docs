@@ -55,7 +55,9 @@ jarvis-node-setup/
 ├── provisioning/              # Headless provisioning system
 └── utils/
     ├── audio_volume.py        # PulseAudio volume/mute control
-    └── config_service.py      # Configuration loader
+    ├── config_service.py      # Configuration loader
+    ├── config_env.py          # JARVIS_CONFIG_URL_STYLE selection, shared by main.py and entrypoint.py
+    └── service_discovery.py   # config-service-only service URL resolution
 ```
 
 ### Platform detection
@@ -76,14 +78,28 @@ The node runs multiple supervised threads:
 - **Agent scheduler** -- Runs background agents on configurable intervals (reminders, device discovery, token refresh).
 - **ButtonShortPress thread** -- Handles ReSpeaker GPIO17 short-press events. Speaks queued alerts via local TTS without blocking the GPIO callback. Started after TTS, LED, and alert-queue services are ready.
 
-### MQTT Broker Resolution: Never Goes Dark After a Startup Race
+### Service Discovery: config-service Is the Single Source of Truth
 
-On a full-stack restart, the node can start **before config-service is ready**. `start_mqtt_listener` now handles this instead of giving up:
+Since jarvis-node-setup#55, every service URL a node needs — command-center, the MQTT broker, whisper, tts, auth — resolves through **config-service only**, via one uniform path (`utils/service_discovery.py`). There is no more JSON-config or hardcoded-`localhost` fallback for service URLs:
 
-- The connect loop re-attempts service discovery init and **re-resolves the broker URL on every retry**, not just once at boot. As soon as config-service comes up, the node is promoted from whatever it resolved on attempt 1 (which may have been a dead fallback) to the real broker address.
-- Retries are **unbounded with capped exponential backoff** (up to 60 s between attempts) instead of giving up after a fixed 5 tries and logging "continuing without MQTT" — which previously left the node permanently off MQTT (no chat tool-routing, no pushed updates) until a manual restart.
-- `utils/service_discovery.get_mqtt_broker_url()`'s JSON-config fallback now also reads `mqtt_broker_host` / `mqtt_broker_port` — the keys the Docker and admin-generated configs actually write — in addition to the legacy `mqtt_broker` / `mqtt_port` keys, which still take precedence if both are present. Previously, a node whose config-service was unreachable at resolve time would miss its broker host entirely under the new key names and collapse to the `localhost` default, which reaches nothing inside a container.
-- Retries run on the MQTT thread only, so a slow reconnect never blocks the rest of the node (wake word, agents, button handling).
+- **Fail loud.** A provisioned node that can't resolve a service raises `ServiceUnresolvedError` instead of fabricating a `mqtt://localhost:1884`-style URL. The old fallback ladder (config-service → `config.json` keys → `localhost`) is what let a node get silently pinned to a stale/cloud host, or collapse to a broker address that reaches nothing inside a container, while still reporting healthy.
+- **Provisioning is the one exception.** A node without a `.provisioned` marker (or with `JARVIS_SKIP_PROVISIONING_CHECK` set) isn't expected to reach config-service yet, so unresolved services return `""` there instead of raising.
+- **Callers retry, they don't degrade.** The voice listener (`main.py`) distinguishes `ServiceUnresolvedError` (config-service down → retry indefinitely with capped exponential backoff, self-heals when it returns) from audio failures (bounded retry, then falls through to headless — a broken mic won't self-heal). The MQTT connect loop (`mqtt_tts_listener.py`) re-attempts discovery init and re-resolves the broker on every retry, so it's promoted from a failed first attempt to the real address as soon as config-service comes back — unbounded retries with capped backoff (up to 60 s), never "continuing without MQTT".
+- `config.json`'s `jarvis_config_service_url` is now the **only** thing read from JSON — the node's one bootstrap address. It is never used as a service-URL fallback.
+
+### URL Rewrite Style (`JARVIS_CONFIG_URL_STYLE`)
+
+config-service returns each service's registered coordinates as-is; whether those need rewriting for this node to actually reach them depends on the node's vantage point relative to the stack. `utils/config_env.py` computes the style from the config-service host and both entrypoints apply it the same way:
+
+| Config-service host | Style | Effect |
+|---|---|---|
+| `host.docker.internal` | `dockerized` | This node is a Docker peer of the stack; rewrites localhost-registered rows to `host.docker.internal`. |
+| A real IP / hostname | `external` | This node is off-box (a LAN Pi, or a node on another host); rewrites **both** localhost-registered rows and container-name HTTP rows (e.g. `jarvis-command-center`) to the server host. |
+| `localhost` / `127.0.0.1` / empty | *(none)* | Same box as the stack — config-service's URLs are already reachable as-is. |
+
+Since jarvis-node-setup#56, this is computed identically for **both** entrypoints — a bare-metal/Pi node running `python -m scripts.main` directly (which never touches `entrypoint.py`) now gets the same style computation as a containerized node. Previously only `entrypoint.py` set the style, and `install.sh` hardcoded `JARVIS_CONFIG_URL_STYLE=remote` into the systemd unit for the Pi path — `remote` only rewrites localhost-registered rows, so a Pi resolving command-center (a container-name row) got back an unreachable `host.docker.internal` address and lost voice + heartbeat with `NameResolutionError`.
+
+Since jarvis-node-setup#57, an explicit `dockerized`/`external` override still wins, but an **unset or retired-`remote`** style is (re)computed from the config-service host on every startup (`apply_config_url_style()`), so a node whose systemd unit wasn't regenerated by a code-only update still self-heals instead of staying pinned to the stale value. The shipped unit template (`setup/jarvis-node.service`) no longer hardcodes `remote` at all.
 
 ### Wake Word Model Restoration Across Updates
 
@@ -485,6 +501,7 @@ Validated in-container on Ubuntu/PipeWire: calibration succeeds, the pipeline ru
 | `JARVIS_MIC_SAMPLE_RATE` | Mic capture rate; runtime resamples to 16 kHz internally. Try `44100` for USB mics that reject 48 kHz | `48000` |
 | `JARVIS_HOST_UID` | Host login UID used for the PipeWire socket path | `1000` |
 | `JARVIS_AEC_ENABLED` | Enable acoustic echo cancellation (requires pulse transport) | `false` |
+| `JARVIS_CONFIG_URL_STYLE` | Overrides the auto-computed URL rewrite style (`external`/`dockerized`). See [Service Discovery: URL Rewrite Style](#url-rewrite-style-jarvis_config_url_style). Usually left unset — the node computes it from the config-service host. | *(auto-computed)* |
 
 ### Container troubleshooting
 
@@ -509,4 +526,4 @@ Images are built with native per-arch runners (no QEMU), so arm64 builds take ~3
 |---------|----------|---------|
 | Command Center (7703) | Yes | Voice command processing |
 | TTS (7707) | No | Spoken responses via MQTT |
-| Config Service (7700) | No | Service discovery |
+| Config Service (7700) | Yes (once provisioned) | Service discovery — every other service URL resolves through it; see [Service Discovery: config-service Is the Single Source of Truth](#service-discovery-config-service-is-the-single-source-of-truth). Only tolerated as unreachable while a node is still provisioning. |
