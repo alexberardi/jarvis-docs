@@ -100,6 +100,7 @@ The following device integrations are available as Pantry packages. Install via 
 | Package | Devices | Connection | Setup Required |
 |---------|---------|------------|----------------|
 | `jarvis-device-apple` | Apple TV, HomePod | LAN (mDNS/pyatv) | None — Bonjour discovery |
+| `jarvis-device-homekit` | Local Apple HomeKit (HAP) accessories | LAN (HAP protocol) | None — discover and pair over LAN |
 | `jarvis-device-zwave` | Z-Wave lights, switches, locks, thermostats | WebSocket (Z-Wave JS UI) | Z-Wave USB stick + Z-Wave JS UI running with WS Server enabled |
 
 ### Platform Integrations
