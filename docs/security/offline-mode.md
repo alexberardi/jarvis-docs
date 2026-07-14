@@ -30,7 +30,7 @@ Every switch below **defaults to off** (or to a local option). Turn one on only 
 | **Wake-word model download** | GitHub (openWakeWord) | `wake_word_model_autodownload_enabled` / `JARVIS_WAKE_WORD_MODEL_AUTODOWNLOAD_ENABLED` *(node)* | Node `config.json` or env | **off** |
 | **Speech-to-text model download** | `huggingface.co` | `whisper.allow_model_autodownload` / `WHISPER_ALLOW_MODEL_AUTODOWNLOAD` *(whisper)* | Settings DB or env | **off** |
 | **Text-to-speech engine** | `huggingface.co` (Kokoro) vs. local (Piper) | `tts.provider` / `TTS_PROVIDER` *(tts)* | Settings DB or env | **`piper` (local)** |
-| **Admin auto-update** | `api.github.com` | `JARVIS_ALLOW_UPDATES` *(admin)* | Admin env / `~/.jarvis/admin.json` | **off** |
+| **Admin auto-update** | `api.github.com` | `JARVIS_ALLOW_UPDATES` *(admin)* | Admin dashboard → **Updates** page, or admin env / `~/.jarvis/admin.json` | **off** |
 | **Mobile push notifications** | Expo (`exp.host`) → APNs/FCM | in-app toggle (`@jarvis/push_notifications_enabled`) | Mobile app → Settings | **off (opt-in)** |
 | **Push delivery relay** | your relay → Expo | `RELAY_URL` *(notifications)* | `.env` | **unset (off)** |
 
@@ -90,7 +90,9 @@ Updates are off by default so a local-only box never phones home. Turn them on p
 
 === "Admin dashboard self-update"
 
-    The admin app has no household/JWT context at its update-check call site, so its gate is a box-level flag:
+    Since jarvis-admin#54, the **Updates** page in the admin dashboard has a switch for this — flipping it calls `POST /api/update/settings` (superuser only), which persists `allowUpdates` to `~/.jarvis/admin.json` and applies it to the live config immediately, no restart needed. See [Admin: Update Opt-In Toggle](../services/admin.md#update-opt-in-toggle).
+
+    Without dashboard access, the same box-level flag still works:
 
     ```bash
     JARVIS_ALLOW_UPDATES=true          # admin container environment
@@ -102,7 +104,7 @@ Updates are off by default so a local-only box never phones home. Turn them on p
     { "allowUpdates": true }
     ```
 
-    With it off, `/api/update/check` makes no request to `api.github.com` and `/api/update/apply` returns `403`.
+    With it off, `/api/update/check` makes no request to `api.github.com` and `/api/update/apply` returns `403`. With it off, the dashboard now also reports `updatesEnabled: false` explicitly, rather than silently rendering "you're running the latest version" for a check that never ran.
 
 !!! warning "Updates require internet"
     Enabling any update path allows outbound connections to GitHub (and, for the applied release, GitHub release assets). Leave these off if you want a fully air-gapped deployment and update manually instead.
