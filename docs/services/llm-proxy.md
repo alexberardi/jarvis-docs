@@ -59,6 +59,8 @@ Model loading is fault-isolated per slot and does not block process startup:
 
 Since jarvis-llm-proxy-api#29, native macOS runs (`run-prod.sh`) also auto-set `JARVIS_CONFIG_URL=http://localhost:${CONFIG_SERVICE_PORT:-7700}` when unset — without it the service can't discover `jarvis-auth` via config-service and refuses to start.
 
+Since jarvis-llm-proxy-api#30, if `jarvis-auth` or `jarvis-logs` can't be resolved via `JARVIS_CONFIG_URL` at import time (native macOS, before `init()` runs), the service falls back to hardcoded localhost defaults (`http://localhost:7701` for auth, `http://localhost:7702` for logs) — never reached in Docker, where compose sets these env vars explicitly.
+
 ## 2-Model System
 
 The service maintains two model slots to balance latency and capability:
