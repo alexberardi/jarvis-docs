@@ -1,1 +1,79 @@
-IyBDb25maWcgU2VydmljZQoKVGhlIGNvbmZpZyBzZXJ2aWNlIGlzIHRoZSBzZXJ2aWNlIGRpc2NvdmVyeSBodWIgZm9yIGFsbCBKYXJ2aXMgc2VydmljZXMuIEV2ZXJ5IHNlcnZpY2UgcXVlcmllcyBpdCBhdCBzdGFydHVwIHRvIHJlc29sdmUgVVJMcyBmb3Igb3RoZXIgc2VydmljZXMgaXQgbmVlZHMgdG8gY29tbXVuaWNhdGUgd2l0aC4gSXQgaXMgdGhlIHNpbmdsZSBUaWVyIDAgZGVwZW5kZW5jeSDigJQgaWYgY29uZmlnIHNlcnZpY2UgaXMgZG93biwgbm8gc2VydmljZSBjYW4gZGlzY292ZXIgYW55IG90aGVyLgoKIyMgUXVpY2sgUmVmZXJlbmNlCgp8IHwgfAp8LS0tfC0tLXwKfCAqKlBvcnQqKiB8IDc3MDAgfAp8ICoqSGVhbHRoIGVuZHBvaW50KiogfCBgR0VUIC9oZWFsdGhgIHwKfCAqKlNvdXJjZSoqIHwgYGphcnZpcy1jb25maWctc2VydmljZS9gIHwKfCAqKkZyYW1ld29yayoqIHwgRmFzdEFQSSArIFV2aWNvcm4gfAp8ICoqRGF0YWJhc2UqKiB8IFBvc3RncmVTUUwgfAp8ICoqVGllcioqIHwgMCAtIEZvdW5kYXRpb24gfAoKIyMgQVBJIEVuZHBvaW50cwoKfCBNZXRob2QgfCBQYXRoIHwgRGVzY3JpcHRpb24gfAp8LS0tLS0tLS18LS0tLS0tfC0tLS0tLS0tLS0tLS18CnwgYEdFVGAgfCBgL2hlYWx0aGAgfCBIZWFsdGggY2hlY2sgfAp8IGBHRVRgIHwgYC9pbmZvYCB8IFNlcnZpY2UgaWRlbnRpdHkgKG5hbWUsIHZlcnNpb24sIHBvcnQpIHwKfCBgR0VUYCB8IGAvc2VydmljZXNgIHwgTGlzdCBhbGwgcmVnaXN0ZXJlZCBzZXJ2aWNlcyBhbmQgdGhlaXIgVVJMcyB8CnwgYEdFVGAgfCBgL3NlcnZpY2VzL3tuYW1lfWAgfCBHZXQgVVJMIGZvciBhIHNwZWNpZmljIHNlcnZpY2UgfAp8IGBQT1NUYCB8IGAvc2VydmljZXNgIHwgUmVnaXN0ZXIgb3IgdXBkYXRlIGEgc2VydmljZSAoYWRtaW4pIHwKfCBgREVMRVRFYCB8IGAvc2VydmljZXMve25hbWV9YCB8IERlcmVnaXN0ZXIgYSBzZXJ2aWNlIChhZG1pbikgfAp8IGBHRVRgIHwgYC9zZXJ2aWNlcy9oZWFsdGhgIHwgQ2hlY2sgaGVhbHRoIG9mIGFsbCByZWdpc3RlcmVkIHNlcnZpY2VzIHwKfCBgR0VUYCB8IGAvc2VydmljZXMve25hbWV9L2hlYWx0aGAgfCBDaGVjayBoZWFsdGggb2YgYSBzcGVjaWZpYyByZWdpc3RlcmVkIHNlcnZpY2UgfAoKIyMgVVJMIFN0eWxlIFF1ZXJ5IFBhcmFtZXRlcnMKClRoZSBgL3NlcnZpY2VzYCBhbmQgYC9zZXJ2aWNlcy97bmFtZX1gIGVuZHBvaW50cyBhY2NlcHQgYW4gb3B0aW9uYWwgYHN0eWxlYCBxdWVyeSBwYXJhbWV0ZXIgdG8gY29udHJvbCB0aGUgZm9ybWF0IG9mIHJldHVybmVkIFVSTHM6Cgp8IFBhcmFtZXRlciB8IFZhbHVlIHwgRGVzY3JpcHRpb24gfAp8LS0tLS0tLS0tLS18LS0tLS0tfC0tLS0tLS0tLS0tLS18CnwgYHN0eWxlYCB8ICooZGVmYXVsdCkqIHwgUmV0dXJucyBjb250YWluZXItbmFtZSBVUkxzIChlLmcuIGBodHRwOi8vamFydmlzLWF1dGg6NzcwMWApIOKAlCB1c2VkIGJ5IERvY2tlciBzZXJ2aWNlcyBvbiB0aGUgc2hhcmVkIG5ldHdvcmsgfAp8IGBzdHlsZWAgfCBgZG9ja2VyaXplZGAgfCBSZXR1cm5zIGBob3N0LmRvY2tlci5pbnRlcm5hbGAgVVJMcyDigJQgdXNlZCB3aGVuIGNvbnRhaW5lcnMgbmVlZCB0byByZWFjaCBzZXJ2aWNlcyBydW5uaW5nIGRpcmVjdGx5IG9uIHRoZSBob3N0IChlLmcuIExMTSBwcm94eSBvbiBtYWNPUykgfAp8IGBzdHlsZWAgfCBgcmVtb3RlYCB8IFJldHVybnMgVVJMcyB1c2luZyBgSkFSVklTX1JFTU9URV9IT1NUYCBhcyB0aGUgaG9zdG5hbWUgfAp8IGByZW1vdGVfaG9zdGAgfCAqaG9zdG5hbWUqIHwgT3ZlcnJpZGUgdGhlIHJlbW90ZSBob3N0IGZvciB0aGlzIHJlcXVlc3Qgb25seSAodXNlZCB3aXRoIGBzdHlsZT1yZW1vdGVgKSB8CgojIyBTZWNyZXQgQm9vdCBHdWFyZCAoYEpBUlZJU19DT05GSUdfQURNSU5fVE9LRU5gKQoKQWRkZWQgaW4gamFydmlzLWNvbmZpZy1zZXJ2aWNlIzQsIGNsb3NpbmcgdGhlIGxhc3QgZmFpbC1vcGVuLWRlZmF1bHQgZ2FwIGluIHRoZSBhdWRpdCdzIGZhaWwtb3BlbiBmYW1pbHkgKHNhbWUgcGF0dGVybiBhcyBqYXJ2aXMtYXV0aCdzIGBlbmZvcmNlX3NlY3JldF9zZWN1cml0eWAgYW5kIGphcnZpcy1jb21tYW5kLWNlbnRlcidzIFtTZWNyZXQgQm9vdCBHdWFyZF0oY29tbWFuZC1jZW50ZXIubWQjc2VjcmV0LWJvb3QtZ3VhcmQtYWRtaW5fYXBpX2tleS1qYXJ2aXNfYXV0aF9zZWNyZXRfa2V5KSkuIFByZXZpb3VzbHkgYC5lbnYuZXhhbXBsZWAgc2hpcHBlZCBgSkFSVklTX0NPTkZJR19BRE1JTl9UT0tFTj1jaGFuZ2UtbWUtdG8tc29tZXRoaW5nLXNlY3VyZWAgYW5kIHRoZSBhZG1pbiBhdXRoIGNoZWNrIGFjY2VwdGVkIGFueSBub24tZW1wdHkgdG9rZW4g4oCUIHRoZSBwdWJsaWNseS1rbm93biB0ZW1wbGF0ZSBwbGFjZWhvbGRlciBhdXRoZW50aWNhdGVkIGFnYWluc3QgYFBPU1QgL3NlcnZpY2VzYCBhbmQgYERFTEVURSAvc2VydmljZXMve25hbWV9YCBvbiB0aGUgc2VydmljZSB0aGF0IGJvb3RzdHJhcHMgdGhlIHdob2xlIGNsdXN0ZXIuCgpBIGJvb3QgZ3VhcmQgY2hlY2tzIGBKQVJWSVNfQ09ORklHX0FETUlOX1RPS0VOYCBhZ2FpbnN0IGEgcGxhY2Vob2xkZXIgbGlzdCAoYGNoYW5nZS1tZWAsIGBjaGFuZ2VtZWAsIGBjaGFuZ2VfbWVgLCBgX19zZXRfbWVfX2AsIGBjaGFuZ2UtbWUtdG8tc29tZXRoaW5nLXNlY3VyZWAsIGBjaGFuZ2VfbWVfY29uZmlnX2FkbWluX3Rva2VuYCwgY2FzZS1pbnNlbnNpdGl2ZSkgYW5kIGEgMTYtY2hhcmFjdGVyIG1pbmltdW0gbGVuZ3RoOgoKLSAqKkVtcHR5LCBwbGFjZWhvbGRlciwgb3IgdG9vIHNob3J0OioqIGFsd2F5cyBsb2dzIGEgbG91ZCB3YXJuaW5nLiAqKkZhdGFsIChzdGFydHVwIGFib3J0cykqKiBvbmx5IHdoZW4gYEpBUlZJU19FTlY9cHJvZHVjdGlvbmAuCi0gKipTdHJvbmcgdmFsdWVzOioqIHNpbGVudCwgbm8gd2FybmluZy4KCkluZGVwZW5kZW50IG9mIHRoZSBib290IGd1YXJkLCByZXF1ZXN0LXRpbWUgZGVmZW5zZSBpbiBkZXB0aCByZWplY3RzIGEga25vd24tcGxhY2Vob2xkZXIgdG9rZW4gcHJlc2VudGVkIHZpYSBgWC1BZG1pbi1Ub2tlbmAgd2l0aCBhIGA0MDFgICoqYmVmb3JlKiogdGhlIGNvbXBhcmlzb24g4oCUIGV2ZW4gb3V0c2lkZSBwcm9kdWN0aW9uLCBhbmQgZXZlbiBpZiB0aGUgc2VydmVyIGl0c2VsZiB3YXMgbWlzY29uZmlndXJlZCB3aXRoIHRoYXQgcGxhY2Vob2xkZXIuIFRoaXMgbWVhbnMgdGhlIHNoaXBwZWQgcGxhY2Vob2xkZXIgY2FuIG5vIGxvbmdlciBhdXRoZW50aWNhdGUgYW55d2hlcmUsIGV2ZW4gb24gYSBkZXBsb3kgdGhhdCBuZXZlciBzZXRzIGBKQVJWSVNfRU5WYC4KCmAuZW52LmV4YW1wbGVgIGFuZCBgZW52LnRlbXBsYXRlYCBub3cgc2hpcCBgSkFSVklTX0NPTkZJR19BRE1JTl9UT0tFTj1fX1NFVF9NRV9fYC4KCioqVG8gaGFyZGVuIGEgcHJvZHVjdGlvbiBkZXBsb3k6Kiogc2V0IGBKQVJWSVNfRU5WPXByb2R1Y3Rpb25gIGFuZCBnZW5lcmF0ZSBhIHN0cm9uZyB2YWx1ZSB3aXRoIGBvcGVuc3NsIHJhbmQgLWhleCAzMmAgZm9yIGBKQVJWSVNfQ09ORklHX0FETUlOX1RPS0VOYC4KCiMjIEVudmlyb25tZW50IFZhcmlhYmxlcwoKfCBWYXJpYWJsZSB8IERlc2NyaXB0aW9uIHwKfC0tLS0tLS0tfC0tLS0tLS0tLS0tLXwKfCBgREFUQUJBU0VfVVJMYCB8IFBvc3RncmVTUUwgY29ubmVjdGlvbiBzdHJpbmcgfAp8IGBKQVJWSVNfQVVUSF9CQVNFX1VSTGAgfCBBdXRoIHNlcnZpY2UgVVJMIGZvciB2YWxpZGF0aW5nIGFkbWluL2FwcCByZXF1ZXN0cyB8CnwgYEpBUlZJU19DT05GSUdfQURNSU5fVE9LRU5gIHwgQWRtaW4gdG9rZW4gZm9yIGBQT1NUIC9zZXJ2aWNlc2AgYW5kIGBERUxFVEUgL3NlcnZpY2VzL3tuYW1lfWAuIFBsYWNlaG9sZGVyL3Nob3J0IHZhbHVlcyBhcmUgcmVqZWN0ZWQgYXQgYm9vdCBpbiBwcm9kdWN0aW9uIGFuZCBhdCByZXF1ZXN0IHRpbWUgYWx3YXlzIOKAlCBzZWUgW1NlY3JldCBCb290IEd1YXJkXSgjc2VjcmV0LWJvb3QtZ3VhcmQtamFydmlzX2NvbmZpZ19hZG1pbl90b2tlbikgfAp8IGBKQVJWSVNfQ09ORklHX1VSTF9TVFlMRWAgfCBEZWZhdWx0IFVSTCBzdHlsZSBmb3IgYWxsIHJlc3BvbnNlcyAoYGRvY2tlcml6ZWRgIHJldHVybnMgYGhvc3QuZG9ja2VyLmludGVybmFsYCBVUkxzKSB8CnwgYEpBUlZJU19SRU1PVEVfSE9TVGAgfCBIb3N0bmFtZSB1c2VkIHdoZW4gYHN0eWxlPXJlbW90ZWAgaXMgcmVxdWVzdGVkIHwKfCBgUE9SVGAgfCBBUEkgcG9ydCAoZGVmYXVsdCBgNzcwMGApIHwKCiMjIERlcGVuZGVuY2llcwoKLSAqKlBvc3RncmVTUUwqKiAtLSBzdG9yZXMgc2VydmljZSByZWdpc3RyeQoKIyMgRGVwZW5kZW50cwoKRXZlcnkgc2VydmljZSBkZXBlbmRzIG9uIGNvbmZpZyBzZXJ2aWNlIGZvciBVUkwgZGlzY292ZXJ5OgoKLSBqYXJ2aXMtYXV0aCwgamFydmlzLWxvZ3MsIGphcnZpcy1jb21tYW5kLWNlbnRlciwgamFydmlzLWxsbS1wcm94eS1hcGksIGphcnZpcy13aGlzcGVyLWFwaSwgamFydmlzLXR0cywgamFydmlzLW9jci1zZXJ2aWNlLCBqYXJ2aXMtcmVjaXBlcy1zZXJ2ZXIsIGphcnZpcy1ub3RpZmljYXRpb25zLCBqYXJ2aXMtc2V0dGluZ3Mtc2VydmVyLCBqYXJ2aXMtbWNwLCBqYXJ2aXMtYWRtaW4KCiMjIEltcGFjdCBpZiBEb3duCgpBbGwgaW50ZXItc2VydmljZSBjb21tdW5pY2F0aW9uIHRoYXQgcmVsaWVzIG9uIGR5bmFtaWMgVVJMIGRpc2NvdmVyeSB3aWxsIGZhaWwuIFNlcnZpY2VzIHRoYXQgaGF2ZSBhbHJlYWR5IGNhY2hlZCBVUkxzIG1heSBjb250aW51ZSBvcGVyYXRpbmcgdW50aWwgdGhlaXIgY2FjaGUgZXhwaXJlcy4gTmV3IHNlcnZpY2Ugc3RhcnR1cHMgd2lsbCBmYWlsIHRvIHJlc29sdmUgZGVwZW5kZW5jaWVzLgo=
+# Config Service
+
+The config service is the service discovery hub for all Jarvis services. Every service queries it at startup to resolve URLs for other services it needs to communicate with. It is the single Tier 0 dependency — if config service is down, no service can discover any other.
+
+## Quick Reference
+
+| | |
+|---|---|
+| **Port** | 7700 |
+| **Health endpoint** | `GET /health` |
+| **Source** | `jarvis-config-service/` |
+| **Framework** | FastAPI + Uvicorn |
+| **Database** | PostgreSQL |
+| **Tier** | 0 - Foundation |
+
+## API Endpoints
+
+| Method | Path | Description |
+|--------|------|-------------|
+| `GET` | `/health` | Health check |
+| `GET` | `/info` | Service identity (name, version, port) |
+| `GET` | `/services` | List all registered services and their URLs |
+| `GET` | `/services/{name}` | Get URL for a specific service |
+| `POST` | `/services` | Register or update a service (admin) |
+| `DELETE` | `/services/{name}` | Deregister a service (admin) |
+| `GET` | `/services/health` | Check health of all registered services |
+| `GET` | `/services/{name}/health` | Check health of a specific registered service |
+
+## URL Style Query Parameters
+
+The `/services` and `/services/{name}` endpoints accept an optional `style` query parameter to control the format of returned URLs:
+
+| Parameter | Value | Description |
+|-----------|-------|-------------|
+| `style` | *(default)* | Returns container-name URLs (e.g. `http://jarvis-auth:7701`) — used by Docker services on the shared network |
+| `style` | `dockerized` | Returns `host.docker.internal` URLs — used when containers need to reach services running directly on the host (e.g. LLM proxy on macOS) |
+| `style` | `remote` | Returns URLs using `JARVIS_REMOTE_HOST` as the hostname. Only rewrites `localhost`-registered rows — a service registered under a container name (e.g. `jarvis-command-center`) has no `localhost` to swap, so it's returned unreachable from off-box. |
+| `style` | `external` | Since jarvis-config-client#4 — returns each service's published `external_host`/`external_port` coordinates when set, falling back to the same `localhost` → `remote_host` swap as `remote` otherwise. This resolves container-name HTTP rows correctly too, not just `localhost`-registered infra — the correct style for off-box consumers (LAN voice nodes, dockerized nodes) that need to reach *every* registered service, not just the ones registered as `localhost`. |
+| `remote_host` | *hostname* | Override the remote host for this request only (used with `style=remote` or `style=external`) |
+
+## Secret Boot Guard (`JARVIS_CONFIG_ADMIN_TOKEN`)
+
+Added in jarvis-config-service#4, closing the last fail-open-default gap in the audit's fail-open family (same pattern as jarvis-auth's `enforce_secret_security` and jarvis-command-center's [Secret Boot Guard](command-center.md#secret-boot-guard-admin_api_key-jarvis_auth_secret_key)). Previously `.env.example` shipped `JARVIS_CONFIG_ADMIN_TOKEN=change-me-to-something-secure` and the admin auth check accepted any non-empty token — the publicly-known template placeholder authenticated against `POST /services` and `DELETE /services/{name}` on the service that bootstraps the whole cluster.
+
+A boot guard checks `JARVIS_CONFIG_ADMIN_TOKEN` against a placeholder list (`change-me`, `changeme`, `change_me`, `__set_me__`, `change-me-to-something-secure`, `change_me_config_admin_token`, case-insensitive) and a 16-character minimum length:
+
+- **Empty, placeholder, or too short:** always logs a loud warning. **Fatal (startup aborts)** only when `JARVIS_ENV=production`.
+- **Strong values:** silent, no warning.
+
+Independent of the boot guard, request-time defense in depth rejects a known-placeholder token presented via `X-Admin-Token` with a `401` **before** the comparison — even outside production, and even if the server itself was misconfigured with that placeholder. This means the shipped placeholder can no longer authenticate anywhere, even on a deploy that never sets `JARVIS_ENV`.
+
+`.env.example` and `env.template` now ship `JARVIS_CONFIG_ADMIN_TOKEN=__SET_ME__`.
+
+**To harden a production deploy:** set `JARVIS_ENV=production` and generate a strong value with `openssl rand -hex 32` for `JARVIS_CONFIG_ADMIN_TOKEN`.
+
+## Environment Variables
+
+| Variable | Description |
+|----------|-------------|
+| `DATABASE_URL` | PostgreSQL connection string |
+| `JARVIS_AUTH_BASE_URL` | Auth service URL for validating admin/app requests |
+| `JARVIS_CONFIG_ADMIN_TOKEN` | Admin token for `POST /services` and `DELETE /services/{name}`. Placeholder/short values are rejected at boot in production and at request time always — see [Secret Boot Guard](#secret-boot-guard-jarvis_config_admin_token) |
+| `JARVIS_CONFIG_URL_STYLE` | Default URL style for all responses (`dockerized` returns `host.docker.internal` URLs, `external` returns published external coordinates — see [URL Style Query Parameters](#url-style-query-parameters)) |
+| `JARVIS_REMOTE_HOST` | Hostname used when `style=remote` or `style=external` is requested |
+| `PORT` | API port (default `7700`) |
+
+## Dependencies
+
+- **PostgreSQL** -- stores service registry
+
+## Dependents
+
+Every service depends on config service for URL discovery:
+
+- jarvis-auth, jarvis-logs, jarvis-command-center, jarvis-llm-proxy-api, jarvis-whisper-api, jarvis-tts, jarvis-ocr-service, jarvis-recipes-server, jarvis-notifications, jarvis-settings-server, jarvis-mcp, jarvis-admin
+
+## Impact if Down
+
+All inter-service communication that relies on dynamic URL discovery will fail. Services that have already cached URLs may continue operating until their cache expires. New service startups will fail to resolve dependencies.
