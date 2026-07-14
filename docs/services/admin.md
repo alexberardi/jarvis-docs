@@ -52,6 +52,15 @@ Added in jarvis-admin#6. The **Model file path** field on the apply panel now sh
 - When no models are installed the field falls back to free-text only.
 - Freshly downloaded models appear in the dropdown without restarting admin — the endpoint scans `.models/` on each request.
 
+## Sync Compose (Reconcile)
+
+The **Sync Compose** page regenerates `docker-compose.yml`, `.env`, and `init-db.sh` from the current service registry + your selections, preserving existing secrets and settings. It offers two ways to apply the result:
+
+- **Sync now** -- applies the regenerated files to the running stack in place (pull, apply, restart).
+- **Download updated compose** (added in jarvis-admin#15) -- calls `POST /api/install/regenerate-download` and hands the operator the three regenerated files to download instead. Nothing on the server is touched. The operator drops the files in next to their existing compose and runs `docker compose up -d` by hand -- the review-first alternative for compose-managed installs that want to diff before applying.
+
+`.env` merges new keys into existing values and `init-db.sh` covers any new databases, so replacing all three together (not just `docker-compose.yml`) is recommended even with the download path.
+
 ## Architecture
 
 ```
