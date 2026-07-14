@@ -1,1 +1,51 @@
-IyBIb21lICYgQ2hhdAoKVGhlIEhvbWUgdGFiIGlzIHRoZSBtYWluIGNoYXQgaW50ZXJmYWNlIGZvciBpbnRlcmFjdGluZyB3aXRoIEphcnZpcy4gVHlwZSBvciBzcGVhayBjb21tYW5kcywgYW5kIEphcnZpcyByZXNwb25kcyB3aXRoIHN0cnVjdHVyZWQgZGF0YSBhbmQgbmF0dXJhbCBsYW5ndWFnZS4KCiMjIENoYXQgSW50ZXJmYWNlCgpUaGUgY2hhdCBzaG93cyBhIGNvbnZlcnNhdGlvbiB0aHJlYWQgd2l0aCB5b3VyIG1lc3NhZ2VzIG9uIHRoZSByaWdodCAocHVycGxlKSBhbmQgSmFydmlzIHJlc3BvbnNlcyBvbiB0aGUgbGVmdCAoZ3JheSkuIFJlc3BvbnNlcyBjYW4gaW5jbHVkZSBmb3JtYXR0ZWQgdGV4dCB3aXRoIGJvbGQsIGxpc3RzLCBhbmQgc3RydWN0dXJlZCBkYXRhLgoKIyMjIFF1aWNrIEFjdGlvbnMKCldoZW4gdGhlIGNvbnZlcnNhdGlvbiBpcyBlbXB0eSwgcXVpY2sgYWN0aW9uIGNoaXBzIGFwcGVhciB3aXRoIGNvbW1vbiBjb21tYW5kcy4gVGFwIGFueSBjaGlwIHRvIHNlbmQgdGhhdCBjb21tYW5kIGltbWVkaWF0ZWx5LiBBdmFpbGFibGUgYWN0aW9ucyBkZXBlbmQgb24gd2hpY2ggY29tbWFuZHMgYXJlIGluc3RhbGxlZCBvbiB0aGUgc2VsZWN0ZWQgbm9kZS4KCiMjIyBOb2RlIFNlbGVjdG9yCgpUaGUgbm9kZSBzZWxlY3RvciBhdCB0aGUgdG9wIGxlZnQgc2hvd3Mgd2hpY2ggUGkgWmVybyBub2RlIGlzIGFjdGl2ZS4gVGFwIGl0IHRvIHN3aXRjaCBiZXR3ZWVuIG5vZGVzIGluIHlvdXIgaG91c2Vob2xkLgoKIyMjIFRleHQgSW5wdXQKClR5cGUgYSBtZXNzYWdlIGluIHRoZSBpbnB1dCBmaWVsZCBhbmQgdGFwIHRoZSBzZW5kIGFycm93LiBKYXJ2aXMgcHJvY2Vzc2VzIGl0IHRocm91Z2ggdGhlIGNvbW1hbmQgY2VudGVyLCB3aGljaCByb3V0ZXMgaXQgdG8gdGhlIGFwcHJvcHJpYXRlIGNvbW1hbmQgb24gdGhlIHNlbGVjdGVkIG5vZGUuCgpUaGUgY29tcG9zZXIgKHRleHQgZmllbGQsIG1pY3JvcGhvbmUsIGFuZCBzZW5kIGJ1dHRvbikgc3RheXMgZGlzYWJsZWQgdW50aWwgdGhlIHNlbGVjdGVkIG5vZGUgaXMgY29uZmlybWVkIG9ubGluZSBpbiB5b3VyIGhvdXNlaG9sZCAqKmFuZCoqIGl0cyB0b29scyBoYXZlIGZpbmlzaGVkIGxvYWRpbmcuIFRoZSBwbGFjZWhvbGRlciB0ZXh0IHdhbGtzIHlvdSB0aHJvdWdoIHRoZSBzdGF0ZXM6Cgp8IFBsYWNlaG9sZGVyIHwgTWVhbmluZyB8Cnx8fAp8ICpTZWxlY3QgYSBub2RlIGZpcnN0KiB8IE5vIG5vZGUgc2VsZWN0ZWQgeWV0IHwKfCAqV2FpdGluZyBmb3Igbm9kZeKApioqIHwgTm9kZSBzZWxlY3RlZCBidXQgbm90IHlldCBjb25maXJtZWQgYXMgYW4gb25saW5lIG1lbWJlciBvZiB0aGlzIGhvdXNlaG9sZCB8Cnwg*TG9hZGluZyB0b29sc+KApioqIHwgTm9kZSBpcyBvbmxpbmUgYnV0IHRvb2xzIGhhdmVuJ3QgcmVwb3J0ZWQgeWV0IHwKfCAqTWVzc2FnZSBKYXJ2aXMuLi4qIHwgUmVhZHkgdG8gY2hhdCB8CgojIyMgVm9pY2UgSW5wdXQKClRhcCB0aGUgbWljcm9waG9uZSBpY29uIHRvIHJlY29yZCBhIHZvaWNlIG1lc3NhZ2UuIFRoZSBhdWRpbyBpcyB0cmFuc2NyaWJlZCBieSB0aGUgV2hpc3BlciBzZXJ2aWNlIGFuZCBwcm9jZXNzZWQgYXMgdGV4dC4KCiMjIyBBdXRvLVBsYXkgVFRTCgpXaGVuIGVuYWJsZWQgaW4gU2V0dGluZ3MsIEphcnZpcyByZXNwb25zZXMgYXJlIGF1dG9tYXRpY2FsbHkgc3Bva2VuIGFsb3VkIHZpYSB0aGUgVFRTIHNlcnZpY2UuIEEgc3BlYWtlciBpY29uIGFwcGVhcnMgb24gcmVzcG9uc2VzIHRoYXQgaGF2ZSBiZWVuIHBsYXllZC4KCiMjIEVtcHR5IFN0YXRlCgpXaGVuIG5vIG5vZGVzIGFyZSBwYWlyZWQsIHRoZSBIb21lIHNjcmVlbiBzaG93cyBhIHdlbGNvbWUgbWVzc2FnZSB3aXRoIGEgcHJvbXB0IHRvIGFkZCB5b3VyIGZpcnN0IG5vZGUuCgojIyBUb29sIExvYWRpbmcKClRoZSBzdGF0dXMgY2hpcCBiZWxvdyB0aGUgbm9kZSBzZWxlY3RvciBzaG93cyB0aGUgY3VycmVudCB0b29sIHN0YXRlOgoKLSAqKkxvYWRpbmcgdG9vbHPigKYqKiAoc3Bpbm5lcikgLS0tIHRoZSBub2RlIGlzIG9ubGluZSBidXQgaXRzIHRvb2wgbGlzdCBoYXNuJ3QgYXJyaXZlZCB5ZXQuIFRoaXMgaXMgbm9ybWFsIGltbWVkaWF0ZWx5IGFmdGVyIHBhaXJpbmc6IGEgZnJlc2hseS1wcm92aXNpb25lZCBub2RlIGdvZXMgb25saW5lIGJlZm9yZSBpdHMgY29tbWFuZCBkaXNjb3ZlcnkgZmluaXNoZXMuIFRoZSBhcHAgcG9sbHMgaW4gdGhlIGJhY2tncm91bmQgYW5kIHVwZGF0ZXMgYXV0b21hdGljYWxseSAtLS0gbm8gYXBwIHJlc3RhcnQgbmVlZGVkLgotICoqTiB0b29scyBsb2FkZWQqKiAtLS0gdG9vbHMgYXJlIHJlYWR5LiBUYXAgdGhlIGNoaXAgdG8gc2VlIHRoZSBmdWxsIHRvb2wgbGlzdC4KCiMjIyBQdWxsLXRvLVJlZnJlc2gKClB1bGwgZG93biBvbiB0aGUgSG9tZSBzY3JlZW4gdG8gcmVmcmVzaCBib3RoIHRoZSBub2RlIGxpc3QgYW5kIHRoZSB0b29sIGxpc3QuIFVzZWZ1bCBpZiBhIG5vZGUganVzdCBjYW1lIG9ubGluZSBvciBpZiB5b3UgaW5zdGFsbGVkIGEgbmV3IGNvbW1hbmQgYW5kIHdhbnQgdG8gcGljayBpdCB1cCBpbW1lZGlhdGVseS4K
+# Home & Chat
+
+The Home tab is the main chat interface for interacting with Jarvis. Type or speak commands, and Jarvis responds with structured data and natural language.
+
+## Chat Interface
+
+The chat shows a conversation thread with your messages on the right (purple) and Jarvis responses on the left (gray). Responses can include formatted text with bold, lists, and structured data.
+
+### Quick Actions
+
+When the conversation is empty, quick action chips appear with common commands. Tap any chip to send that command immediately. Available actions depend on which commands are installed on the selected node.
+
+### Node Selector
+
+The node selector at the top left shows which Pi Zero node is active. Tap it to switch between nodes in your household.
+
+### Text Input
+
+Type a message in the input field and tap the send arrow. Jarvis processes it through the command center, which routes it to the appropriate command on the selected node.
+
+The composer (text field, microphone, and send button) stays disabled until the selected node is confirmed online in your household **and** its tools have finished loading. The placeholder text walks you through the states:
+
+| Placeholder | Meaning |
+|||
+| *Select a node first* | No node selected yet |
+| *Waiting for node…** | Node selected but not yet confirmed as an online member of this household |
+| Loading tools…** | Node is online but tools haven't reported yet |
+| *Message Jarvis...* | Ready to chat |
+
+### Voice Input
+
+Tap the microphone icon to record a voice message. The audio is transcribed by the Whisper service and processed as text.
+
+### Auto-Play TTS
+
+When enabled in Settings, Jarvis responses are automatically spoken aloud via the TTS service. A speaker icon appears on responses that have been played.
+
+## Empty State
+
+When no nodes are paired, the Home screen shows a welcome message with a prompt to add your first node.
+
+## Tool Loading
+
+The status chip below the node selector shows the current tool state:
+
+- **Loading tools…** (spinner) --- the node is online but its tool list hasn't arrived yet. This is normal immediately after pairing: a freshly-provisioned node goes online before its command discovery finishes. The app polls in the background and updates automatically --- no app restart needed.
+- **N tools loaded** --- tools are ready. Tap the chip to see the full tool list.
+
+### Pull-to-Refresh
+
+Pull down on the Home screen to refresh both the node list and the tool list. Useful if a node just came online or if you installed a new command and want to pick it up immediately.
