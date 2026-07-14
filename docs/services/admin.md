@@ -271,3 +271,14 @@ sudo chown -R $USER:$USER ~/.jarvis/compose/.models/
 ### Request Traces or node actions return 500 `COMMAND_CENTER_ADMIN_KEY is not configured`
 
 Since jarvis-admin#31, the Request Traces page and the Nodes train-adapter action fail loudly with a `500` instead of a confusing `401` when `COMMAND_CENTER_ADMIN_KEY` is missing from the admin container's environment. Regenerate `.env` (or re-run the setup wizard) so the generator wires the key from the shared `ADMIN_API_KEY` secret — see [Command-Center Admin Key Wiring](#command-center-admin-key-wiring).
+
+### macOS: "Docker not found" even though Docker Desktop is running
+
+A launchd-started admin (the default auto-start method on macOS) inherits launchd's minimal `PATH` (`/usr/bin:/bin:/usr/sbin:/sbin`), which excludes the paths Docker Desktop installs its CLI to (`/opt/homebrew/bin`, `/usr/local/bin`, or the app bundle). Every `execSync('docker ...')` then failed with "command not found", so the install wizard reported "Docker not found" even with Docker Desktop actually running.
+
+Since jarvis-admin#40, `ensureDockerOnPath()` runs at startup and prepends the standard Docker Desktop bin locations to `PATH` (only ones that exist, never duplicating), independent of how the admin was launched. The generated launchd plist also now sets `PATH` in `EnvironmentVariables` as a second layer of defense. If you still see this error after upgrading, restart the admin service so the regenerated plist takes effect:
+
+```bash
+launchctl unload ~/Library/LaunchAgents/com.jarvis.admin.plist
+launchctl load ~/Library/LaunchAgents/com.jarvis.admin.plist
+```
