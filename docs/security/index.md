@@ -1,1 +1,149 @@
-IyBTZWN1cml0eQoKSmFydmlzIGlzIGRlc2lnbmVkIHdpdGggcHJpdmFjeSBhbmQgc2VjdXJpdHkgYXMgY29yZSBwcmluY2lwbGVzLiBBbGwgZGF0YSBzdGF5cyBvbiB5b3VyIG5ldHdvcmsgYnkgZGVmYXVsdCwgd2l0aCBubyBjbG91ZCBkZXBlbmRlbmNpZXMgcmVxdWlyZWQuCgohISEgdGlwICJTdGF5aW5nIGZ1bGx5IGxvY2FsIgogICAgRXZlcnkgb3V0Ym91bmQtaW50ZXJuZXQgY2FwYWJpbGl0eSBpcyBvcHQtaW4gYW5kIGRlZmF1bHRzIHRvIG9mZi4gU2VlIFtOZXR3b3JrIEVncmVzcyAmIE9mZmxpbmUgTW9kZV0ob2ZmbGluZS1tb2RlLm1kKSBmb3IgdGhlIGNvbXBsZXRlIGxpc3Qgb2YgdG9nZ2xlcyBhbmQgaG93IHRvIHJ1biBhaXItZ2FwcGVkIC0tLSBvciBob3cgdG8gZW5hYmxlIHVwZGF0ZXMuCgojIyBaZXJvLVRydXN0IEFyY2hpdGVjdHVyZQoKSmFydmlzIGZvbGxvd3MgYSAqKnplcm8tdHJ1c3Qgc2VjdXJpdHkgbW9kZWwqKiAtLS0gbm8gc2VydmljZSwgbm9kZSwgb3IgY2xpZW50IGlzIGltcGxpY2l0bHkgdHJ1c3RlZCwgcmVnYXJkbGVzcyBvZiBuZXR3b3JrIGxvY2F0aW9uLiBFdmVyeSByZXF1ZXN0IGlzIGF1dGhlbnRpY2F0ZWQgYW5kIHZlcmlmaWVkIGluZGVwZW5kZW50bHkgYXQgZXZlcnkgYm91bmRhcnkuCgpNb3N0IHNlbGYtaG9zdGVkIGFzc2lzdGFudHMgcmVseSBvbiAiaXQncyBvbiBteSBMQU4sIHNvIGl0J3MgZmluZS4iIEphcnZpcyBkb2VzIG5vdC4gRXZlbiBzZXJ2aWNlcyBydW5uaW5nIG9uIHRoZSBzYW1lIERvY2tlciBuZXR3b3JrIGF1dGhlbnRpY2F0ZSB0byBlYWNoIG90aGVyIG9uIGV2ZXJ5IGNhbGwuCgoqKkhvdyB0aGlzIG1hbmlmZXN0cyBpbiBwcmFjdGljZToqKgoKfCBQcmluY2lwbGUgfCBJbXBsZW1lbnRhdGlvbiB8CnwtLS0tLS0tLS0tLXwtLS0tLS0tLS0tLS0tLS0tfAp8ICoqVmVyaWZ5IGV4cGxpY2l0bHkqKiB8IEV2ZXJ5IHNlcnZpY2UtdG8tc2VydmljZSBjYWxsIGNhcnJpZXMgYFgtSmFydmlzLUFwcC1JZGAgKyBgWC1KYXJ2aXMtQXBwLUtleWAgaGVhZGVycy4gVGhlIHJlY2VpdmluZyBzZXJ2aWNlIHZhbGlkYXRlcyB0aGVtIGFnYWluc3QgYGphcnZpcy1hdXRoYCAtLS0gaXQgbmV2ZXIgYXNzdW1lcyB0aGUgY2FsbGVyIGlzIGxlZ2l0aW1hdGUuIHwKfCAqKk5ldmVyIHRydXN0IHRoZSBjYWxsZXIqKiB8IFRoZSBjb21tYW5kIGNlbnRlciBkb2VzIG5vdCBjYWNoZSAidGhpcyBub2RlIGlzIHRydXN0ZWQuIiBFdmVyeSBub2RlIHJlcXVlc3QgaXMgdmFsaWRhdGVkIHdpdGggdGhlIGF1dGggc2VydmljZSB2aWEgdGhlIGBYLUFQSS1LZXlgIGhlYWRlci4gfAp8ICoqRW5jcnlwdCBhdCByZXN0KiogfCBOb2RlIHNlY3JldHMgKEFQSSBrZXlzLCBPQXV0aCB0b2tlbnMpIGFyZSBzdG9yZWQgaW4gQUVTLTI1NiBlbmNyeXB0ZWQgU1FMaXRlIChweXNxbGNpcGhlcjMpLiBUaGUgZW5jcnlwdGlvbiBrZXkgKEsxKSBuZXZlciBsZWF2ZXMgdGhlIGRldmljZS4gfAp8ICoqRW5jcnlwdCBpbiB0cmFuc2l0KiogfCBTZXR0aW5ncyBzeW5jIGJldHdlZW4gbW9iaWxlIGFuZCBub2RlIGlzIGVuZC10by1lbmQgZW5jcnlwdGVkIHdpdGggQUVTLTI1Ni1HQ00gKEsyIGtleSkuIFRoZSBjb21tYW5kIGNlbnRlciB0cmFuc3BvcnRzIHRoZSBlbmNyeXB0ZWQgYmxvYiBidXQgY2Fubm90IHJlYWQgaXQuIHwKfCAqKkxlYXN0IHByaXZpbGVnZSoqIHwgTm9kZXMgYXJlIHNjb3BlZCB0byBhIGhvdXNlaG9sZC4gQXBwLXRvLWFwcCBrZXlzIGFyZSBzY29wZWQgcGVyIHNlcnZpY2UuIEFkbWluIGVuZHBvaW50cyByZXF1aXJlIGEgc2VwYXJhdGUgYEFETUlOX0FQSV9LRVlgLiB8CnwgKipBc3N1bWUgYnJlYWNoKiogfCBFdmVuIGlmIHRoZSBEb2NrZXIgbmV0d29yayBpcyBjb21wcm9taXNlZCwgYW4gYXR0YWNrZXIgY2Fubm90IGltcGVyc29uYXRlIGEgc2VydmljZSB3aXRob3V0IHZhbGlkIGFwcCBjcmVkZW50aWFscywgb3IgcmVhZCBub2RlIHNlY3JldHMgd2l0aG91dCB0aGUgZGV2aWNlJ3MgSzEga2V5LiB8CgpgYGBtZXJtYWlkCmdyYXBoIExSCiAgICBOb2RlIC0tPnwiWC1BUEktS2V5IChldmVyeSByZXF1ZXN0KSJ8IENDWyJDb21tYW5kIENlbnRlciJdCiAgICBDQyAtLT58IlgtSmFydmlzLUFwcC1JZCArIEtleSJ8IEF1dGhbIkF1dGggU2VydmljZSJdCiAgICBDQyAtLT58IlgtSmFydmlzLUFwcC1JZCArIEtleSJ8IExMTVsiTExNIFByb3h5Il0KICAgIENDIC0tPnwiWC1KYXJ2aXMtQXBwLUlkICsgS2V5InwgTG9nc1siTG9ncyBTZXJ2aWNlIl0KICAgIE1vYmlsZSAtLT58IkJlYXJlciBKV1QifCBDQwogICAgTW9iaWxlIC0uLT58IkUyRSBlbmNyeXB0ZWQgKEsyKSJ8IE5vZGUKCiAgICBzdHlsZSBOb2RlIGZpbGw6IzRhMTQ4Yyxjb2xvcjojZmZmCiAgICBzdHlsZSBDQyBmaWxsOiM0YTE0OGMsY29sb3I6I2ZmZgogICAgc3R5bGUgQXV0aCBmaWxsOiM0YTE0OGMsY29sb3I6I2ZmZgogICAgc3R5bGUgTExNIGZpbGw6IzRhMTQ4Yyxjb2xvcjojZmZmCiAgICBzdHlsZSBMb2dzIGZpbGw6IzRhMTQ4Yyxjb2xvcjojZmZmCiAgICBzdHlsZSBNb2JpbGUgZmlsbDojNGExNDhjLGNvbG9yOiNmZmYKYGBgCgohISEgbm90ZSAiUm9hZG1hcCBpdGVtcyIKICAgIFR3byBpdGVtcyB3aWxsIHN0cmVuZ3RoZW4gdGhlIHplcm8tdHJ1c3QgcG9zdHVyZSBmdXJ0aGVyOiAqKm1UTFMgYmV0d2VlbiBzZXJ2aWNlcyoqIChQaGFzZSAyIG9uIHRoZSBbY29tcGxpYW5jZSByb2FkbWFwXShjb21wbGlhbmNlLXJvYWRtYXAubWQpKSBhbmQgKipSQkFDIHdpdGggcGVyLXJlcXVlc3QgYXV0aG9yaXphdGlvbiBzY29waW5nKiogKFBoYXNlIDQpLiBUaGUgdHJ1c3QgYm91bmRhcmllcyBhcmUgYWxyZWFkeSBpbiBwbGFjZSAtLS0gdGhlc2UgYWRkaXRpb25zIGFkZCBkZWZlbnNlLWluLWRlcHRoLgoKIyMgQXV0aGVudGljYXRpb24gUGF0dGVybnMKCkphcnZpcyB1c2VzIHRocmVlIGF1dGhlbnRpY2F0aW9uIHBhdHRlcm5zIGRlcGVuZGluZyBvbiB3aG8gaXMgY29tbXVuaWNhdGluZzoKCiMjIyAxLiBOb2RlIEF1dGhlbnRpY2F0aW9uCgpQaSBaZXJvIG5vZGVzIGF1dGhlbnRpY2F0ZSB0byBiYWNrZW5kIHNlcnZpY2VzIHVzaW5nIGFuIEFQSSBrZXk6CgpgYGAKWC1BUEktS2V5OiB7bm9kZV9pZH06e2FwaV9rZXl9CmBgYAoKVGhlIHJlY2VpdmluZyBzZXJ2aWNlIHZhbGlkYXRlcyB0aGUga2V5IGFnYWluc3QgYGphcnZpcy1hdXRoYC4gTm9kZSBjcmVkZW50aWFscyBhcmUgY3JlYXRlZCBkdXJpbmcgcHJvdmlzaW9uaW5nIGFuZCBzdG9yZWQgaW4gdGhlIG5vZGUncyBlbmNyeXB0ZWQgbG9jYWwgZGF0YWJhc2UuCgojIyMgMi4gQXBwLXRvLUFwcCBBdXRoZW50aWNhdGlvbgoKQmFja2VuZCBzZXJ2aWNlcyBhdXRoZW50aWNhdGUgdG8gZWFjaCBvdGhlciB1c2luZyBzZXJ2aWNlIGNyZWRlbnRpYWxzOgoKYGBgClgtSmFydmlzLUFwcC1JZDogPGFwcF9pZD4KWC1KYXJ2aXMtQXBwLUtleTogPGFwcF9rZXk+CmBgYAoKQXBwIGNyZWRlbnRpYWxzIGFyZSBnZW5lcmF0ZWQgYnkgYC4vamFydmlzIGluaXRgIGFuZCBzdG9yZWQgaW4gZWFjaCBzZXJ2aWNlJ3MgYC5lbnZgIGZpbGUuIFNlcnZpY2VzIHZhbGlkYXRlIGluY29taW5nIGFwcC10by1hcHAgcmVxdWVzdHMgYWdhaW5zdCBgamFydmlzLWF1dGhgIHZpYSBgUE9TVCAvaW50ZXJuYWwvdmFsaWRhdGUtYXBwYC4KCiMjIyAzLiBVc2VyIEF1dGhlbnRpY2F0aW9uIChKV1QpCgpIdW1hbiB1c2VycyAobW9iaWxlIGFwcCwgYWRtaW4gVUkpIGF1dGhlbnRpY2F0ZSB3aXRoIEpXVCBiZWFyZXIgdG9rZW5zOgoKYGBgCkF1dGhvcml6YXRpb246IEJlYXJlciA8and0X2FjY2Vzc190b2tlbj4KYGBgCgpKV1RzIGFyZSBpc3N1ZWQgYnkgYGphcnZpcy1hdXRoYCBvbiBsb2dpbiwgc2lnbmVkIHdpdGggSFMyNTYgdXNpbmcgYSBzaGFyZWQgc2VjcmV0IGtleS4gQWNjZXNzIHRva2VucyBhcmUgc2hvcnQtbGl2ZWQ7IHJlZnJlc2ggdG9rZW5zIGFyZSBoYXNoZWQgYW5kIHN0b3JlZCBpbiBQb3N0Z3JlU1FMLgoKIyMgRW5jcnlwdGVkIExvY2FsIFN0b3JhZ2UKClBpIFplcm8gbm9kZXMgc3RvcmUgc2VjcmV0cyAoQVBJIGtleXMsIE9BdXRoIHRva2VucywgY29tbWFuZCBjcmVkZW50aWFscykgaW4gYSBsb2NhbCBTUUxpdGUgZGF0YWJhc2UgZW5jcnlwdGVkIHdpdGggW1B5U1FMQ2lwaGVyXShodHRwczovL2dpdGh1Yi5jb20vbmljY29rdW56bWFubi9weXNxbGNpcGhlcjMpLiBUaGUgZW5jcnlwdGlvbiBrZXkgKEsxKSBpcyBnZW5lcmF0ZWQgb24gZmlyc3QgYm9vdC4KClNldHRpbmdzIHN5bmMgYmV0d2VlbiB0aGUgbW9iaWxlIGFwcCBhbmQgbm9kZXMgdXNlcyBhIHNoYXJlZCBBRVMtMjU2IGtleSAoSzIpLCBleGNoYW5nZWQgZHVyaW5nIHByb3Zpc2lvbmluZy4KCiMjIFNldHVwIFdpemFyZCBQcm9iZSBFbmRwb2ludCAoU1NSRiBIYXJkZW5pbmcpCgpUaGUgYGphcnZpcy1hZG1pbmAgc2V0dXAgd2l6YXJkJ3MgYC9wcm9iZWAgZW5kcG9pbnQgKHVzZWQgdG8gdmFsaWRhdGUgYSBzZXJ2aWNlIFVSTCB0aGUgb3BlcmF0b3IgZW50ZXJzIGJlZm9yZSBpdCdzIHNhdmVkKSBpcyB1bmF1dGhlbnRpY2F0ZWQgYnkgZGVzaWduIC0tLSB0aGVyZSdzIG5vIHN1cGVydXNlciBhY2NvdW50IHlldCBhdCB0aGF0IHBvaW50IGluIHRoZSBmbG93LiBUbyBrZWVwIHRoaXMgZnJvbSBiZWluZyBhIHN0YW5kaW5nIFNTUkYgcHJpbWl0aXZlOgoKLSAqKlByZS1pbnN0YWxsIG9ubHkuKiogT25jZSBzZXR1cCBoYXMgY29tcGxldGVkLCBgL3Byb2JlYCByZXR1cm5zIGA0MDNgIG9uIGV2ZXJ5IGNhbGwuCi0gKipDbG91ZC1tZXRhZGF0YSBhbmQgbGluay1sb2NhbCB0YXJnZXRzIGFyZSBibG9ja2VkKiosIGV2ZW4gZHVyaW5nIHNldHVwOiBgMTY5LjI1NC4wLjAvMTZgIChpbmNsdWRpbmcgdGhlIGAxNjkuMjU0LjE2OS4yNTRgIGNsb3VkLW1ldGFkYXRhIGFkZHJlc3MpIGFuZCBgZmU4MDo6LzEwYC4gVGhpcyBpcyBjaGVja2VkIGFnYWluc3QgdGhlIHJlc29sdmVkIElQLCBub3QganVzdCB0aGUgaG9zdG5hbWUgc3RyaW5nLCBzbyBhIEROUyBuYW1lIHRoYXQgcmVzb2x2ZXMgaW50byBhIGJsb2NrZWQgcmFuZ2UgaXMgY2F1Z2h0IHRvby4KLSAqKlJGQzE5MTggYW5kIGxvY2FsaG9zdCBzdGF5IGFsbG93ZWQqKiAtLS0gdGhlIHdpemFyZCBsZWdpdGltYXRlbHkgbmVlZHMgdG8gcHJvYmUgTEFOIHNlcnZpY2UgVVJMcyAoZS5nLiBgaHR0cDovLzEwLjAuMC41Ojc3MDFgLCBgaHR0cDovL2xvY2FsaG9zdDo3NzAwYCkuCi0gUHJvYmUgcmVxdWVzdHMgbmV2ZXIgZm9sbG93IHJlZGlyZWN0cyAoYHJlZGlyZWN0OiAnbWFudWFsJ2ApLCBzbyBhIHRhcmdldCBjYW4ndCAzeHgtcmVkaXJlY3QgdGhlIHByb2JlIGludG8gYSBibG9ja2VkIGFkZHJlc3MgYWZ0ZXIgdGhlIGluaXRpYWwgY2hlY2sgcGFzc2VzLgoKIyMgQWRtaW4gU2VsZi1VcGRhdGUgU2lnbmF0dXJlIFZlcmlmaWNhdGlvbgoKU2luY2UgamFydmlzLWFkbWluIzI5IChQMS44LCBwaWVjZSAxKSwgdGhlIGBqYXJ2aXMtYWRtaW5gIHNlbGYtdXBkYXRlciB2ZXJpZmllcyBhIG1pbmlzaWduIHNpZ25hdHVyZSBiZWZvcmUgYXBwbHlpbmcgYW4gdXBkYXRlLiBQcmV2aW91c2x5IHRoZSB1cGRhdGVyIGRvd25sb2FkZWQgdGhlIG5ldyBiaW5hcnkgKyBgcHVibGljLnRhci5nemAgYW5kIGFwcGxpZWQgdGhlbSB3aXRoICoqbm8gaW50ZWdyaXR5IGNoZWNrKiogLS0tIGEgdGFtcGVyZWQgb3IgTUlUTSdkIGFydGlmYWN0IHdvdWxkIGhhdmUgYmVlbiBjaG1vZCdkLCBleHRyYWN0ZWQsIGFuZCBleGVjdXRlZC4KCioqSG93IGl0IHdvcmtzOioqIGFmdGVyIGRvd25sb2FkaW5nIHRoZSBuZXcgYmluYXJ5IGFuZCBgcHVibGljLnRhci5nemAsIHRoZSB1cGRhdGVyIGZldGNoZXMgdGhlIHJlbGVhc2UncyBgY2hlY2tzdW1zLnR4dGAgKyBgY2hlY2tzdW1zLnR4dC5taW5pc2lnYCBhbmQgdmVyaWZpZXMgdGhlIHNpZ25hdHVyZSBhZ2FpbnN0IGEgYmFrZWQtaW4gcHVibGljIGtleSAqKmJlZm9yZSoqIGBjaG1vZGAsIGV4dHJhY3Rpb24sIG9yIHRoZSBmaWxlIHN3YXAuIEEgcmVmdXNhbCB0aHJvd3MgYW5kIGFib3J0cyB3aXRoIG5vdGhpbmcgbXV0YXRlZC4KCioqVHJ1c3QgcG9saWN5ICgqYWx3YXlzKiBlbmZvcmNlZCwgbm90IGp1c3QgYSB3YXJuaW5nKToqKgoKfCBDb25kaXRpb24gfCBSZXN1bHQgfAp8LS0tLS0tLS0tLXwtLS0tLS0tfAp8IE5vIHNpZ25hdHVyZSBtYXRlcmlhbCAoYGNoZWNrc3Vtcy50eHQubWluaXNpZ2AgbWlzc2luZykgfCBSZWZ1c2VkLCB1bmxlc3MgdGhlIG9wZXJhdG9yIHNldCBgSkFSVklTX0FMTE9XX1VOU0lHTkVEX1VQREFURWAgKHVuc2lnbmVkLW9ubHkgZXNjYXBlIGhhdGNoKS4gfAp8IFNpZ25hdHVyZSBwcmVzZW50IGJ1dCBpbnZhbGlkIGZvciB0aGUgdHJ1c3RlZCBrZXkgfCAqKkFsd2F5cyByZWZ1c2VkKiogLS0tIG5vdCBvdmVycmlkYWJsZSBieSB0aGUgdW5zaWduZWQgZXNjYXBlIGhhdGNoLiBUaGlzIGlzIGEgdGFtcGVyaW5nIC8gd3Jvbmctc2lnbmVyIHNpZ25hbCwgbmV2ZXIgYSAibm8gc2lnbmF0dXJlIiBjYXNlLiB8CnwgU2lnbmF0dXJlIHZhbGlkIGJ1dCBhbiBhcnRpZmFjdCBpcyBtaXNzaW5nIGZyb20gYGNoZWNrc3Vtcy50eHRgIG9yIGl0cyBTSEEtMjU2IGRvZXNuJ3QgbWF0Y2ggfCAqKkFsd2F5cyByZWZ1c2VkKiogLS0tIGFsc28gbm90IG92ZXJyaWRhYmxlLiBBIHZhbGlkbHktc2lnbmVkIG1hbmlmZXN0IHRoYXQgZG9lc24ndCBtYXRjaCB0aGUgZG93bmxvYWRlZCBieXRlcyBtZWFucyB0aGUgZG93bmxvYWQgd2FzIHRhbXBlcmVkLiB8CnwgU2lnbmF0dXJlIHZhbGlkICoqYW5kKiogZXZlcnkgYXJ0aWZhY3QgaGFzaCBtYXRjaGVzIHwgQWxsb3dlZC4gfAoKVHJ1c3Qtb24tZmlyc3QtdXBkYXRlOiB0aGUgdmVyaWZ5aW5nIGNvZGUgc2hpcHMgKmluKiB0aGlzIHJlbGVhc2UsIHNvIHRoaXMgcmVsZWFzZSBpcyB0cnVzdGVkIG9uIGZpcnN0IHVzZTsgZXZlcnkgdXBkYXRlIGFmdGVyIGl0IGlzIHZlcmlmaWVkIGFnYWluc3QgdGhlIGJha2VkLWluIGBSRUxFQVNFX1NJR05JTkdfUFVCS0VZYC4gUmVsZWFzZXMgYXJlIHNpZ25lZCBpbiBDSSwgc28gYW55IHJlYWwgcmVsZWFzZSBhbHJlYWR5IGNhcnJpZXMgdGhlIHNpZ25hdHVyZSB0aGlzIGNoZWNrIGV4cGVjdHMuCgohISEgbm90ZSAiRm9sbG93LXVwIHBpZWNlIgogICAgVGhlIHNhbWUgdmVyaWZpY2F0aW9uIGZvciB0aGUgYmFzaCBpbnN0YWxsZXJzIChgbm9kZSBpbnN0YWxsLnNoYCwgYWRtaW4gYGluc3RhbGwuc2hgKSB2aWEgdGhlIGBtaW5pc2lnbmAgYmluYXJ5IGlzIGEgc2VwYXJhdGUsIG5vdC15ZXQtbGFuZGVkIFBSLgoKIyMgTm8gQ2xvdWQgRGVwZW5kZW5jaWVzCgpCeSBkZWZhdWx0LCBKYXJ2aXMgcnVucyBlbnRpcmVseSBvbiB5b3VyIGxvY2FsIG5ldHdvcms6CgotIFNwZWVjaC10by10ZXh0IHJ1bnMgbG9jYWxseSB2aWEgd2hpc3Blci5jcHAKLSBMTE0gaW5mZXJlbmNlIHJ1bnMgbG9jYWxseSB2aWEgTUxYIChtYWNPUykgb3IgbGxhbWEuY3BwIChMaW51eCkKLSBUZXh0LXRvLXNwZWVjaCBydW5zIGxvY2FsbHkgdmlhIFBpcGVyIFRUUyAoZGVmYXVsdCkgb3IgS29rb3JvIFRUUyAob3B0aW9uYWwpOyBubyBjbG91ZCBjYWxscwotIEFsbCBkYXRhIGlzIHN0b3JlZCBpbiB5b3VyIFBvc3RncmVTUUwgaW5zdGFuY2UKLSBObyB0ZWxlbWV0cnksIG5vIGV4dGVybmFsIEFQSSBjYWxscyAodW5sZXNzIHlvdSBjb25maWd1cmUgdGhlbSkKCiMjIENyZWRlbnRpYWwgUm90YXRpb24KCkFwcC10by1hcHAgY3JlZGVudGlhbHMgY2FuIGJlIHJlZ2VuZXJhdGVkIGJ5IHJ1bm5pbmcgYC4vamFydmlzIGluaXQgLS1mb3JjZWAsIHdoaWNoIGdlbmVyYXRlcyBuZXcgdG9rZW5zIGFuZCB1cGRhdGVzIGFsbCBzZXJ2aWNlIGAuZW52YCBmaWxlcy4gTm9kZSBjcmVkZW50aWFscyBjYW4gYmUgcm90YXRlZCBieSByZS1yZWdpc3RlcmluZyB0aGUgbm9kZS4KCiMjIE11bHRpLVRlbmFudCBJc29sYXRpb24KCkFsbCBkYXRhIGlzIHNjb3BlZCBieSBgaG91c2Vob2xkX2lkYC4gVXNlcnMgY2FuIG9ubHkgYWNjZXNzIGRhdGEgd2l0aGluIHRoZWlyIGhvdXNlaG9sZC4gTm9kZXMgYmVsb25nIHRvIGEgaG91c2Vob2xkIGFuZCBjYW4gb25seSBzdWJtaXQgY29tbWFuZHMgZm9yIHRoYXQgaG91c2Vob2xkJ3MgdXNlcnMuCgojIyMgSG91c2Vob2xkIFJvbGUgQ2hlY2tzIEZhaWwgQ2xvc2VkIG9uIE1pc2NvbmZpZ3VyYXRpb24KCkNvbW1hbmQgY2VudGVyJ3MgaG91c2Vob2xkLXNjb3BlZCB3cml0ZSBwYXRocyAoaG91c2Vob2xkIHNldHRpbmdzLCBub2RlIHByb3Zpc2lvbmluZy9tYW5hZ2VtZW50LCBtZW1iZXItc2NvcGVkIG1lbW9yeSBDUlVEKSBnYXRlIG9uIHRoZSBjYWxsZXIncyByb2xlIHZpYSBgdmVyaWZ5X2hvdXNlaG9sZF9yb2xlKClgIC8gYHJlc29sdmVfaG91c2Vob2xkX3JvbGUoKWAsIHdoaWNoIHJlc29sdmUgdGhhdCByb2xlIGZyb20gYGphcnZpcy1hdXRoYCB1c2luZyB0aGUgYEpBUlZJU19BUFBfS0VZYCBzZXJ2aWNlIGNyZWRlbnRpYWwuCgpJZiBgSkFSVklTX0FQUF9LRVlgIGlzIHVuc2V0LCBib3RoIGhlbHBlcnMgKipmYWlsIGNsb3NlZCoqIC0tLSByYWlzaW5nIGA1MDNgIC0tLSByYXRoZXIgdGhhbiBncmFudGluZyBhY2Nlc3MuIFByZXZpb3VzbHkgYW4gdW5zZXQga2V5IG1hZGUgYHZlcmlmeV9ob3VzZWhvbGRfcm9sZSgpYCByZXR1cm4gc2lsZW50bHkgKGltcGxpY2l0bHkgcGVybWl0dGluZyB0aGUgY2FsbCkgYW5kIG1hZGUgYHJlc29sdmVfaG91c2Vob2xkX3JvbGUoKWAgZGVmYXVsdCB0byB0aGUgYG1lbWJlcmAgcm9sZSwgc28gYSBtaXNjb25maWd1cmVkIGRlcGxveSB3aXRoIG5vIGFwcCBrZXkgY291bGQgbGV0IGFueSBhdXRoZW50aWNhdGVkIEpXVCBob2xkZXIgd3JpdGUgaG91c2Vob2xkIHNldHRpbmdzLCBtYW5hZ2Ugbm9kZXMsIG9yIHJlYWQvd3JpdGUgbWVtYmVyLXNjb3BlZCBtZW1vcmllcyByZWdhcmRsZXNzIG9mIHRoZWlyIHJlYWwgcm9sZS4KCkFuIHVuc2V0IGBKQVJWSVNfQVBQX0tFWWAgYWxyZWFkeSBtZWFucyB0aGUgZGVwbG95IGlzIG1pc2NvbmZpZ3VyZWQgLS0tIG5vZGUgdmFsaWRhdGlvbiBpbiB0aGUgc2FtZSBtb2R1bGUgaGFzIGFsd2F5cyBmYWlsZWQgY2xvc2VkIG9uIGl0IChgImF1dGggbm90IGNvbmZpZ3VyZWQiYCkgLS0tIHNvIHRoZXJlIGlzIG5vIHNjZW5hcmlvIHdoZXJlIGRlZmF1bHRpbmcgdG8gb3BlbiBhY2Nlc3Mgb24gYSBtaXNzaW5nIGtleSBpcyB0aGUgc2FmZSBjaG9pY2UuCgojIyBDb21wbGlhbmNlIFJvYWRtYXAKCkZvciBCMkIgZGVwbG95bWVudHMgKGhvc3BpdGFscywgbGF3IGZpcm1zLCBlbnRlcnByaXNlcyksIEphcnZpcyBoYXMgYSBwaGFzZWQgc2VjdXJpdHkgcm9hZG1hcCB0YXJnZXRpbmcgSElQQUEsIFNPQzIgVHlwZSBJSSwgSElUUlVTVCBDU0YsIEZlZFJBTVAsIElTTyAyNzAwMSwgYW5kIFBDSSBEU1MgY29tcGxpYW5jZS4KClNlZSB0aGUgW0NvbXBsaWFuY2UgUm9hZG1hcF0oY29tcGxpYW5jZS1yb2FkbWFwLm1kKSBmb3IgZGV0YWlscy4K
+# Security
+
+Jarvis is designed with privacy and security as core principles. All data stays on your network by default, with no cloud dependencies required.
+
+!!! tip "Staying fully local"
+    Every outbound-internet capability is opt-in and defaults to off. See [Network Egress & Offline Mode](offline-mode.md) for the complete list of toggles and how to run air-gapped --- or how to enable updates.
+
+## Zero-Trust Architecture
+
+Jarvis follows a **zero-trust security model** --- no service, node, or client is implicitly trusted, regardless of network location. Every request is authenticated and verified independently at every boundary.
+
+Most self-hosted assistants rely on "it's on my LAN, so it's fine." Jarvis does not. Even services running on the same Docker network authenticate to each other on every call.
+
+**How this manifests in practice:**
+
+| Principle | Implementation |
+|-----------|----------------|
+| **Verify explicitly** | Every service-to-service call carries `X-Jarvis-App-Id` + `X-Jarvis-App-Key` headers. The receiving service validates them against `jarvis-auth` --- it never assumes the caller is legitimate. |
+| **Never trust the caller** | The command center does not cache "this node is trusted." Every node request is validated with the auth service via the `X-API-Key` header. |
+| **Encrypt at rest** | Node secrets (API keys, OAuth tokens) are stored in AES-256 encrypted SQLite (pysqlcipher3). The encryption key (K1) never leaves the device. |
+| **Encrypt in transit** | Settings sync between mobile and node is end-to-end encrypted with AES-256-GCM (K2 key). The command center transports the encrypted blob but cannot read it. |
+| **Least privilege** | Nodes are scoped to a household. App-to-app keys are scoped per service. Admin endpoints require a separate `ADMIN_API_KEY`. |
+| **Assume breach** | Even if the Docker network is compromised, an attacker cannot impersonate a service without valid app credentials, or read node secrets without the device's K1 key. |
+
+```mermaid
+graph LR
+    Node -->|"X-API-Key (every request)"| CC["Command Center"]
+    CC -->|"X-Jarvis-App-Id + Key"| Auth["Auth Service"]
+    CC -->|"X-Jarvis-App-Id + Key"| LLM["LLM Proxy"]
+    CC -->|"X-Jarvis-App-Id + Key"| Logs["Logs Service"]
+    Mobile -->|"Bearer JWT"| CC
+    Mobile -.->|"E2E encrypted (K2)"| Node
+
+    style Node fill:#4a148c,color:#fff
+    style CC fill:#4a148c,color:#fff
+    style Auth fill:#4a148c,color:#fff
+    style LLM fill:#4a148c,color:#fff
+    style Logs fill:#4a148c,color:#fff
+    style Mobile fill:#4a148c,color:#fff
+```
+
+!!! note "Roadmap items"
+    Two items will strengthen the zero-trust posture further: **mTLS between services** (Phase 2 on the [compliance roadmap](compliance-roadmap.md)) and **RBAC with per-request authorization scoping** (Phase 4). The trust boundaries are already in place --- these additions add defense-in-depth.
+
+## Authentication Patterns
+
+Jarvis uses three authentication patterns depending on who is communicating:
+
+### 1. Node Authentication
+
+Pi Zero nodes authenticate to backend services using an API key:
+
+```
+X-API-Key: {node_id}:{api_key}
+```
+
+The receiving service validates the key against `jarvis-auth`. Node credentials are created during provisioning and stored in the node's encrypted local database.
+
+### 2. App-to-App Authentication
+
+Backend services authenticate to each other using service credentials:
+
+```
+X-Jarvis-App-Id: <app_id>
+X-Jarvis-App-Key: <app_key>
+```
+
+App credentials are generated by `./jarvis init` and stored in each service's `.env` file. Services validate incoming app-to-app requests against `jarvis-auth` via `POST /internal/validate-app`.
+
+### 3. User Authentication (JWT)
+
+Human users (mobile app, admin UI) authenticate with JWT bearer tokens:
+
+```
+Authorization: Bearer <jwt_access_token>
+```
+
+JWTs are issued by `jarvis-auth` on login, signed with HS256 using a shared secret key. Access tokens are short-lived; refresh tokens are hashed and stored in PostgreSQL.
+
+## Encrypted Local Storage
+
+Pi Zero nodes store secrets (API keys, OAuth tokens, command credentials) in a local SQLite database encrypted with [PySQLCipher](https://github.com/niccokunzmann/pysqlcipher3). The encryption key (K1) is generated on first boot.
+
+Settings sync between the mobile app and nodes uses a shared AES-256 key (K2), exchanged during provisioning.
+
+## Setup Wizard Probe Endpoint (SSRF Hardening)
+
+The `jarvis-admin` setup wizard's `/probe` endpoint (used to validate a service URL the operator enters before it's saved) is unauthenticated by design --- there's no superuser account yet at that point in the flow. To keep this from being a standing SSRF primitive:
+
+- **Pre-install only.** Once setup has completed, `/probe` returns `403` on every call.
+- **Cloud-metadata and link-local targets are blocked**, even during setup: `169.254.0.0/16` (including the `169.254.169.254` cloud-metadata address) and `fe80::/10`. This is checked against the resolved IP, not just the hostname string, so a DNS name that resolves into a blocked range is caught too.
+- **RFC1918 and localhost stay allowed** --- the wizard legitimately needs to probe LAN service URLs (e.g. `http://10.0.0.5:7701`, `http://localhost:7700`).
+- Probe requests never follow redirects (`redirect: 'manual'`), so a target can't 3xx-redirect the probe into a blocked address after the initial check passes.
+
+## Node-Scoped Endpoint Authorization
+
+Command-center's node-scoped provisioning and action endpoints resolve the household from the **target node's row** and enforce it, so an authenticated user cannot act on another household's node. Covered routes: package install/uninstall/revert (request + poll), node command actions (`/actions`, `/node-config`, `/led/preview`), node update requests (request/get/cancel/list), Bluetooth scan/pair/disconnect/discoverable requests, and test-install requests. Admin-key callers (infrastructure) bypass this check; node-auth callbacks (`/results`, `/ack`) are unaffected.
+
+## Admin Self-Update Signature Verification
+
+Since jarvis-admin#29 (P1.8, piece 1), the `jarvis-admin` self-updater verifies a minisign signature before applying an update. Previously the updater downloaded the new binary + `public.tar.gz` and applied them with **no integrity check** --- a tampered or MITM'd artifact would have been chmod'd, extracted, and executed.
+
+**How it works:** after downloading the new binary and `public.tar.gz`, the updater fetches the release's `checksums.txt` + `checksums.txt.minisig` and verifies the signature against a baked-in public key **before** `chmod`, extraction, or the file swap. A refusal throws and aborts with nothing mutated.
+
+**Trust policy (*always* enforced, not just a warning):**
+
+| Condition | Result |
+|----------|-------|
+| No signature material (`checksums.txt.minisig` missing) | Refused, unless the operator set `JARVIS_ALLOW_UNSIGNED_UPDATE` (unsigned-only escape hatch). |
+| Signature present but invalid for the trusted key | **Always refused** --- not overridable by the unsigned escape hatch. This is a tampering / wrong-signer signal, never a "no signature" case. |
+| Signature valid but an artifact is missing from `checksums.txt` or its SHA-256 doesn't match | **Always refused** --- also not overridable. A validly-signed manifest that doesn't match the downloaded bytes means the download was tampered. |
+| Signature valid **and** every artifact hash matches | Allowed. |
+
+Trust-on-first-update: the verifying code ships *in* this release, so this release is trusted on first use; every update after it is verified against the baked-in `RELEASE_SIGNING_PUBKEY`. Releases are signed in CI, so any real release already carries the signature this check expects.
+
+!!! note "Follow-up piece"
+    The same verification for the bash installers (`node install.sh`, admin `install.sh`) via the `minisign` binary is a separate, not-yet-landed PR.
+
+## No Cloud Dependencies
+
+By default, Jarvis runs entirely on your local network:
+
+- Speech-to-text runs locally via whisper.cpp
+- LLM inference runs locally via MLX (macOS) or llama.cpp (Linux)
+- Text-to-speech runs locally via Piper TTS (default) or Kokoro TTS (optional); no cloud calls
+- All data is stored in your PostgreSQL instance
+- No telemetry, no external API calls (unless you configure them)
+
+## Credential Rotation
+
+App-to-app credentials can be regenerated by running `./jarvis init --force`, which generates new tokens and updates all service `.env` files. Node credentials can be rotated by re-registering the node.
+
+## Multi-Tenant Isolation
+
+All data is scoped by `household_id`. Users can only access data within their household. Nodes belong to a household and can only submit commands for that household's users.
+
+### Household Role Checks Fail Closed on Misconfiguration
+
+Command center's household-scoped write paths (household settings, node provisioning/management, member-scoped memory CRUD) gate on the caller's role via `verify_household_role()` / `resolve_household_role()`, which resolve that role from `jarvis-auth` using the `JARVIS_APP_KEY` service credential.
+
+If `JARVIS_APP_KEY` is unset, both helpers **fail closed** --- raising `503` --- rather than granting access. Previously an unset key made `verify_household_role()` return silently (implicitly permitting the call) and made `resolve_household_role()` default to the `member` role, so a misconfigured deploy with no app key could let any authenticated JWT holder write household settings, manage nodes, or read/write member-scoped memories regardless of their real role.
+
+An unset `JARVIS_APP_KEY` already means the deploy is misconfigured --- node validation in the same module has always failed closed on it (`"auth not configured"`) --- so there is no scenario where defaulting to open access on a missing key is the safe choice.
+
+## Compliance Roadmap
+
+For B2B deployments (hospitals, law firms, enterprises), Jarvis has a phased security roadmap targeting HIPAA, SOC2 Type II, HITRUST CSF, FedRAMP, ISO 27001, and PCI DSS compliance.
+
+See the [Compliance Roadmap](compliance-roadmap.md) for details.
