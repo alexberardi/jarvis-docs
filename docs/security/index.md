@@ -96,6 +96,10 @@ The `jarvis-admin` setup wizard's `/probe` endpoint (used to validate a service 
 
 Command-center's node-scoped provisioning and action endpoints resolve the household from the **target node's row** and enforce it, so an authenticated user cannot act on another household's node. Covered routes: package install/uninstall/revert (request + poll), node command actions (`/actions`, `/node-config`, `/led/preview`), node update requests (request/get/cancel/list), Bluetooth scan/pair/disconnect/discoverable requests, and test-install requests. Admin-key callers (infrastructure) bypass this check; node-auth callbacks (`/results`, `/ack`) are unaffected.
 
+## Admin Traces Endpoint Authorization
+
+Command-center's admin trace router (`/api/v0/admin/traces`, raw voice/chat transcripts across every household) is now gated behind `verify_admin_key` (the same `X-Api-Key` admin token the admin dashboard already sends), matching the mobile trace router which already required a JWT. A missing or wrong key returns `400`/`401`.
+
 ## Admin Self-Update Signature Verification
 
 Since jarvis-admin#29 (P1.8, piece 1), the `jarvis-admin` self-updater verifies a minisign signature before applying an update. Previously the updater downloaded the new binary + `public.tar.gz` and applied them with **no integrity check** --- a tampered or MITM'd artifact would have been chmod'd, extracted, and executed.
