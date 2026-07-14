@@ -7,13 +7,13 @@ Environment variables are managed per-service in `.env` files. The `./jarvis ini
 These variables are used by multiple services:
 
 | Variable | Used By | Description |
-|----------|---------|-------------|
+|----------|---------|--------------|
 | `DATABASE_URL` | auth, command-center, recipes, config-service, notifications | PostgreSQL connection string (e.g., `postgresql://user:pass@host:5432/dbname`) |
 | `SECRET_KEY` | auth | JWT signing key (HS256). Must be the same across all services that validate JWTs. |
 | `ADMIN_API_KEY` | command-center | Protects admin endpoints (node management, training jobs). Sent as a header or query parameter. |
 | `JARVIS_AUTH_BASE_URL` | ocr, command-center, logs, others | URL of the auth service for validating app-to-app and node credentials. |
 | `JARVIS_CONFIG_URL` | all services | URL of `jarvis-config-service` for service discovery. |
-| `JARVIS_CONFIG_URL_STYLE` | config-service | URL format returned by config-service: `dockerized` (container names) or `host` (localhost/host.docker.internal). |
+| `JARVIS_CONFIG_URL_STYLE` | config-service | URL format returned by config-service: *(default)* container names, `dockerized` → `host.docker.internal` URLs, `external` → published external coordinates (e.g. `localhost`) for off-box/native consumers. `external` requires `jarvis-config-client` ≥ 0.2.1. See [Service Discovery](../architecture/service-discovery.md#url-resolution). |
 | `DOCKER_HOST_ALIAS` | config-service | Override the hostname Docker containers use to reach the host. Default: `host.docker.internal`. |
 | `JARVIS_NETWORK_MODE` | jarvis CLI | Network mode: `bridge` (default), `host`, or `standalone`. |
 
