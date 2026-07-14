@@ -71,6 +71,8 @@ Since jarvis-admin#54, the **Updates** page has a switch to turn update checks o
 - Both `/check` routes return `updatesEnabled`, so the UI can tell "off, never checked" apart from "checked, you're current" — previously, checks being off silently rendered as "You're running the latest version."
 - The `JARVIS_ALLOW_UPDATES` environment variable still works as a fallback (and remains the right knob for containerized installs); it is simply no longer the only way in. Default stays **off**: no outbound calls to GitHub unless you opt in. See [Network Egress & Offline Mode: Admin auto-update](../security/offline-mode.md#enabling-updates).
 
+Since jarvis-admin#56, the Updates page follows the *real* server-side upgrade instead of assuming it's done at the restart. Swapping the binary restarts the admin process, which kills the SSE stream mid-upgrade — the remaining work (compose regen → pull → restart → verify) used to be reported as instant success ("Upgrade complete!" with every phase ticked green) even while `docker compose pull` was still running on the box, because the phase list derives its checkmarks from the phase index and jumping straight to `done` retroactively marked every earlier phase complete. The page now polls `GET /api/update/status` until the server clears its upgrade marker, surfacing the real in-progress phase or a real failure instead of declaring victory early. The **Check for updates** toggle is also no longer hidden once an upgrade starts — it's a settings control, not an upgrade step, and previously disappeared for the rest of the session after running a single update.
+
 ## Architecture
 
 ```
