@@ -83,6 +83,16 @@ Pi Zero nodes store secrets (API keys, OAuth tokens, command credentials) in a l
 
 Settings sync between the mobile app and nodes uses a shared AES-256 key (K2), exchanged during provisioning.
 
+## Admin CSP + Anti-Clickjacking Headers
+
+`jarvis-admin` serves its SPA same-origin and controls the Docker socket + install/configure flow, so an XSS or clickjacking hole there is high-severity. Since jarvis-admin#16, every response from the admin backend carries:
+
+- **`Content-Security-Policy`**: `script-src 'self'` (the built SPA is a single external module script with no inline scripts, so this is a real XSS backstop) plus `default-src 'self'`, `style-src 'self' 'unsafe-inline'` (React's runtime inline styles only — scripts are never allowed inline), `img-src`/`font-src 'self' data:`, `connect-src 'self'`, `frame-ancestors 'none'`, `base-uri`/`form-action 'self'`, `object-src 'none'`.
+- **`X-Frame-Options: DENY`** --- the admin UI can no longer be framed, closing off clickjacking of Docker-control actions.
+- **`X-Content-Type-Options: nosniff`** and **`Referrer-Policy: strict-origin-when-cross-origin`**.
+
+Headers apply to API routes as well as the SPA. This is the admin slice of the broader security-headers rollout (P2.8) --- the web / pantry-web SPAs, recipes-mobile SecureStore, and mobile ATS are tracked separately.
+
 ## Setup Wizard Probe Endpoint (SSRF Hardening)
 
 The `jarvis-admin` setup wizard's `/probe` endpoint (used to validate a service URL the operator enters before it's saved) is unauthenticated by design --- there's no superuser account yet at that point in the flow. To keep this from being a standing SSRF primitive:
