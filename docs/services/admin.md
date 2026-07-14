@@ -36,6 +36,7 @@ After setup, the same binary serves the admin dashboard:
 - **Services** -- Registered services, config/auth status, health checks
 - **Models** -- Installed models, suggested downloads, custom HuggingFace downloads
 - **Quick Sets** -- Named LLM configuration presets; apply or create to switch the active model without editing raw settings
+- **Updates** -- Turn update checks on/off and run an update; see [Update Opt-In Toggle](#update-opt-in-toggle)
 - **Settings** -- Runtime configuration across all services (via settings-server proxy)
 - **Nodes** -- Registered voice nodes
 
@@ -51,6 +52,14 @@ Added in jarvis-admin#6. The **Model file path** field on the apply panel now sh
 - Selecting **Other (custom path / HF ID)…** reveals the original free-text input for HuggingFace model IDs or paths not yet downloaded.
 - When no models are installed the field falls back to free-text only.
 - Freshly downloaded models appear in the dropdown without restarting admin — the endpoint scans `.models/` on each request.
+
+## Update Opt-In Toggle
+
+Since jarvis-admin#54, the **Updates** page has a switch to turn update checks on/off — no more hand-editing a launchd plist (native macOS) or a compose `.env` and bootout/bootstrapping the service.
+
+- `GET /api/update/settings` reads the current `allowUpdates` state; `POST /api/update/settings` (superuser only) persists it to `~/.jarvis/admin.json` and applies it to the live config immediately, with no restart required.
+- Both `/check` routes return `updatesEnabled`, so the UI can tell "off, never checked" apart from "checked, you're current" — previously, checks being off silently rendered as "You're running the latest version."
+- The `JARVIS_ALLOW_UPDATES` environment variable still works as a fallback (and remains the right knob for containerized installs); it is simply no longer the only way in. Default stays **off**: no outbound calls to GitHub unless you opt in. See [Network Egress & Offline Mode: Admin auto-update](../security/offline-mode.md#enabling-updates).
 
 ## Architecture
 
@@ -167,6 +176,7 @@ To add custom prompt providers, place them in the Docker volume. The volume is m
 | `MODELS_DIR` | Override models directory for local fallback |
 | `MQTT_ALLOW_ANON` | Mosquitto `allow_anonymous` toggle written to `.env` by the generators (default: `false` on fresh install, `true` when upgrading a pre-existing `.env` that lacks the key). See [MQTT Broker Lock](#mqtt-broker-lock-fresh-installs). |
 | `COMMAND_CENTER_ADMIN_KEY` | Admin API key used to authenticate to command-center's admin API (Request Traces, node train-adapter). Required; shares the `ADMIN_API_KEY` secret via `secretRef`. Emitted into jarvis-admin's own container since jarvis-admin#31 — see [Command-Center Admin Key Wiring](#command-center-admin-key-wiring). |
+| `JARVIS_ALLOW_UPDATES` | Fallback/container knob for the [Update Opt-In Toggle](#update-opt-in-toggle) — same effect as flipping the switch on the Updates page, without a UI. |
 
 ## Dependencies
 
