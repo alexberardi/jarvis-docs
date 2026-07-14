@@ -209,8 +209,8 @@ To add custom prompt providers, place them in the Docker volume. The volume is m
 | `WHISPER_BACKEND` | Whisper's GPU backend (`cpu` \| `cuda` \| `vulkan` \| `rocm`, default `cpu`), written to the generated `.env` and read back on reconcile since jarvis-admin#36. See [GPU Backend Persistence](#gpu-backend-persistence-reconcile). |
 | `TTS_BACKEND` | TTS's Kokoro inference device (`cpu` \| `cuda`, default `cpu`), written to the generated `.env` and read back on reconcile since jarvis-admin#36. See [GPU Backend Persistence](#gpu-backend-persistence-reconcile). |
 | `TTS_GPU_DEVICE` | Which GPU index the `jarvis-tts` container reserves when `TTS_BACKEND=cuda` (default `0`). Re-pin when GPU0 is already full of LLM + Whisper. |
-
 | `PIN_IMAGES` | Opt-in to digest-pinned images instead of floating tags (default unset → `false`). Since jarvis-admin#38 — see [Floating Tags by Default](#floating-tags-by-default-pin_images-opt-in). |
+| `HUGGINGFACE_HUB_TOKEN` | Persisted to `~/.jarvis/compose/.env` when a HuggingFace token is supplied during the Models step's LLM download, so gated repos can still be pulled at service runtime. Since jarvis-admin#49 — see [macOS: Native Model Downloads via curl](#macos-native-model-downloads-via-curl-no-venv). |
 
 ## Dependencies
 
@@ -265,6 +265,18 @@ Since jarvis-admin#46, the wizard's **LLM** step is now the **Models** step and 
 - **Apply order**: the LLM download + configure runs first and must succeed; the Whisper auto-download step runs after and is best-effort — a Whisper hiccup does not undo an already-applied LLM (jarvis-admin#48 fixed an earlier ordering bug where a transient Whisper 500 aborted the flow before the LLM download ran at all).
 - **Native restarts**: on macOS, applying the LLM config kickstarts the native `jarvis-llm-proxy-api` launchd job to reload with the new model; a failed kickstart is logged and left to the plist's `KeepAlive` to retry rather than failing the wizard.
 - **Wizard flow**: the post-install redirect (which normally sends the browser to the containerized admin's dashboard) is skipped on macOS (jarvis-admin#47) — there's no container to hand off to, and redirecting reloaded the native app into a path that skipped the Account and Models steps. The wizard now stays in-session: Install → Account → Models → Finish.
+
+## macOS: Native Model Downloads via curl (No venv)
+
+The setup wizard's Models step (formerly the LLM step) was extended to work on native macOS installs in jarvis-admin#46, and its same-day follow-ups #47/#48 fixed the wizard actually reaching that step and reordered its apply sequence (LLM first, Whisper best-effort after) — see the separate doc PR covering that batch.
+
+jarvis-admin#49 and #50 fixed the download path itself for a real-world field failure ("Download failed: 500"): the native `jarvis-llm-proxy-api` builds its Python venv asynchronously after install, so it usually isn't up — or its venv `huggingface_hub` isn't installed yet — when the Models step actually runs.
+
+- **LLM GGUF download (#49)** — single-file GGUF downloads now go straight through `curl` (the HuggingFace resolve URL, with an `Authorization: Bearer` header when a token is supplied) instead of shelling out to the llm-proxy venv's Python. Full-repo snapshots (no explicit filename — used by the vLLM backend) still require the local venv python and `huggingface_hub`.
+- **Model configuration persisted to `.env` (#49)** — `POST /api/llm-setup/configure` now writes `JARVIS_MODEL_NAME`, `JARVIS_MODEL_BACKEND`, `JARVIS_MODEL_CHAT_FORMAT`, and `JARVIS_MODEL_CONTEXT_WINDOW` into `~/.jarvis/compose/.env` on darwin *before* attempting the HTTP settings write. llm-proxy's settings seed reads these as env-fallbacks on first start, so the chosen model sticks even if llm-proxy isn't reachable yet — a non-200 from the HTTP write no longer fails the request on darwin.
+- **Whisper STT model (#50)** — `POST /api/models/whisper-autodownload` no longer relies solely on setting `WHISPER_ALLOW_MODEL_AUTODOWNLOAD` and restarting whisper to trigger its own download. Whisper's autodownload gate reads a DB-backed setting (not the env var), and that settings table doesn't exist until the service is up natively — so the endpoint now `curl`s `ggml-base.en.bin` (~148 MB, from `ggerganov/whisper.cpp`) straight to whisper's default model path, and whisper simply finds the file locally on next start. The env var is still written for completeness, and the native service is still best-effort kickstarted (`launchctl kickstart -k`) afterward — a kickstart failure doesn't fail the request; launchd's `KeepAlive` restarts the service anyway.
+
+A HuggingFace token supplied during the LLM download is persisted to `HUGGINGFACE_HUB_TOKEN` in `.env` so gated models keep working on subsequent runtime pulls, not just the initial wizard download.
 
 ## Troubleshooting
 
