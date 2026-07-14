@@ -142,6 +142,10 @@ If `JARVIS_APP_KEY` is unset, both helpers **fail closed** --- raising `503` ---
 
 An unset `JARVIS_APP_KEY` already means the deploy is misconfigured --- node validation in the same module has always failed closed on it (`"auth not configured"`) --- so there is no scenario where defaulting to open access on a missing key is the safe choice.
 
+### Legacy Memories Router
+
+The legacy `/api/v0/memories` router (superseded in most flows by the mobile command-data API, but still reachable) previously trusted a client-supplied `household_id` on list/create and used a bare integer primary key on get/update/delete, with no ownership check --- any authenticated user could read, tamper with, or delete another household's memories. It now enforces household authorization on every handler: the caller-supplied `household_id` is checked (not trusted) for list/create, and the loaded memory's `household_id` is checked for get/update/delete. Admin-key callers bypass this check; the node/app-auth `/inject` batch endpoint is unaffected.
+
 ## Compliance Roadmap
 
 For B2B deployments (hospitals, law firms, enterprises), Jarvis has a phased security roadmap targeting HIPAA, SOC2 Type II, HITRUST CSF, FedRAMP, ISO 27001, and PCI DSS compliance.
