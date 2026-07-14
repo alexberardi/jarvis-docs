@@ -8,7 +8,7 @@ This page is the **forward-looking roadmap** for taking Jarvis *beyond* that bou
 
 ## Security Posture
 
-**Implemented today:** JWT auth (HS256), app-to-app auth, node-scoped API keys, household role model (MEMBER / POWER_USER / ADMIN), `is_superuser` flag, multi-tenant `household_id` isolation, bcrypt passwords, encrypted node secret storage (AES-256 SQLCipher with a device-local K1 key), end-to-end-encrypted mobile↔node settings sync (K2), centralized logging (Loki + Grafana), soft deletes, and secure-by-default egress (auto-updates fail closed).
+**Implemented today:** JWT auth (HS256), app-to-app auth, node-scoped API keys, household role model (MEMBER / POWER_USER / ADMIN), `is_superuser` flag, multi-tenant `household_id` isolation, bcrypt passwords, encrypted node secret storage (AES-256 SQLCipher with a device-local K1 key), end-to-end-encrypted mobile↔node settings sync (K2), centralized logging (Loki + Grafana), loopback-bound data-plane infra (PostgreSQL, Redis, MinIO, Loki bind to `127.0.0.1` by default; opt out via `JARVIS_INFRA_BIND_HOST=0.0.0.0`), soft deletes, and secure-by-default egress (auto-updates fail closed).
 
 **Planned by this roadmap** (for enterprise / regulated deployments that extend past the LAN trust model): provable audit trails, service-to-service TLS, encryption at rest, formal RBAC enforcement, rate limiting, data classification, network segmentation, and extended log retention.
 
@@ -53,7 +53,7 @@ Tasks:
 - **Redis TLS + auth** -- TLS listener, password authentication. Dev mode opt-out via `REDIS_TLS=false`.
 - **MQTT TLS + auth** -- Mosquitto TLS on port 8883, password file, `allow_anonymous false`.
 - **MinIO TLS** -- SSE-S3 enabled, certs mounted, strong credentials.
-- **Port binding** -- Data stores bind to `127.0.0.1` only. Only the reverse proxy exposed on `0.0.0.0`.
+- **Port binding** -- Already done: PostgreSQL, Redis, MinIO, and Loki bind to `127.0.0.1` by default (opt-out via `JARVIS_INFRA_BIND_HOST=0.0.0.0`); Loki was the last holdout, closed in [jarvis-admin#53](https://github.com/alexberardi/jarvis-admin/pull/53) (it shipped no auth of its own and stored voice transcripts on `0.0.0.0:3100`). Remaining for this phase: only the reverse proxy exposed on `0.0.0.0`.
 - **Environment enforcement** -- `JARVIS_ENV=production` requires TLS or refuses to start.
 
 ## Phase 3: Encryption at Rest (AES-256)
