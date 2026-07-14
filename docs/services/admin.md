@@ -27,7 +27,7 @@ On first run (no `~/.jarvis/compose/` directory), the admin server serves a setu
 5. Starts services in tiered dependency order
 6. Registers all services with config-service (creates app-to-app credentials)
 7. Creates a superuser account
-8. Downloads an LLM model
+8. Downloads an LLM model, and optionally auto-fetches the Whisper speech-to-text model — see [macOS: Native Models Step](#macos-native-models-step-llm--whisper-auto-download)
 
 ### Admin Dashboard
 
@@ -70,7 +70,7 @@ jarvis-admin (Bun binary)
 │   ├── /api/auth/*          → Proxy to jarvis-auth
 │   ├── /api/settings/*      → Proxy to jarvis-settings-server
 │   ├── /api/install/*       → Setup wizard (generate, pull, start, register)
-│   ├── /api/models/*        → Model management (list, download, delete)
+│   ├── /api/models/*        → Model management (list, download, delete, whisper-autodownload)
 │   ├── /api/containers/*    → Docker container status
 │   ├── /api/llm-setup/*     → LLM configuration
 │   └── /api/services/*      → Service registry (via config-service)
@@ -254,6 +254,17 @@ On macOS the native binary now:
 - Keeps the same port throughout — the CLI success message reads "your admin dashboard stays at the same `http://localhost:7711`" rather than pointing at a different post-install port.
 
 This only affects macOS. On Linux, the native installer binary still hands off to the containerized admin on port 7710 and self-terminates as before.
+
+## macOS: Native Models Step (LLM + Whisper Auto-Download)
+
+Since jarvis-admin#46, the wizard's **LLM** step is now the **Models** step and works on native macOS installs — previously it bailed out entirely on `darwin`, telling the operator to configure the LLM proxy manually after setup.
+
+- **LLM download**: `POST /api/models/download` now finds/creates a native `.models` dir at `~/.jarvis/native/jarvis-llm-proxy-api/.models` (falling back through the existing Docker-oriented candidates when that checkout isn't present), and runs the Python download script with the native llm-proxy venv's Python (`~/.jarvis/native/jarvis-llm-proxy-api/.venv/bin/python`, which has `huggingface_hub`) instead of a bare `python3` — the macOS system Python is 3.9 and lacks the package.
+- **vLLM hidden on macOS**: it's Linux+CUDA only; the wizard's backend toggle only shows GGUF natively.
+- **Whisper auto-download**: a **`POST /api/models/whisper-autodownload`** endpoint (added in jarvis-admin#48) upserts `WHISPER_ALLOW_MODEL_AUTODOWNLOAD` into `~/.jarvis/compose/.env` — the fallback whisper reads even while its own settings DB is unreachable (e.g. crash-looping on a missing model) — then best-effort `launchctl kickstart`s the native whisper service so it fetches `ggml-base.en` on the next load.
+- **Apply order**: the LLM download + configure runs first and must succeed; the Whisper auto-download step runs after and is best-effort — a Whisper hiccup does not undo an already-applied LLM (jarvis-admin#48 fixed an earlier ordering bug where a transient Whisper 500 aborted the flow before the LLM download ran at all).
+- **Native restarts**: on macOS, applying the LLM config kickstarts the native `jarvis-llm-proxy-api` launchd job to reload with the new model; a failed kickstart is logged and left to the plist's `KeepAlive` to retry rather than failing the wizard.
+- **Wizard flow**: the post-install redirect (which normally sends the browser to the containerized admin's dashboard) is skipped on macOS (jarvis-admin#47) — there's no container to hand off to, and redirecting reloaded the native app into a path that skipped the Account and Models steps. The wizard now stays in-session: Install → Account → Models → Finish.
 
 ## Troubleshooting
 

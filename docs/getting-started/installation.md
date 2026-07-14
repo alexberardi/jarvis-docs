@@ -144,7 +144,7 @@ The wizard guides you through seven steps:
 | **Review** | Confirm configuration before installing |
 | **Install** | Generates Docker Compose, pulls images, starts services in tier order |
 | **Account** | Create your superuser account (auto-promoted, auto-logged-in) |
-| **LLM** | Select and download a language model |
+| **Models** | Select and download a language model, and optionally auto-fetch the Whisper speech-to-text model. Works natively on macOS (Apple Silicon) — see [Platform Notes](#macos-apple-silicon) |
 
 !!! note "Core vs. optional services"
     **Core** services are pre-selected on the Services step and can't be deselected; **optional** services can be toggled off. Since jarvis-admin#42, `jarvis-admin` itself (the dashboard you're using right now) moved from `optional` to `core` — earlier installs could deselect the admin dashboard and end up with no web UI to manage the stack afterward.
@@ -163,7 +163,7 @@ Services discover each other via `host.docker.internal` (Docker's host gateway),
 
 #### Model Selection
 
-The LLM step offers pre-configured models with matching prompt providers:
+The Models step offers pre-configured LLMs with matching prompt providers:
 
 | Model | Size | Backend | Notes |
 |-------|------|---------|-------|
@@ -173,6 +173,10 @@ The LLM step offers pre-configured models with matching prompt providers:
 | Qwen 2.5 7B | ~4.7 GB | GGUF | Stable, well-tested |
 | Llama 3.1 8B | ~5 GB | GGUF | Strong general purpose |
 | Hermes 3 8B | ~4.9 GB | GGUF | Excellent tool-calling support |
+
+vLLM is a Linux+CUDA-only backend, so the backend toggle is hidden on macOS (native GGUF/Metal only).
+
+Alongside the LLM, a **Whisper speech-to-text auto-download** toggle (on by default) fetches the `ggml-base.en` model — required for voice — without a separate step. The LLM downloads and configures first; Whisper auto-download is best-effort and won't undo an already-applied LLM if it fails.
 
 You can also download models later from the **Models** page in the admin dashboard.
 
@@ -309,6 +313,8 @@ GPU-dependent services run **locally** (not in Docker) to access Metal and Apple
 - `jarvis-ocr-service` -- Uses Apple Vision framework
 
 `jarvis-admin` also always runs natively on macOS, regardless of GPU access — the compose generator excludes it from the darwin compose unconditionally. A containerized admin can't manage the compose from Docker Desktop: it resolves bind-mounted paths (e.g. `/host/compose/init-db.sh`) against its own container filesystem, which Docker Desktop refuses to share, stalling Postgres startup and crash-looping the DB-backed services. The native binary that runs the setup wizard is the same process that serves the ongoing dashboard on macOS.
+
+The setup wizard's **Models** step now also works natively on macOS: it downloads and configures the LLM against the native `jarvis-llm-proxy-api` service (restarted via `launchctl kickstart` on apply) and can auto-fetch the Whisper `ggml-base.en` speech-to-text model the same way. Previously, macOS native installs skipped model download in the wizard entirely and required configuring the LLM proxy manually after setup.
 
 The `jarvis` CLI detects Darwin and handles this automatically.
 
