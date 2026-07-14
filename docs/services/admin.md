@@ -161,6 +161,16 @@ Since jarvis-admin#36, the reconcile (sync) flow persists Whisper's and TTS's GP
 - A new **Text-to-speech** section on the reconcile page lets operators switch the Kokoro TTS inference device (CPU default / NVIDIA CUDA), mirroring the existing Whisper GPU-backend selector (see [Whisper GPU Backend](installer.md#whisper-gpu-backend) for the underlying backend concept).
 - See [TTS: Provider Selection](tts.md#provider-selection) for the Piper/Kokoro provider system this backend choice applies to.
 
+### Floating Tags by Default (PIN_IMAGES Opt-In)
+
+Since jarvis-admin#38 (2026-07-06 decision), image digest pinning is **opt-in** instead of the default: generated compose files use floating tags (`${JARVIS_IMAGE_TAG:-latest}<variant>`) for every image unless `PIN_IMAGES=true` is set in `.env`. Pinning-by-default meant `docker compose pull` could never actually update anything, and a stale bundled digest map could silently downgrade GPU-variant images back to CPU builds or pin `llm-proxy` to a build whose migration tree predated the database (the 2026-07-04/06 incidents) — a stuck non-expert operator had no supported way out short of a full regenerate.
+
+- **`PIN_IMAGES`** (env var, default unset → `false`) — set to `true` to opt back into digest pinning, for supply-chain-hardened installs where a GHCR tag can be overwritten but a `@sha256` pin cannot.
+- The `dev` release track always floats regardless of `PIN_IMAGES` (unchanged behavior, mirrors jarvis-installer#17 — dev exists to run the freshest CI-built images).
+- **Migration is automatic**: a pre-existing install with a digest-pinned compose heals to floating tags on its next reconcile/regenerate, since a missing `PIN_IMAGES` key reconstructs as `false`. There is no separate migration step.
+- The reconcile UI exposes this as a **"Pin images by digest"** checkbox (advanced, off by default) on the Sync Compose page.
+- A new golden regression test (`prod-shape-regression.test.ts`, supersedes the jarvis-admin#37 draft) reconstructs wizard state from a prod-shaped `.env` and asserts GPU backends, broker credentials, and image pinning all regenerate correctly together in both the floating and `PIN_IMAGES=true` modes — covering the exact combination of settings the 2026-07-04/06 incidents broke at once.
+
 ### Notable Service Configurations
 
 | Service | Notes |
@@ -194,6 +204,8 @@ To add custom prompt providers, place them in the Docker volume. The volume is m
 | `WHISPER_BACKEND` | Whisper's GPU backend (`cpu` \| `cuda` \| `vulkan` \| `rocm`, default `cpu`), written to the generated `.env` and read back on reconcile since jarvis-admin#36. See [GPU Backend Persistence](#gpu-backend-persistence-reconcile). |
 | `TTS_BACKEND` | TTS's Kokoro inference device (`cpu` \| `cuda`, default `cpu`), written to the generated `.env` and read back on reconcile since jarvis-admin#36. See [GPU Backend Persistence](#gpu-backend-persistence-reconcile). |
 | `TTS_GPU_DEVICE` | Which GPU index the `jarvis-tts` container reserves when `TTS_BACKEND=cuda` (default `0`). Re-pin when GPU0 is already full of LLM + Whisper. |
+
+| `PIN_IMAGES` | Opt-in to digest-pinned images instead of floating tags (default unset → `false`). Since jarvis-admin#38 — see [Floating Tags by Default](#floating-tags-by-default-pin_images-opt-in). |
 
 ## Dependencies
 
