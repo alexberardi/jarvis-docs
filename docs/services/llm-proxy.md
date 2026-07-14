@@ -54,6 +54,9 @@ Model loading is fault-isolated per slot and does not block process startup:
 - The API server's `GET /health` (:7704) is the one the docker healthcheck actually watches (it only sees the status code, not the body), so it returns honest codes: **503** when the model service is unreachable, the live-model load failed, or loading has exceeded a 900s grace window; **200** with `initializing` inside the grace window; **200** with `busy` on a health-probe read-timeout (a long completion blocks the model service's single-worker event loop and must not flap the container unhealthy). The grace-window clock lives in the API process so a `serve.sh` respawn of the model service can't hide behind a fresh uptime counter.
 - `scripts/serve.sh` is the new default container CMD: execs the API server as PID 1 (migrations run first) and supervises the model service as a child, respawning it with capped backoff to catch native llama.cpp crashes that Python-level fault isolation can't. Compose files that still override the CMD directly should migrate to `bash scripts/serve.sh` to get supervision.
 
+!!! note "Model service network binding"
+    Since jarvis-llm-proxy-api#26, the model service (`:7705`) is published on **loopback only by default** — both in the compose files (`${MODEL_SERVICE_BIND_HOST:-127.0.0.1}:${MODEL_SERVICE_PORT:-7705}:7705`) and on bare-metal runs via `run.sh` (`--host ${MODEL_SERVICE_HOST:-127.0.0.1}`). The API server and queue worker still reach it over the compose network (`llm-proxy-model:7705`) or `127.0.0.1` on bare metal — this only closes off-box access to the internal, token-protected `/internal/model/*` surface. Set `MODEL_SERVICE_BIND_HOST` (compose) or `MODEL_SERVICE_HOST` (bare metal) to `0.0.0.0` if a deployment genuinely needs off-box access to port 7705.
+
 ## 2-Model System
 
 The service maintains two model slots to balance latency and capability:
