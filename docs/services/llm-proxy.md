@@ -57,6 +57,8 @@ Model loading is fault-isolated per slot and does not block process startup:
 !!! note "Model service network binding"
     Since jarvis-llm-proxy-api#26, the model service (`:7705`) is published on **loopback only by default** — both in the compose files (`${MODEL_SERVICE_BIND_HOST:-127.0.0.1}:${MODEL_SERVICE_PORT:-7705}:7705`) and on bare-metal runs via `run.sh` (`--host ${MODEL_SERVICE_HOST:-127.0.0.1}`). The API server and queue worker still reach it over the compose network (`llm-proxy-model:7705`) or `127.0.0.1` on bare metal — this only closes off-box access to the internal, token-protected `/internal/model/*` surface. Set `MODEL_SERVICE_BIND_HOST` (compose) or `MODEL_SERVICE_HOST` (bare metal) to `0.0.0.0` if a deployment genuinely needs off-box access to port 7705.
 
+Since jarvis-llm-proxy-api#29, native macOS runs (`run-prod.sh`) also auto-set `JARVIS_CONFIG_URL=http://localhost:${CONFIG_SERVICE_PORT:-7700}` when unset — without it the service can't discover `jarvis-auth` via config-service and refuses to start.
+
 ## 2-Model System
 
 The service maintains two model slots to balance latency and capability:
