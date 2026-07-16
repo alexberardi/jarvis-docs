@@ -18,16 +18,16 @@ The auth service handles all authentication for the Jarvis platform: user JWT to
 | Method | Path | Description |
 |--------|------|--------------|
 | `GET` | `/health` | Health check |
-| `POST` | `/api/v0/auth/register` | Register a new user |
-| `POST` | `/api/v0/auth/login` | Login, returns JWT access + refresh tokens. Response includes `must_change_password` when the account has a pending admin-issued temp password |
-| `POST` | `/api/v0/auth/refresh` | Returns new access token **+ a newly rotated refresh token** — client must persist the new refresh token or the next refresh will fail. Rejects inactive users and expired temp passwords (401) |
-| `POST` | `/api/v0/auth/change-password` | Verifies the current password, sets a new one, revokes **all** other refresh tokens, and returns a fresh token pair the client must adopt. Clears any pending `must_change_password` flag |
-| `POST` | `/api/v0/auth/logout` | Authenticates with the **refresh token itself** (not a Bearer header), so it works even after the access token has expired. Revokes that token's rotation family, or every session for the user with `all_devices: true`. Always returns `204`, even for an unknown/already-revoked token |
-| `GET` | `/api/v0/superuser/users` | Superuser only. Lists all users with household memberships — backs the admin Users panel |
-| `POST` | `/api/v0/superuser/users/{id}/temp-password` | Superuser only. Issues a show-once temp password for a user (bcrypt-stored, expires after `TEMP_PASSWORD_EXPIRE_HOURS`). Sets `must_change_password` and revokes every existing session for that user. Optional body: `{temp_password?, expires_in_hours?}` |
-| `POST` | `/internal/validate-app` | Validate app-to-app credentials |
+| `POST` | `/auth/register` | Register a new user |
+| `POST` | `/auth/login` | Login, returns JWT access + refresh tokens. Response includes `must_change_password` when the account has a pending admin-issued temp password |
+| `POST` | `/auth/refresh` | Returns new access token **+ a newly rotated refresh token** — client must persist the new refresh token or the next refresh will fail. Rejects inactive users and expired temp passwords (401) |
+| `POST` | `/auth/change-password` | Verifies the current password, sets a new one, revokes **all** other refresh tokens, and returns a fresh token pair the client must adopt. Clears any pending `must_change_password` flag |
+| `POST` | `/auth/logout` | Authenticates with the **refresh token itself** (not a Bearer header), so it works even after the access token has expired. Revokes that token's rotation family, or every session for the user with `all_devices: true`. Always returns `204`, even for an unknown/already-revoked token |
+| `GET` | `/superuser/users` | Superuser only. Lists all users with household memberships — backs the admin Users panel |
+| `POST` | `/superuser/users/{id}/temp-password` | Superuser only. Issues a show-once temp password for a user (bcrypt-stored, expires after `TEMP_PASSWORD_EXPIRE_HOURS`). Sets `must_change_password` and revokes every existing session for that user. Optional body: `{temp_password?, expires_in_hours?}` |
+| `GET` | `/internal/app-ping` | Validate app-to-app credentials (round-trip check used by other services) |
 | `POST` | `/internal/validate-node` | Validate node credentials |
-| `GET` | `/api/v0/users/{id}` | Get user info by ID |
+| `GET` | `/internal/users/batch` | Resolve user IDs to display names (app-to-app; used for speaker resolution) |
 
 ## Password Reset (No Email in the Stack)
 

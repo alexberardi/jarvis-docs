@@ -20,9 +20,9 @@ The Whisper API provides speech-to-text transcription via whisper.cpp. It suppor
 | `GET` | `/ping` | Simple liveness probe |
 | `GET` | `/health` | Health check |
 | `POST` | `/transcribe` | Transcribe audio to text |
-| `POST` | `/api/v0/voice-profiles/enroll` | Enroll a voice profile for speaker ID |
-| `GET` | `/api/v0/voice-profiles` | List enrolled voice profiles |
-| `DELETE` | `/api/v0/voice-profiles/{id}` | Delete a voice profile |
+| `POST` | `/voice-profiles/enroll` | Enroll a voice profile for speaker ID |
+| `GET` | `/voice-profiles` | List enrolled voice profiles |
+| `DELETE` | `/voice-profiles/{id}` | Delete a voice profile |
 | `*` | `/settings/*` | Settings CRUD (see Settings Server) |
 
 ## Transcription
@@ -37,7 +37,7 @@ The `/transcribe` endpoint accepts a WAV file upload. Optional query parameters 
 | `temperature_inc` | `0.2` | Temperature increment on decode failure |
 | `beam_size` | `5` | Beam size for beam search (1–16) |
 
-The response always includes a `speaker` field. Speaker identification is only populated when `USE_VOICE_RECOGNITION=true`:
+The response always includes a `speaker` field. Speaker identification is only populated when the `voice.recognition_enabled` setting is on (default off) and the request doesn't opt out via the `speaker_recognition` query parameter:
 
 ```json
 {
@@ -68,7 +68,7 @@ Voice profiles are enrolled as WAV samples. The service uses [resemblyzer](https
 | `WHISPER_MODEL` | Path to the whisper.cpp GGML model file (e.g. `~/whisper.cpp/models/ggml-base.en.bin`) |
 | `WHISPER_CLI` | Path to the `whisper-cli` binary — auto-detected from `PATH` if unset |
 | `WHISPER_ENABLE_CUDA` | Enable CUDA acceleration for the whisper.cpp build (`false`) |
-| `USE_VOICE_RECOGNITION` | Enable speaker identification via resemblyzer (`false`) |
+| `voice.recognition_enabled` *(DB setting, not env)* | Enable speaker identification via resemblyzer (default `false`) |
 | `JARVIS_VOICE_DEVICE` | Device for the speaker-recognition encoder: `auto`, `cpu`, or `cuda` (default `auto`) |
 | `JARVIS_APP_ID` | App identity for service-to-service auth (default `jarvis-whisper`) |
 | `JARVIS_APP_KEY` | App key for service-to-service auth |

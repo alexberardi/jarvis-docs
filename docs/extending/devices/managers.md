@@ -186,7 +186,7 @@ Here is a minimal example that integrates a hypothetical SmartThings hub:
 
 ```python
 from device_managers.base import IJarvisDeviceManager, DeviceManagerDevice
-from core.interfaces import IJarvisSecret
+from jarvis_command_sdk import IJarvisSecret
 
 class SmartThingsDeviceManager(IJarvisDeviceManager):
     @property

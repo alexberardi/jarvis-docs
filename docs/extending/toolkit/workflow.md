@@ -156,7 +156,7 @@ class MyWeatherCommand(IJarvisCommand):
                 error_details="Weather API key is not configured."
             )
 
-        # TODO: Call the weather API using httpx
+        # Exercise: call the weather API using httpx
         # For now, return a placeholder
         return CommandResponse.success_response(
             context_data={"message": f"The weather in {city} is sunny and 72 degrees."},

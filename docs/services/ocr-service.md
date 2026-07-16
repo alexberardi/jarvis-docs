@@ -28,8 +28,9 @@ The OCR service extracts text from images using pluggable backends. It uses a Re
 | Backend | Platform | Notes |
 |---------|----------|-------|
 | Tesseract | All | Classic OCR, no GPU required |
+| Apple Vision | macOS | Native Vision framework OCR (Apple Silicon) |
 | EasyOCR | All | Deep learning, GPU optional |
-| PaddleOCR | Linux | Best accuracy on dense text, GPU recommended |
+| PaddleOCR | All | Best accuracy on dense text, GPU recommended |
 | RapidOCR | All | Fast CPU-based inference |
 | LLM Proxy Vision | All | Routes to jarvis-llm-proxy-api vision endpoint |
 | LLM Proxy Cloud | All | Routes to a cloud vision API via the LLM proxy REST backend |
@@ -43,8 +44,10 @@ The active backend is selected at runtime via settings. Multiple backends can be
 | Variable | Description |
 |----------|-------------|
 | `OCR_PORT` | API port (default `7031`) |
-| `OCR_BACKEND` | Default OCR backend (`tesseract`, `easyocr`, `paddleocr`, `rapidocr`, `llm_proxy_vision`, `llm_proxy_cloud`) |
-| `OCR_ENABLED_TIERS` | Comma-separated list of enabled backend tiers |
+| `OCR_ENABLED_TIERS` | Comma-separated list of enabled backend tiers (controls selection + fallback order) |
+| `OCR_ENABLE_EASYOCR` | Enable EasyOCR backend (`false`) |
+| `OCR_ENABLE_PADDLEOCR` | Enable PaddleOCR backend (`false`) |
+| `OCR_ENABLE_APPLE_VISION` | Enable Apple Vision backend on macOS (`false`) |
 | `OCR_ENABLE_RAPIDOCR` | Enable RapidOCR backend (`false`) |
 | `OCR_ENABLE_LLM_PROXY_VISION` | Enable LLM Proxy Vision backend (`false`) |
 | `OCR_ENABLE_LLM_PROXY_CLOUD` | Enable LLM Proxy Cloud backend (`false`) |
@@ -64,7 +67,6 @@ The active backend is selected at runtime via settings. Multiple backends can be
 
 | Variable | Description |
 |----------|-------------|
-| `REDIS_URL` | Full Redis connection URL (takes precedence over host/port/password) |
 | `REDIS_HOST` | Redis host (default `localhost`) |
 | `REDIS_PORT` | Redis port (default `6379`) |
 | `REDIS_PASSWORD` | Redis password |

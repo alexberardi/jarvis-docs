@@ -33,10 +33,12 @@ The service can also generate contextual wake word responses by calling the LLM 
 
 | Setting | Type | Default | Description |
 |---------|------|---------|-------------|
-| `tts.provider` | string | `kokoro` | Active backend: `piper` or `kokoro` |
+| `tts.provider` | string | `piper` | Active backend: `piper` or `kokoro` |
 | `tts.default_voice` | string | `en_GB-alan-low` | Piper ONNX voice file name (looked up in `app/models/`) |
 | `tts.kokoro_voice` | string | `bm_george` | Kokoro voice ID. Notable British male options: `bm_george`, `bm_fable`, `bm_daniel`, `bm_lewis` |
 | `tts.kokoro_speed` | float | `1.25` | Kokoro speech speed multiplier (validated natural-sounding default) |
+| `tts.kokoro_device` | string | `cpu` | Kokoro inference device (`cpu` or `cuda`) |
+| `tts.kokoro_gain` | float | `2.0` | Kokoro output gain — the primary loudness control |
 
 Changes take effect within ~60 seconds (the settings service has a 60s cache). No container restart is required — the provider is rebuilt lazily on the next synthesis request. If the newly selected provider fails to load, the service logs a warning and falls back to Piper so voice responses never break.
 

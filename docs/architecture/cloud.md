@@ -17,7 +17,7 @@ graph TB
 
     subgraph Cloud ["Cloud (optional)"]
         direction TB
-        Pantry["Pantry<br/>:7720"]
+        Pantry["Pantry<br/>:7721"]
         Relay["Notifications Relay"]
         Web["Web Chat<br/>:7722"]
     end
@@ -62,7 +62,7 @@ Each cloud service is stateless or nearly so, meaning you can run your own insta
 
 > The community marketplace. Authors publish commands; users browse and install them with one CLI command.
 
-**Port:** 7720 | **Stack:** FastAPI + PostgreSQL | **Auth:** GitHub OAuth (authors) + household JWT (nodes)
+**Port:** 7721 | **Stack:** FastAPI + PostgreSQL | **Auth:** GitHub OAuth (authors) + household JWT (nodes)
 
 Pantry is the HACS-style command store for Jarvis. It hosts a catalog of community-built commands, agents, device protocols, device managers, and routines that any node can install.
 

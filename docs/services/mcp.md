@@ -1,5 +1,8 @@
 # MCP
 
+!!! warning "Potentially deprecated"
+    jarvis-mcp is a development-tooling service that may be removed in a future release. The tools below still work today, but don't build new integrations against this surface without checking its status first.
+
 The MCP (Model Context Protocol) service provides tool integration for Claude Code, enabling AI-assisted development and debugging of the Jarvis platform. It exposes health checks, log queries, Docker management, database access, and service introspection as MCP tools.
 
 ## Quick Reference
@@ -8,8 +11,9 @@ The MCP (Model Context Protocol) service provides tool integration for Claude Co
 |---|---|
 | **Port** | 7709 |
 | **Health endpoint** | `GET /health` |
+| **MCP transport** | SSE — `GET /sse` + `POST /messages` |
 | **Source** | `jarvis-mcp/` |
-| **Framework** | FastAPI + Uvicorn |
+| **Framework** | Starlette (MCP SSE server) + Uvicorn |
 | **Tier** | 4 - Management |
 
 ## Network Exposure
@@ -35,16 +39,17 @@ Tools are organized into groups. The active set is controlled by `JARVIS_MCP_TOO
 
 | Tool | Description |
 |------|-------------|
-| `health_check_all` | Ping every registered service and report status |
-| `health_check_service` | Health check a specific service by name |
+| `health_check` | Ping every registered service and report status |
+| `health_service` | Health check a specific service by name |
 
 ### logs
 
 | Tool | Description |
 |------|-------------|
-| `query_logs` | Query logs with filters (service, level, time range) |
+| `logs_query` | Query logs with filters (service, level, time range) |
 | `logs_tail` | Get recent log lines from a service |
-| `get_log_stats` | Log entry counts by service and level |
+| `logs_errors` | Recent error/warning lines across services |
+| `logs_services` | List services that have submitted logs |
 
 ### docker
 
@@ -61,7 +66,9 @@ Tools are organized into groups. The active set is controlled by `JARVIS_MCP_TOO
 
 | Tool | Description |
 |------|-------------|
-| `run_command` | Run a whitelisted shell command on the Jarvis host |
+| `command_test` | Run a single voice-command parse test through command-center |
+| `command_test_suite` | Run a suite of command parse tests |
+| `command_test_list` | List available command test cases |
 
 ### db
 
@@ -71,8 +78,8 @@ Tools are organized into groups. The active set is controlled by `JARVIS_MCP_TOO
 
 | Tool | Description |
 |------|-------------|
-| `get_current_time` | Current server time in ISO 8601 |
-| `format_datetime` | Format a timestamp |
+| `datetime_context` | Current server time + date context |
+| `datetime_resolve` | Resolve a natural-language date/time expression |
 
 ### math
 
@@ -91,8 +98,8 @@ Unit conversion tools (temperature, length, weight, etc.).
 | Variable | Description |
 |----------|-------------|
 | `JARVIS_CONFIG_URL` | Config service URL for service discovery |
-| `JARVIS_AUTH_APP_ID` | App ID for authenticating to other services |
-| `JARVIS_AUTH_APP_KEY` | App key for authenticating to other services |
+| `JARVIS_APP_ID` | App ID for authenticating to other services |
+| `JARVIS_APP_KEY` | App key for authenticating to other services |
 | `JARVIS_MCP_TOOLS` | Comma-separated list of enabled tool groups (default: all except `tests,db`) |
 | `JARVIS_ROOT` | Root directory of the Jarvis installation (for Docker Compose operations) |
 | `POSTGRES_HOST` | PostgreSQL host for `db` tool group |

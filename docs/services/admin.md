@@ -38,7 +38,7 @@ After setup, the same binary serves the admin dashboard:
 - **Models** -- Installed models, suggested downloads, custom HuggingFace downloads
 - **Quick Sets** -- Named LLM configuration presets; apply or create to switch the active model without editing raw settings
 - **Updates** -- Turn update checks on/off and run an update; see [Update Opt-In Toggle](#update-opt-in-toggle)
-- **Settings** -- Runtime configuration across all services (via settings-server proxy)
+- **Settings** -- Runtime configuration across all services (proxied to config-service `/v1/settings/*`)
 - **Nodes** -- Registered voice nodes
 
 ## Quick Sets
@@ -81,13 +81,15 @@ Since jarvis-admin#55, clicking Update on a standalone/native install (macOS) no
 - A failed resume keeps the marker (`phase: "error"`) so the failure stays visible, but is not retried automatically on the next boot.
 - `installedVersion` is only recorded once the resumed upgrade actually completes — not merely once the binary swap does.
 
+On the client side, since jarvis-admin#56, the Updates page follows the *real* server-side upgrade instead of assuming it's done at the restart. Swapping the binary restarts the admin process, which kills the SSE stream mid-upgrade — the remaining work (compose regen → pull → restart → verify) used to be reported as instant success ("Upgrade complete!" with every phase ticked green) even while `docker compose pull` was still running on the box, because the phase list derives its checkmarks from the phase index and jumping straight to `done` retroactively marked every earlier phase complete. The page now polls `GET /api/update/status` until the server clears its upgrade marker, surfacing the real in-progress phase or a real failure instead of declaring victory early. The **Check for updates** toggle is also no longer hidden once an upgrade starts — it's a settings control, not an upgrade step, and previously disappeared for the rest of the session after running a single update.
+
 ## Architecture
 
 ```
 jarvis-admin (Bun binary)
 ├── Server (Fastify)
 │   ├── /api/auth/*          → Proxy to jarvis-auth
-│   ├── /api/settings/*      → Proxy to jarvis-settings-server
+│   ├── /api/settings/*      → Proxy to config-service /v1/settings/*
 │   ├── /api/install/*       → Setup wizard (generate, pull, start, register)
 │   ├── /api/models/*        → Model management (list, download, delete, whisper-autodownload)
 │   ├── /api/containers/*    → Docker container status
@@ -173,7 +175,7 @@ The GHCR digest resolver (`refreshDigestsForTrack`) now resolves all tags concur
 
 ### Supervised llm-proxy Launch (serve.sh)
 
-Since jarvis-admin#34, the generated `llm-proxy` container's `command` is `["bash", "scripts/serve.sh"]` (the supervised launcher the image ships, added in jarvis-llm-proxy-api#21) rather than a raw unsupervised dual-uvicorn shell command. `serve.sh` runs the API server in the foreground and supervises the model service, respawning it with backoff on a native crash (e.g. a llama.cpp segfault) — previously a crashed model service was never restarted, and the API 503'd every request indefinitely while the container itself still looked healthy (the 2026-07-02 outage class, [roadmap#59](https://github.com/alexberardi/jarvis-roadmap/issues/59)). Existing installs pick up the new command on their next compose regen/upgrade/reconcile, not immediately — a running stack keeps the old command until then.
+Since jarvis-admin#34, the generated `llm-proxy` container's `command` is `["bash", "scripts/serve.sh"]` (the supervised launcher the image ships, added in jarvis-llm-proxy-api#21) rather than a raw unsupervised dual-uvicorn shell command. `serve.sh` runs the API server in the foreground and supervises the model service, respawning it with backoff on a native crash (e.g. a llama.cpp segfault) — previously a crashed model service was never restarted, and the API 503'd every request indefinitely while the container itself still looked healthy (the 2026-07-02 outage class, roadmap#59). Existing installs pick up the new command on their next compose regen/upgrade/reconcile, not immediately — a running stack keeps the old command until then.
 
 ### GPU Backend Persistence (Reconcile)
 
@@ -237,7 +239,7 @@ To add custom prompt providers, place them in the Docker volume. The volume is m
 - **Docker** -- manages all Jarvis service containers
 - **jarvis-config-service** -- service discovery and registration
 - **jarvis-auth** -- user authentication, app-to-app credential creation
-- **jarvis-settings-server** -- settings aggregation proxy
+- **jarvis-config-service** -- settings gateway (`/v1/settings/*`) behind the admin Settings page
 
 ## Dependents
 

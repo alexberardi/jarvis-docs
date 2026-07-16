@@ -5,6 +5,15 @@ repo_url: https://github.com/alexberardi/jarvis
 repo_name: jarvis
 dev_addr: 0.0.0.0:7730
 
+extra:
+  social:
+    - icon: fontawesome/brands/discord
+      link: https://discord.com/invite/kMfKr7EZZ
+      name: Join the Jarvis Discord
+    - icon: fontawesome/brands/github
+      link: https://github.com/alexberardi/jarvis
+      name: Jarvis on GitHub
+
 theme:
   name: material
   palette:

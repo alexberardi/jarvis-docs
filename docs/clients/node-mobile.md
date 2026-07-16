@@ -73,7 +73,6 @@ jarvis-node-mobile/
 │   │   ├── Home/              # Main dashboard
 │   │   ├── Devices/           # Paired device list
 │   │   ├── Provisioning/      # Node setup flow
-│   │   ├── Rooms/             # Room management
 │   │   ├── SmartHome/         # Home Assistant integration
 │   │   ├── ImportKey/         # K2 key import
 │   │   ├── Inbox/             # Deep research results

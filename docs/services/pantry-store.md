@@ -48,7 +48,7 @@ See the [Callback Signing Key Rotation](../ops/callback-signing-key-rotation.md)
 
 ## Database Notes
 
-The `submissions` table uses a `callback_nonce` column (renamed from `callback_token` in v18 via `alter_column` — in-flight rows were preserved during the migration).
+The `submissions` table uses a `callback_nonce` column (renamed from `callback_token` in jarvis-pantry#25 via `alter_column` — in-flight rows were preserved during the migration).
 
 ## Lockfile Size Cap
 

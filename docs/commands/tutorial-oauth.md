@@ -43,7 +43,7 @@ For well-known cloud providers like Google, Spotify, or GitHub, the authorize an
 from typing import List
 
 from core.ijarvis_authentication import AuthenticationConfig
-from core.ijarvis_command import IJarvisCommand, CommandExample
+from jarvis_command_sdk import IJarvisCommand, CommandExample
 from core.ijarvis_parameter import JarvisParameter
 from core.ijarvis_secret import IJarvisSecret, JarvisSecret
 from core.command_response import CommandResponse
@@ -221,29 +221,26 @@ For OAuth providers whose tokens expire, enable background refresh:
         )
 ```
 
-The default `refresh_token()` implementation on `IJarvisCommand`:
+The default `refresh_token()` implementation on `IJarvisCommand` is a pure HTTP call — the **node runtime** drives it and persists the result:
 
-1. Reads the refresh token from the secret DB
-2. POSTs to `exchange_url` with `grant_type=refresh_token`
-3. Passes new tokens to `store_auth_values()`
-4. Stores `TOKEN_EXPIRES_AT_<PROVIDER>` in the secret DB
-5. If refresh fails (401/400), flags re-auth so the mobile app prompts the user
+1. The runtime reads the refresh token from the secret DB (using `refresh_token_secret_key`)
+2. It calls `command.refresh_token(refresh_token=...)`, which POSTs to `exchange_url` with `grant_type=refresh_token`
+3. On success the method returns a `TokenBundle` (`access_token`, `refresh_token`, `expires_in`); the runtime stores the new tokens and expiry
+4. On failure it returns `None`; the runtime flags re-auth so the mobile app prompts the user
 
 ### Custom Refresh Flow
 
 If the provider has a non-standard refresh mechanism, override `refresh_token()`:
 
 ```python
-    def refresh_token(self) -> bool:
-        # Custom refresh logic
-        current_token = get_secret_value("MY_REFRESH_TOKEN", "integration")
-        if not current_token:
-            return False
+    def refresh_token(self, *, refresh_token, client_secret=None,
+                      timeout_seconds=15.0) -> TokenBundle | None:
+        if not refresh_token:
+            return None
 
-        # ... custom refresh logic ...
+        # ... custom refresh logic producing new_token ...
 
-        self.store_auth_values({"access_token": new_token})
-        return True
+        return TokenBundle(access_token=new_token, refresh_token=refresh_token)
 ```
 
 ## PKCE Support
@@ -324,18 +321,18 @@ Some providers need additional parameters in the authorize or exchange requests:
 Use `needs_auth()` to check whether the user needs to authenticate:
 
 ```python
-    def run(self, request_info: RequestInformation, **kwargs) -> CommandResponse:
-        if self.needs_auth():
+    def run(self, request_info: RequestInformation, *, secrets, **kwargs) -> CommandResponse:
+        if self.needs_auth(secrets=secrets):
             return CommandResponse.error_response(
                 error_details="Please set up Gmail in your mobile app settings first.",
             )
         # ... proceed with command logic ...
 ```
 
-The default `needs_auth()` implementation checks:
+The default `needs_auth(*, secrets, auth_status=None)` implementation checks:
 
-1. Are all required secrets present?
-2. Is there a re-auth flag in the `command_auth` table? (Set when refresh fails)
+1. Are all required secrets present in the host-supplied `secrets` dict?
+2. Does the optional host-supplied `auth_status` flag re-auth? (Set when a refresh fails)
 
 ## Shared Auth Across Commands
 
@@ -369,4 +366,4 @@ For a fully production-ready OAuth command:
 - [x] `refresh_token_secret_key` points to the refresh token secret
 - [x] `supports_pkce=True` for public/mobile clients
 - [x] `native_redirect_uri` for providers that support custom URL schemes
-- [x] `needs_auth()` check in `run()` for a clean error message
+- [x] `needs_auth(secrets=...)` check in `run()` for a clean error message

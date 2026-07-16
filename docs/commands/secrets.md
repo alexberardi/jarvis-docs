@@ -8,7 +8,7 @@ Secrets store configuration that commands need at runtime -- API keys, tokens, u
 JarvisSecret(
     key: str,                       # Unique identifier (e.g., "OPENWEATHER_API_KEY")
     description: str,               # Human-readable description
-    scope: str,                     # "integration" or "node"
+    scope: str,                     # "integration" or "user"
     value_type: str,                # "string", "int", or "bool"
     required: bool = True,          # Whether command fails without it
     is_sensitive: bool = True,      # Whether value appears in settings snapshots
@@ -36,22 +36,22 @@ JarvisSecret(
 )
 ```
 
-### `"node"` -- Per-Node
+### `"user"` -- Per-User
 
-Use for config that varies by physical location or device:
+Use for credentials or preferences that differ per household member:
 
-- Default location (kitchen node in Denver, office node in NYC)
-- Audio device settings
-- Room-specific preferences
+- Personal email credentials (each family member has their own)
+- Personal OAuth tokens
+- Per-user preferences
 
 ```python
 JarvisSecret(
-    "OPENWEATHER_LOCATION",
-    "Default weather location (city,state,country)",
-    "node",              # Each node can have a different default location
+    "EMAIL_ADDRESS",
+    "Your email address",
+    "user",              # Each household member has their own value
     "string",
     is_sensitive=False,
-    friendly_name="Default Location",
+    friendly_name="Email Address",
 )
 ```
 
@@ -71,7 +71,7 @@ All values are stored as strings internally. Use appropriate conversion in your 
 
 ```python
 port = int(get_secret_value("MY_SERVICE_PORT", "integration") or "8080")
-enabled = get_secret_value("FEATURE_FLAG", "node") == "true"
+enabled = get_secret_value("FEATURE_FLAG", "integration") == "true"
 ```
 
 ## Sensitivity
@@ -219,22 +219,22 @@ def run(self, request_info, **kwargs) -> CommandResponse:
         return CommandResponse.error_response(
             error_details="OpenWeather API key is not configured. Set it in your settings.",
         )
-    location = get_secret_value("OPENWEATHER_LOCATION", "node")
+    location = get_secret_value("OPENWEATHER_LOCATION", "integration")
     # ...
 ```
 
-**Important:** Even though `_validate_secrets()` runs before `run()`, the check only verifies that `required=True` secrets are present. For optional secrets, you must check manually.
+**Important:** Even though the secret presence check runs before `run()`, it only verifies that `required=True` secrets are present. For optional secrets, you must check manually.
 
 ## Secret Validation in the Pipeline
 
-The `execute()` method on `JarvisCommandBase` calls `_validate_secrets()` before your `run()`:
+The `execute()` method on `IJarvisCommand` checks the host-supplied `secrets` dict before your `run()`:
 
 ```python
-def _validate_secrets(self):
-    missing = []
-    for secret in self.required_secrets:
-        if secret.required and not get_secret_value(secret.key, secret.scope):
-            missing.append(secret.key)
+if secrets is not None:
+    missing = [
+        s.key for s in self.required_secrets
+        if s.required and not secrets.get(s.key)
+    ]
     if missing:
         raise MissingSecretsError(missing)
 ```
@@ -284,13 +284,13 @@ def required_secrets(self) -> List[IJarvisSecret]:
         JarvisSecret("WEATHER_API_KEY", "Required API key",
                       "integration", "string", required=True),
         JarvisSecret("WEATHER_LOCATION", "Optional default location",
-                      "node", "string", required=False, is_sensitive=False),
+                      "integration", "string", required=False, is_sensitive=False),
     ]
 
 def run(self, request_info, **kwargs):
     city = kwargs.get("city")
     if not city:
-        city = get_secret_value("WEATHER_LOCATION", "node")
+        city = get_secret_value("WEATHER_LOCATION", "integration")
     if not city:
         city = self._detect_location_from_ip()
     # ...

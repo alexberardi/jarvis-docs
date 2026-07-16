@@ -58,9 +58,9 @@ Independent of the boot guard, request-time defense in depth rejects a known-pla
 | Variable | Description |
 |----------|-------------|
 | `DATABASE_URL` | PostgreSQL connection string |
-| `JARVIS_AUTH_BASE_URL` | Auth service URL for validating admin/app requests |
+| `JARVIS_AUTH_URL` | Auth service URL for validating admin/app requests |
 | `JARVIS_CONFIG_ADMIN_TOKEN` | Admin token for `POST /services` and `DELETE /services/{name}`. Placeholder/short values are rejected at boot in production and at request time always — see [Secret Boot Guard](#secret-boot-guard-jarvis_config_admin_token) |
-| `JARVIS_CONFIG_URL_STYLE` | Default URL style for all responses (`dockerized` returns `host.docker.internal` URLs, `external` returns published external coordinates — see [URL Style Query Parameters](#url-style-query-parameters)) |
+| `DOCKER_HOST_GATEWAY` | Hostname substituted for `localhost` rows when serving `style=dockerized` responses (default `host.docker.internal`) |
 | `JARVIS_REMOTE_HOST` | Hostname used when `style=remote` or `style=external` is requested |
 | `PORT` | API port (default `7700`) |
 

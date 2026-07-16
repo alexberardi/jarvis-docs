@@ -7,7 +7,7 @@ The command center is the voice command orchestrator. It receives transcribed te
 | | |
 |---|---|
 | **Port** | 7703 |
-| **Health endpoint** | `GET /api/v0/health` |
+| **Health endpoint** | `GET /health` |
 | **Source** | `jarvis-command-center/` |
 | **Framework** | FastAPI + Uvicorn |
 | **Database** | PostgreSQL (pgvector required — see Dependencies) |
@@ -17,10 +17,10 @@ The command center is the voice command orchestrator. It receives transcribed te
 
 | Method | Path | Description |
 |--------|------|-------------|
-| `GET` | `/api/v0/health` | Health check |
-| `POST` | `/api/v0/command` | Process a voice command (text or audio) |
+| `GET` | `/health` | Health check |
+| `POST` | `/api/v0/voice/command` | Process a voice command (requires a warmed `conversation_id` from `POST /api/v0/conversation/start`) |
 | `POST` | `/api/v0/nodes/register` | Register a new node (admin) |
-| `GET` | `/api/v0/nodes` | List registered nodes |
+| `GET` | `/api/v0/admin/nodes` | List registered nodes (admin token) |
 | `GET` | `/api/v0/memories` | List user memories |
 | `POST` | `/api/v0/memories` | Create a user memory |
 | `DELETE` | `/api/v0/memories/{id}` | Delete a user memory |

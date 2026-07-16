@@ -26,7 +26,7 @@ auth_url = config.get_service_url("jarvis-auth")
 auth_url = config.get_service_url("auth")
 
 # Get all registered services
-services = config.get_all()
+services = config.get_all_services()
 # => {"jarvis-auth": ServiceConfig(...), ...}
 
 # Named convenience helpers (preferred)
@@ -52,7 +52,7 @@ config.shutdown()
 
 ## ServiceConfig
 
-`get_all()` returns a dict of `ServiceConfig` dataclass instances:
+`get_all_services()` returns a dict of `ServiceConfig` dataclass instances:
 
 | Field | Description |
 |-------|-------------|

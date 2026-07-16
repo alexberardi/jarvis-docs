@@ -1,6 +1,9 @@
 # Settings Server
 
-The settings server aggregates runtime settings from across all services. It provides a unified API for the admin UI to read and update configuration without directly accessing individual service databases.
+!!! warning "Deprecation candidate"
+    Nothing in the stack calls jarvis-settings-server today — settings reads and writes go through **config-service's settings gateway** (`/v1/settings/*`, port 7700). This service remains deployed for backward compatibility but is slated for removal. Prefer the config-service settings API for new work.
+
+The settings server aggregates runtime settings from across all services. It provides a unified API to read and update configuration without directly accessing individual service databases.
 
 ## Quick Reference
 
@@ -17,16 +20,17 @@ The settings server aggregates runtime settings from across all services. It pro
 | Method | Path | Description |
 |--------|------|-------------|
 | `GET` | `/health` | Health check |
-| `GET` | `/api/v0/settings` | List all settings |
-| `GET` | `/api/v0/settings/{key}` | Get a specific setting |
-| `PUT` | `/api/v0/settings/{key}` | Update a setting |
+| `GET` | `/v1/settings/` | List settings across services |
+| `GET` | `/v1/settings/{service_name}` | Get all settings for a service |
+| `PUT` | `/v1/settings/{service_name}/{key}` | Update a setting |
+| `GET` | `/v1/settings/{service_name}/url` | Resolve the service's settings URL |
 
 ## Environment Variables
 
 | Variable | Description |
 |----------|-------------|
 | `JARVIS_CONFIG_URL` | Config service URL for service discovery |
-| `JARVIS_AUTH_BASE_URL` | Auth service URL for JWT validation |
+| `JARVIS_AUTH_SECRET_KEY` | JWT validation key — must match jarvis-auth's `AUTH_SECRET_KEY` (validation is local, no auth round-trip) |
 
 ## Dependencies
 
@@ -35,8 +39,8 @@ The settings server aggregates runtime settings from across all services. It pro
 
 ## Dependents
 
-- **jarvis-admin** -- web UI reads and writes settings through this service
+None — the admin UI reads and writes settings through config-service's `/v1/settings/*` gateway, not this service.
 
 ## Impact if Down
 
-The admin web UI cannot read or modify runtime settings. Services continue using their current settings. Direct database access is still possible as a workaround.
+None in practice (see the deprecation note above). Services continue using their current settings.

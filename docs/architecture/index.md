@@ -47,7 +47,7 @@ graph TD
     end
 
     subgraph "Cloud — Optional"
-        Pantry["Pantry<br/>:7720"]
+        Pantry["Pantry<br/>:7721"]
         Relay["Relay"]
         Web["Web Chat<br/>:7722"]
     end
@@ -68,7 +68,7 @@ Services are organized into tiers based on how many other services depend on the
 | **2** | Core | Command Center (7703), LLM Proxy (7704/7705) | Voice command orchestration and LLM inference. The main processing pipeline. |
 | **3** | Specialized | Whisper (7706), TTS (7707), OCR (7031), Recipes (7030), Notifications (7712) | Domain-specific services called by the command center as needed. |
 | **4** | Management | Settings Server (7708), MCP (7709), Admin UI (7710) | Developer and admin tooling. No runtime services depend on these. |
-| **Cloud** | Cloud (optional) | Pantry (7720), Notifications Relay, Web Chat (7722) | Services that benefit from public internet access. Can run self-hosted or on cloud infrastructure. See [Cloud Services](cloud.md). |
+| **Cloud** | Cloud (optional) | Pantry (7721), Notifications Relay, Web Chat (7722) | Services that benefit from public internet access. Can run self-hosted or on cloud infrastructure. See [Cloud Services](cloud.md). |
 | **5** | Clients | Pi Zero nodes, mobile app | End-user devices that connect to the command center. |
 
 ## Critical Path for Voice Commands
@@ -150,6 +150,6 @@ Services register with and discover each other through `jarvis-config-service`. 
 | Notifications | 7712 | Push notifications, inbox, device tokens |
 | Recipes | 7030 | Recipe CRUD, meal planning, OCR import |
 | OCR Service | 7031 | Image-to-text (Apple Vision on macOS, Tesseract on Linux) |
-| Pantry | 7720 | Community package store (commands, agents, device adapters, routines) |
+| Pantry | 7721 | Community package store (commands, agents, device adapters, routines) |
 | Notifications Relay | --- | Stateless Expo Push API proxy for push delivery |
 | Web Chat | 7722 | Browser-based chat interface to the command center |

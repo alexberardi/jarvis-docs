@@ -65,7 +65,7 @@ Each extension point has its own discovery service. They all follow the universa
 
 | Service | Scans | Interface | Secret Validation | Background Refresh |
 |---------|-------|-----------|-------------------|--------------------|
-| `CommandDiscoveryService` | `commands/` | `IJarvisCommand` | At execution time | Yes (10 min) |
+| `CommandDiscoveryService` | `commands/` | `IJarvisCommand` | At execution time | No — refreshed on demand (install/uninstall/config push call `refresh_now()`) |
 | `AgentDiscoveryService` | `agents/` | `IJarvisAgent` | At discovery (skip if missing) | No (once at startup) |
 | `DeviceManagerDiscoveryService` | `device_managers/` | `IJarvisDeviceManager` | At discovery (skip if missing) | No (once at startup) |
 | `DeviceFamilyDiscoveryService` | `device_families/` | `IJarvisDeviceProtocol` | At discovery (skip if missing) | No (once at startup) |
@@ -75,30 +75,20 @@ Each extension point has its own discovery service. They all follow the universa
 
 `CommandDiscoveryService` is the most full-featured discovery service. It handles the core command plugins that define what Jarvis can do.
 
-### Background Refresh
+### On-Demand Refresh
 
-Unlike other discovery services, `CommandDiscoveryService` runs a background thread that re-scans the `commands/` directory periodically (default: every 10 minutes). This allows new commands to be picked up without restarting the node:
+`CommandDiscoveryService` does **not** poll in the background. Discovery runs on demand: the command execution service forces an initial scan at startup, and every path that changes what's on disk — Pantry install/uninstall, test installs, config pushes, settings snapshots — calls `refresh_now()` explicitly. (An earlier 10-minute polling thread was removed: it re-imported every custom command module each cycle and leaked memory, and it was redundant with the install-driven refresh path.)
 
 ```python
 class CommandDiscoveryService:
-    def __init__(self, refresh_interval: int = 600):
-        self._lock = threading.RLock()
-        self._commands: dict[str, IJarvisCommand] = {}
-        self._refresh_interval = refresh_interval
-        self._refresh_thread: threading.Thread | None = None
+    def __init__(self):
+        self._commands_cache: dict[str, IJarvisCommand] = {}
+        self._failed_modules: dict[str, str] = {}
+        self._lock = threading.Lock()
 
-    def start_background_refresh(self):
-        """Start periodic re-scanning of the commands directory."""
-        self._refresh_thread = threading.Thread(
-            target=self._refresh_loop,
-            daemon=True
-        )
-        self._refresh_thread.start()
-
-    def _refresh_loop(self):
-        while True:
-            time.sleep(self._refresh_interval)
-            self.refresh()
+    def refresh_now(self):
+        """Force an immediate re-scan of the commands directory."""
+        self._discover_commands()
 ```
 
 ### CommandRegistry Filtering
@@ -176,28 +166,23 @@ app/core/prompt_providers/
 
 ### Name-Based Matching
 
-Prompt providers are selected by matching their `name` property (case-insensitive) against a database setting (`llm.interface`). The factory does not instantiate all providers up front --- it scans on demand when a provider is requested:
+Prompt providers are selected by matching their `name` property (case-insensitive) against a database setting (`llm.interface`). The factory does not instantiate all providers up front --- it scans on demand when a provider is requested, checking the built-in `prompt_providers/` root first and then the `prompt_providers_custom/` volume:
 
 ```python
 class PromptProviderFactory:
-    @staticmethod
-    def get_provider(name: str) -> IJarvisPromptProvider:
-        """Find and instantiate the provider matching the given name."""
-        for importer, module_name, is_pkg in pkgutil.walk_packages(
-            prompt_providers.__path__,
-            prefix=f"{prompt_providers.__name__}."
-        ):
-            module = importlib.import_module(module_name)
-            for attr_name in dir(module):
-                cls = getattr(module, attr_name)
-                if (inspect.isclass(cls)
-                    and issubclass(cls, IJarvisPromptProvider)
-                    and cls is not IJarvisPromptProvider):
-                    instance = cls()
-                    if instance.name.lower() == name.lower():
-                        return instance
-        raise ValueError(f"No prompt provider found with name: {name}")
+    @classmethod
+    def create_provider(cls, provider_name: str | None = None) -> IJarvisPromptProvider | None:
+        """Find and instantiate the provider matching the given name.
+
+        Scans both provider roots (built-in prompt_providers/ first, then
+        prompt_providers_custom/); first match wins. Returns None if no
+        provider matches — the caller falls back to ModelFactory.
+        """
+        provider = cls._scan_prompt_providers(provider_name)
+        return provider  # None when not found
 ```
+
+Matching is case-insensitive (names are compared upper-cased), and a provider class that fails to import or instantiate is skipped with a debug log rather than crashing the scan.
 
 ### No Secret Validation
 
@@ -228,27 +213,20 @@ Instantiation failures are also caught. If a plugin's `__init__` raises an excep
 
 ## Thread Safety
 
-All discovery services use `threading.RLock` (reentrant lock) to protect the plugin registry:
+Discovery services use a `threading.Lock` to protect the plugin registry:
 
 ```python
 class CommandDiscoveryService:
     def __init__(self):
-        self._lock = threading.RLock()
-        self._commands: dict[str, IJarvisCommand] = {}
+        self._lock = threading.Lock()
+        self._commands_cache: dict[str, IJarvisCommand] = {}
 
     def get_command(self, name: str) -> IJarvisCommand | None:
         with self._lock:
-            return self._commands.get(name)
-
-    def refresh(self):
-        new_commands = self._scan_commands()
-        with self._lock:
-            self._commands = new_commands
+            return self._commands_cache.get(name)
 ```
 
-`RLock` is used instead of `Lock` because some operations may need to acquire the lock reentrantly (e.g., a method that calls another method on the same service).
-
-The background refresh thread in `CommandDiscoveryService` builds the entire new registry in a local variable, then swaps it in under the lock. This minimizes the time the lock is held and ensures readers never see a partially-built registry.
+A refresh builds the entire new registry in a local variable, then swaps it in under the lock. This minimizes the time the lock is held and ensures readers never see a partially-built registry.
 
 ## Singleton Pattern
 
@@ -264,8 +242,6 @@ def get_command_discovery_service() -> CommandDiscoveryService:
         with _service_lock:
             if _discovery_service is None:  # double-checked locking
                 _discovery_service = CommandDiscoveryService()
-                _discovery_service.discover()
-                _discovery_service.start_background_refresh()
     return _discovery_service
 ```
 
@@ -274,7 +250,8 @@ This ensures:
 - Only one instance exists per process
 - Initialization happens lazily (on first access)
 - Thread-safe via double-checked locking
-- Background refresh starts automatically on first use
+
+The first consumer (the command execution service) triggers the initial scan by calling `refresh_now()`.
 
 The same pattern applies to `get_agent_discovery_service()`, `get_device_manager_discovery_service()`, and `get_device_family_discovery_service()`.
 
@@ -283,11 +260,10 @@ The same pattern applies to `get_agent_discovery_service()`, `get_device_manager
 To manually trigger a re-scan without waiting for the background timer:
 
 ```python
-from services.command_discovery_service import get_command_discovery_service
+from utils.command_discovery_service import get_command_discovery_service
 
 service = get_command_discovery_service()
-service.refresh()       # synchronous re-scan
-service.refresh_now()   # alias, same behavior
+service.refresh_now()   # synchronous re-scan
 ```
 
 This is useful during development when you are iterating on a plugin and want to pick up changes immediately.

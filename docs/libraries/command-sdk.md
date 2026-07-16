@@ -53,7 +53,7 @@ High-level persistence facade for Pantry-distributed commands. Wraps `CommandDat
 from jarvis_command_sdk import JarvisStorage
 
 storage = JarvisStorage("my_command")
-storage.set("cache:Miami", {"temp": 75})
+storage.save("cache:Miami", {"temp": 75})
 data = storage.get("cache:Miami")
 all_data = storage.get_all()
 ```

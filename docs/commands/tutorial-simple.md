@@ -11,7 +11,7 @@ Create a new file at `jarvis-node-setup/commands/dice_command.py`:
 ```python
 from typing import List
 
-from core.ijarvis_command import IJarvisCommand, CommandExample
+from jarvis_command_sdk import IJarvisCommand, CommandExample
 from core.ijarvis_parameter import JarvisParameter
 from core.ijarvis_secret import IJarvisSecret
 from core.command_response import CommandResponse
@@ -187,7 +187,7 @@ Here is the full `dice_command.py`:
 import random
 from typing import List
 
-from core.ijarvis_command import IJarvisCommand, CommandExample
+from jarvis_command_sdk import IJarvisCommand, CommandExample
 from core.ijarvis_parameter import JarvisParameter
 from core.ijarvis_secret import IJarvisSecret
 from core.command_response import CommandResponse

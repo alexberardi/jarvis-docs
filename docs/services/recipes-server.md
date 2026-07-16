@@ -18,15 +18,16 @@ The recipes server provides CRUD operations for recipes and meal planning. It su
 | Method | Path | Description |
 |--------|------|-------------|
 | `GET` | `/health` | Health check |
-| `GET` | `/api/v0/recipes` | List recipes |
-| `GET` | `/api/v0/recipes/{id}` | Get a recipe |
-| `POST` | `/api/v0/recipes` | Create a recipe |
-| `PUT` | `/api/v0/recipes/{id}` | Update a recipe |
-| `DELETE` | `/api/v0/recipes/{id}` | Delete a recipe |
-| `POST` | `/api/v0/recipes/import-url` | Import a recipe from a URL |
-| `POST` | `/api/v0/recipes/import-image` | Import a recipe from an image (via OCR) |
-| `GET` | `/api/v0/meal-plans` | List meal plans |
-| `POST` | `/api/v0/meal-plans` | Create a meal plan |
+| `GET` | `/recipes` | List recipes |
+| `GET` | `/recipes/{id}` | Get a recipe |
+| `POST` | `/recipes` | Create a recipe |
+| `PATCH` | `/recipes/{id}` | Update a recipe |
+| `DELETE` | `/recipes/{id}` | Delete a recipe |
+| `POST` | `/recipes/import/url` | Import a recipe from a URL |
+| `POST` | `/recipes/import/image` | Import a recipe from an image (via OCR) |
+| `POST` | `/recipes/parse-url` | Parse a recipe URL synchronously (also `/parse-url/async` + `/jobs/{job_id}` for the async path) |
+| `POST` | `/meal-plans/generate/jobs` | Queue meal-plan generation (poll `GET /meal-plans/generate/jobs/{job_id}`) |
+| `GET` | `/planner/current` | Get the current meal plan (also `POST /planner/draft` + `/planner/commit`) |
 
 ## Key Components
 
@@ -37,7 +38,9 @@ The recipes server provides CRUD operations for recipes and meal planning. It su
 | Variable | Description |
 |----------|-------------|
 | `DATABASE_URL` | PostgreSQL connection string |
-| `JARVIS_AUTH_BASE_URL` | Auth service URL |
+| `AUTH_SECRET_KEY` | JWT validation key — must match jarvis-auth's `AUTH_SECRET_KEY` |
+| `JARVIS_CONFIG_URL` | Config service URL for service discovery |
+| `JARVIS_APP_ID` / `JARVIS_APP_KEY` | App-to-app credentials for outbound calls (OCR, LLM proxy) |
 
 ## Dependencies
 
