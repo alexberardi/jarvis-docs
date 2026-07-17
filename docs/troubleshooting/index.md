@@ -267,6 +267,14 @@ cd ~/.jarvis/compose && docker compose up -d mosquitto
 
 The default MQTT broker port is **1883** (internal) / **1884** (external). Verify the node's MQTT config points to the correct host and port.
 
+### MQTT stuck disconnected after a stale broker password (`rc=5`)
+
+**Symptom:** A node's MQTT connection never recovers -- no TTS playback and no MQTT-published data arrive -- even though HTTP voice commands still work and the logs never show an obvious error, just repeated silent reconnects.
+
+**Cause:** A broker CONNACK refusal (`rc=4` bad username/password, `rc=5` not authorized) means the node's cached broker credential is stale, typically after a reprovision to a different install. Before jarvis-node-setup#78, `on_connect` logged `MQTT connected` and subscribed on **every** CONNACK, including refusals -- so the failure was invisible in the logs -- and nothing ever refetched the credential, leaving the node flapping on the same rejected password roughly once a minute, forever.
+
+**Fix:** Since jarvis-node-setup#78, `on_connect` treats any `rc != 0` as a refusal (logs a warning, does not subscribe), and `rc` 4 or 5 triggers an automatic credential refresh from the command center over the still-working HTTP channel, applied via `username_pw_set()` so paho's next auto-reconnect uses the fresh password. A 5-minute cooldown keeps the refresh from hammering command-center during the flap. No manual action is needed -- the node self-heals within one reconnect cycle once the cooldown-throttled refresh completes. If a node still will not reconnect after several minutes, confirm it is running jarvis-node-setup#78 or later and that command-center's `/api/v0/node/mqtt-credentials` endpoint is reachable from the node.
+
 ### Node shows offline while actively serving commands
 
 **Symptom:** A node's status badge shows **Offline** in the admin dashboard, but it is responding to voice commands or MQTT requests, or SSH is reachable on the LAN.
