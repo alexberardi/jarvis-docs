@@ -16,7 +16,7 @@ The command center is the voice command orchestrator. It receives transcribed te
 ## API Endpoints
 
 | Method | Path | Description |
-|--------|------|-------------|
+|--------|------|--------------|
 | `GET` | `/health` | Health check |
 | `POST` | `/api/v0/voice/command` | Process a voice command (requires a warmed `conversation_id` from `POST /api/v0/conversation/start`) |
 | `POST` | `/api/v0/nodes/register` | Register a new node (admin) |
@@ -33,12 +33,26 @@ For household settings routes (e.g. web search toggle) see [Mobile Household Set
 
 For camera streaming routes see [Camera Streaming](#camera-streaming) below.
 
+## Blocking Voice Command Error Contract
+
+Added in jarvis-command-center#18. The blocking voice endpoints — `POST /api/v0/voice/command` and `POST /api/v0/voice/command/continue` — now return **422 Unprocessable Entity** for whole-request precondition failures (e.g. an unknown or expired `conversation_id`) instead of swallowing them into a `200` response with an `errors` payload.
+
+**Before:** a broad `except Exception` around both endpoints caught every exception, including precondition failures, and re-wrapped them as `200` `VoiceCommandResponse` bodies with an `errors` field — callers had to inspect the response body to detect a rejected request.
+
+**After:** a dedicated `ConversationPreconditionError` is raised for "conversation not found or expired" checks and mapped to `422` ahead of the broad exception handler. The inline "Conversation not initialized for tool-based flow" precondition also moved from `400` to `422` for consistency.
+
+**Unaffected:**
+
+- Legitimate per-command / partial-batch failures still return `200` with `commands[].success=false`.
+- Genuine internal errors are not remapped to `422`.
+- The non-blocking streaming endpoints (`/voice/command/stream`, `/voice/command/continue/stream`) keep their existing `200`-shaped partial-batch semantics — untouched by this change.
+
 ## Mobile Command-Data API
 
 The mobile app manages command records through a set of REST routes that proxy to the node's MQTT data-browser protocol. All routes require a valid mobile JWT.
 
 | Method | Path | Description |
-|--------|------|-------------|
+|--------|------|--------------|
 | `GET` | `/command-data/nodes` | List nodes visible to the authenticated user |
 | `GET` | `/command-data/nodes/{node_id}/commands/{command_name}/schema` | Fetch field schema for a command |
 | `GET` | `/command-data/nodes/{node_id}/commands/{command_name}/records` | List all records |
