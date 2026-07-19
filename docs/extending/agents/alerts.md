@@ -4,7 +4,7 @@ Alerts are time-sensitive notifications produced by [agents](index.md). While co
 
 ## The Alert Dataclass
 
-Defined in `jarvis-node-setup/core/alert.py`:
+Canonical definition lives in `jarvis_command_sdk.agent.Alert`. `jarvis-node-setup/core/alert.py` re-exports it as a shim so existing `from core.alert import Alert` call sites keep working:
 
 ```python
 from dataclasses import dataclass, field
@@ -21,6 +21,9 @@ class Alert:
     expires_at: datetime    # When the alert should be discarded (UTC)
     priority: int = 2       # 1=low, 2=medium, 3=high
     id: str = field(default_factory=lambda: str(uuid.uuid4()))
+    dedupe_key: str | None = None       # stable identity across re-emits (SDK 0.5.1+)
+    category: str = "general"           # routing key for per-source preferences (SDK 0.5.1+)
+    target_user_id: str | None = None   # single-member addressing; None = household-wide (SDK 0.5.1+)
 
     @property
     def is_expired(self) -> bool:
@@ -35,6 +38,9 @@ class Alert:
             "priority": self.priority,
             "created_at": self.created_at.isoformat(),
             "expires_at": self.expires_at.isoformat(),
+            "dedupe_key": self.dedupe_key,
+            "category": self.category,
+            "target_user_id": self.target_user_id,
         }
 ```
 
@@ -43,12 +49,15 @@ class Alert:
 | Field | Type | Description |
 |-------|------|-------------|
 | `source_agent` | `str` | The `name` of the agent that produced this alert. Used for log attribution. |
-| `title` | `str` | Short identifier. Also used as the **deduplication key** --- alerts with the same title (case-insensitive) are considered duplicates. |
+| `title` | `str` | Short identifier. Also used as the **deduplication key** for the node-local `AlertQueueService` (see below) --- alerts with the same title (case-insensitive) are considered duplicates. |
 | `summary` | `str` | Detailed description. This is what gets read aloud or displayed to the user. |
 | `created_at` | `datetime` | Creation timestamp in UTC. Used for ordering within the same priority level. |
 | `expires_at` | `datetime` | Expiration timestamp in UTC. After this time, `is_expired` returns `True` and the alert is filtered out of pending lists. |
 | `priority` | `int` | Priority level: **1** = low, **2** = medium (default), **3** = high. Higher priority alerts are returned first. |
-| `id` | `str` | Auto-generated UUID. Unique identifier for this alert instance. |
+| `id` | `str` | Auto-generated UUID. Unique identifier for this alert instance --- regenerates on every re-emit, so it cannot be used to detect a repeat. |
+| `dedupe_key` | `str \| None` | Stable identity across re-emits (added in SDK 0.5.1), e.g. an article guid or `"storm:2026-07-18"`. Unlike `id`, this survives a re-emitted alert unchanged, so downstream consumers --- including the command-center attention broker's cross-node/cross-restart dedup --- can suppress repeats. `None` by default. |
+| `category` | `str` | Routing key for per-source attention preferences (added in SDK 0.5.1). Defaults to `"general"`. |
+| `target_user_id` | `str \| None` | Addresses a single household member; `None` (default) means household-wide. Added in SDK 0.5.1. |
 
 ### Priority Levels
 
@@ -97,7 +106,7 @@ alert_queue.add_alert(alert)              Returns pending alerts
 
 **Thread safety:** All operations are protected by a `threading.Lock`. The scheduler thread adds alerts and the voice thread reads/flushes them without races.
 
-**Deduplication by title:** When `add_alert()` is called, it checks existing alerts for a case-insensitive title match. If a duplicate is found, the new alert is silently dropped. This prevents repeated agent runs from flooding the queue with identical alerts.
+**Deduplication by title:** When `add_alert()` is called, it checks existing alerts for a case-insensitive title match. If a duplicate is found, the new alert is silently dropped. This prevents repeated agent runs from flooding the queue with identical alerts. This is a separate, node-local mechanism from the `dedupe_key` field --- `dedupe_key` exists for consumers further downstream (e.g. the command-center attention broker) that need dedup to survive a node restart or span multiple nodes, which title-matching in this in-memory queue does not provide.
 
 **Maximum capacity (50 alerts):** If the queue exceeds 50 alerts after an add, it drops the lowest-priority, oldest alerts first. The eviction sort key is `(priority, -created_at)` --- low priority gets evicted before high priority, and within the same priority, older alerts are evicted first.
 
@@ -229,14 +238,17 @@ class ExampleAlertAgent(IJarvisAgent):
 
 3. **Deduplicate with title matching.** The queue deduplicates by title, so use consistent titles for the same type of alert. For example, always use "High memory usage" rather than "High memory usage (93%)" --- otherwise each percentage change creates a new alert.
 
-4. **Keep `get_alerts()` fast.** Build alert objects during `run()` and store them. The `get_alerts()` method should just return the pre-built list, not compute anything.
+4. **Set `dedupe_key` for anything that re-emits.** If an agent can produce the same logical alert across multiple runs (e.g. the same news article resurfacing), set `dedupe_key` to a stable identity. `id` alone will not catch the repeat since it regenerates every time.
 
-5. **Do not raise exceptions from `get_alerts()`.** The scheduler wraps alert collection in a try/except, but returning a clean list is better than relying on error handling.
+5. **Keep `get_alerts()` fast.** Build alert objects during `run()` and store them. The `get_alerts()` method should just return the pre-built list, not compute anything.
+
+6. **Do not raise exceptions from `get_alerts()`.** The scheduler wraps alert collection in a try/except, but returning a clean list is better than relying on error handling.
 
 ## Source Files
 
 | File | Description |
 |------|-------------|
-| `jarvis-node-setup/core/alert.py` | `Alert` dataclass |
+| `jarvis-command-sdk/jarvis_command_sdk/agent.py` | Canonical `Alert` dataclass (≥ 0.5.1 adds `dedupe_key`, `category`, `target_user_id`) |
+| `jarvis-node-setup/core/alert.py` | Re-export shim for `Alert` so existing `from core.alert import Alert` callers keep working |
 | `jarvis-node-setup/services/alert_queue_service.py` | `AlertQueueService` implementation |
 | `jarvis-node-setup/services/agent_scheduler_service.py` | Scheduler integration (calls `get_alerts()` after each run) |
