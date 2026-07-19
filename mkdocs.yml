@@ -145,6 +145,7 @@ nav:
     - Settings Server: services/settings-server.md
     - MCP: services/mcp.md
     - Notifications: services/notifications.md
+    - Phone Gateway: services/phone-gateway.md
     - Admin: services/admin.md
     - Installer: services/installer.md
     - Pantry Runner: services/pantry-runner.md
