@@ -55,7 +55,7 @@ Admin-issued temp passwords and self-service `change-password` both revoke **all
 
 Refresh tokens are **rotated on every `/auth/refresh` call** (since 2026-05). Each refresh mints a new refresh token chained to the previous one by a `family_id`. Clients **must** persist and use the newly returned refresh token — replaying an already-rotated token returns `401`.
 
-A 10-second in-process grace window (`REFRESH_TOKEN_GRACE_SECONDS`) lets a benign double-submit (two concurrent refresh callers, a lost response) re-get the cached successor without failing. This grace cache is in-process only — auth must stay **single-worker** until backed by Redis/Postgres.
+A grace window (setting key `auth.token.refresh_grace_seconds`, default 10s) lets a benign double-submit (two concurrent refresh callers, a lost response) re-get the cached successor without failing. This is now resolved live through the settings service — an admin can tune it via the config-service settings API without restarting auth — falling back to the `REFRESH_TOKEN_GRACE_SECONDS` env var, then the default, if no DB override is set. The successor cache the window checks against is still in-process only, so auth must stay **single-worker** until that cache is backed by Redis/Postgres.
 
 **Stale replay behavior (default):** a replay of an already-rotated token is rejected (`401`) but does **not** revoke the entire token family. The live tail of the chain keeps working, so the session survives auth restarts and benign double-submits over flaky connections. Enable strict whole-family revocation with `REFRESH_TOKEN_REVOKE_FAMILY_ON_REUSE=true` if you need theft detection and can accept periodic spurious logouts from mobile clients on unreliable links.
 
@@ -78,7 +78,7 @@ Generate strong values with `openssl rand -hex 32`.
 | `AUTH_ALGORITHM` | JWT signing algorithm (default `HS256`) |
 | `ACCESS_TOKEN_EXPIRE_MINUTES` | JWT access token TTL in minutes |
 | `REFRESH_TOKEN_EXPIRE_DAYS` | Refresh token TTL in days (default `14`). Keep `>=7` so mobile users are not logged out weekly. |
-| `REFRESH_TOKEN_GRACE_SECONDS` | Grace window for benign double-submits of a just-rotated token (default `10`). |
+| `REFRESH_TOKEN_GRACE_SECONDS` | Fallback for the [grace window](#token-rotation) (default `10`) when no `auth.token.refresh_grace_seconds` override exists in the settings service. Live DB overrides take effect without a restart; this env var only sets the default. |
 | `REFRESH_TOKEN_REVOKE_FAMILY_ON_REUSE` | When a stale rotated token is replayed, revoke the **entire token family** (default `false`). Off is recommended for most setups — a mobile client on a flaky link replays far more often than tokens are stolen. Enable only if you need stricter theft response and can tolerate the resulting spurious logouts. |
 | `TEMP_PASSWORD_EXPIRE_HOURS` | Expiry window for a superuser-issued temp password (default `24`). Login rejects an expired temp password with a distinct `401` telling the user to request a new one. |
 | `JARVIS_AUTH_ADMIN_TOKEN` | Token for admin endpoints — generate with `openssl rand -hex 32` |
