@@ -175,6 +175,7 @@ nav:
     - Nodes: mobile/nodes.md
     - Settings: mobile/settings.md
     - Inbox: mobile/inbox.md
+    - Phonebook: mobile/phonebook.md
     - Authentication: mobile/auth.md
   - Security:
     - security/index.md

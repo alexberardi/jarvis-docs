@@ -25,4 +25,5 @@ Additional screens are accessible from the header: **Settings** (gear icon), **I
 - [Nodes](nodes.md) --- Pi Zero node management and provisioning
 - [Settings](settings.md) --- Household, appearance, smart home config
 - [Inbox](inbox.md) --- Notifications and deep research results
+- [Phonebook](phonebook.md) --- Businesses Jarvis can call, with do-not-call control
 - [Authentication](auth.md) --- Login, registration, invite codes
