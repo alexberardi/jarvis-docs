@@ -33,6 +33,8 @@ For household settings routes (e.g. web search toggle) see [Mobile Household Set
 
 For camera streaming routes see [Camera Streaming](#camera-streaming) below.
 
+For the phonebook CRUD routes see [Mobile Phone Contacts API](#mobile-phone-contacts-api) below.
+
 ## Blocking Voice Command Error Contract
 
 Added in jarvis-command-center#18. The blocking voice endpoints — `POST /api/v0/voice/command` and `POST /api/v0/voice/command/continue` — now return **422 Unprocessable Entity** for whole-request precondition failures (e.g. an unknown or expired `conversation_id`) instead of swallowing them into a `200` response with an `errors` payload.
@@ -142,6 +144,63 @@ Any key not on the allowlist returns `404` — the allowlist is the security bou
 ```
 
 Values fall back to the code default when no override row exists in the DB — no seed data is required for new households.
+
+## Mobile Phone Contacts API
+
+Added in jarvis-command-center#63, closing the loop on the phone-calls PRD: `phone_contacts` previously had a reader (`resolve_contact`, used when building a call plan) but no writer, so contact resolution could never improve past the first manual entry. This PR adds a writer three ways: a web-search fallback after a phonebook miss, auto-save when a call completes, and a dedicated CRUD API so the mobile app can manage the phonebook directly.
+
+### Resolution behavior (context for API consumers)
+
+These aren't new endpoints, but they change what a client sees in a `PhoneContact` after a call:
+
+- **Web-search fallback.** When a call plan is created and the business isn't in the phonebook, command-center now searches the web for a number (gated on the household's `web_search.enabled` setting — fails closed on any error). It reuses `quick_search`'s provider/scrape wiring but takes `household_id` explicitly, since the plan step runs outside the conversation cache `quick_search` normally reads it from. Any candidate number is run through the same `normalize_us_number` validator the dialer uses, so emergency, short-code, and premium-rate numbers can never reach the confirm card. A found number (plus source URL and any nearby address) is attributed on the card as **from web search**, distinct from a phonebook hit — the human still eyeballs and can edit it before dialing.
+- **Auto-save on completed call** (`upsert_contact_from_call`). After a call reaches `state="done"`, the **dialed** number (not the originally resolved one) is written back to `phone_contacts` — a user correction on the confirm card is the most trustworthy signal available. `do_not_call` is never auto-cleared by a successful call. The write is idempotent per `(household_id, normalized_name)`. An entry with `source="web"` is promoted to `source="call"` once a real call against it succeeds, since a completed call outranks a search guess.
+
+### Endpoints
+
+Mounted at `/api/v0/mobile/household/{household_id}/phone-contacts`. User-JWT authenticated. Entries are **household-scoped** — any member may read and write, matching how household settings and rooms behave (not the per-user ownership model memories use). Cross-household ids return **404**, not 403 — existence of a contact id shouldn't be probeable from another household.
+
+| Method | Path | Auth | Description |
+|---|---|---|---|
+| `GET` | `/household/{household_id}/phone-contacts` | Household member | List all contacts for the household, sorted by name |
+| `POST` | `/household/{household_id}/phone-contacts` | Household member | Add a contact |
+| `PATCH` | `/household/{household_id}/phone-contacts/{contact_id}` | Household member | Edit a contact |
+| `DELETE` | `/household/{household_id}/phone-contacts/{contact_id}` | Household member | Remove a contact |
+
+**Contact fields** (`PhoneContactResponse`): `id`, `name`, `number`, `address`, `source` (`manual` \| `web` \| `call`), `line_type`, `do_not_call`, `notes`, `verified_at`, `created_at`.
+
+**GET response (200):**
+
+```json
+{ "contacts": [ { "id": "...", "name": "Tony's Pizza", "number": "+17325924183",
+  "address": null, "source": "call", "line_type": "landline",
+  "do_not_call": false, "notes": null, "verified_at": "...", "created_at": "..." } ] }
+```
+
+**POST request body:**
+
+```json
+{ "name": "Tony's Pizza", "number": "(732) 592-4183", "address": null, "notes": null }
+```
+
+`address` and `notes` are optional. On success the created contact is returned with `status 201`.
+
+**PATCH request body:** any subset of `{name, number, address, notes, do_not_call}`. Editing `number` re-validates and re-stamps `verified_at`/`source="manual"` (a hand-entered number is a fresh assertion about the business). Setting `do_not_call: true` blocks future calls to that entry.
+
+**DELETE:** `204 No Content` on success.
+
+**Error mapping:**
+
+| Condition | HTTP status |
+|---|---|
+| `number` fails `normalize_us_number` (invalid, emergency, premium-rate, etc.) | 400 |
+| `name` normalizes to empty (no letters or digits) | 400 |
+| Duplicate `name` within the household (create or rename) | 409 |
+| Contact id not found, or belongs to another household | 404 |
+
+### Migration
+
+`d4e5phone002` adds `phone_call_sessions.contact_address` — carries an address discovered by web search through to auto-save, which previously had nowhere to store it.
 
 ## Smart Home Devices
 
@@ -260,6 +319,8 @@ Both tools are gated behind the per-household `web_search.enabled` DB setting (*
 
 Household admins toggle the setting from **Household Settings** in the mobile app (see [Mobile Household Settings API](#mobile-household-settings-api) above). It can also be set via **Admin → Settings → web_search** in the command-center admin UI.
 
+Since jarvis-command-center#63, this same gate also controls the phone-call plan step's web-search fallback for phonebook misses — see [Mobile Phone Contacts API](#mobile-phone-contacts-api) above.
+
 ### Jina Reader Proxy — `web_scraping.allow_external`
 
 Added in jarvis-command-center#22. Deep research may encounter pages that reject direct fetches (paywalls, bot-blocks). The web scraper can fall back to the public **r.jina.ai** reader proxy, but that proxy receives the target URL — egress to a third party.
@@ -354,7 +415,7 @@ These settings are persisted in PostgreSQL and editable via **Admin → Settings
 
 | Key | Default | Description |
 |---|---|---|
-| `web_search.enabled` | `false` (per-household) | Master toggle for `quick_search` + `deep_research`. Fail-closed. See [Web Search](#web-search). |
+| `web_search.enabled` | `false` (per-household) | Master toggle for `quick_search` + `deep_research`, and (since #63) the phone-call plan step's web-search fallback. Fail-closed. See [Web Search](#web-search). |
 | `web_scraping.allow_external` | `false` (per-household) | Opt-in gate for the r.jina.ai reader-proxy fallback in deep research. Fail-closed. Household-admin controllable via mobile. See [Jina Reader Proxy](#jina-reader-proxy-web_scrapingallow_external). |
 | `updates.allow_check` | `false` (global) | Allow outbound version lookups to api.github.com for node release checks. Explicit version installs bypass this gate. Fail-closed. See [Update Checks](#update-checks). |
 
