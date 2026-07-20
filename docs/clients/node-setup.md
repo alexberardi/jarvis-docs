@@ -46,6 +46,7 @@ jarvis-node-setup/
 ├── services/
 │   ├── secret_service.py      # Encrypted secret management
 │   ├── mqtt_tts_listener.py   # MQTT TTS listener
+│   ├── context_handler.py     # Plan-time context queries over MQTT (see below)
 │   ├── agent_scheduler_service.py  # Background agent scheduling
 │   ├── alert_queue_service.py # Proactive alert queue + button announce
 │   ├── button_service.py      # ReSpeaker GPIO17 button handler
@@ -255,6 +256,103 @@ The `*` is in the argument position (not the binary path), so only `jarvis-apt-i
 
 !!! tip "Wrapper missing?"
     If node logs show `apt wrapper missing at /usr/local/sbin/jarvis-apt-install`, re-run `install.sh` to redeploy the wrapper.
+
+## Plan-Time Context Queries (MQTT)
+
+Added in jarvis-node-setup#79. `services/context_handler.py` is a generic MQTT handler that lets server-side planners (jarvis-command-center) ask the node's installed commands for typed, read-only context **before** acting — the first consumer is the phone-call plan-draft step asking the calendar command for an `availability` operation so the confirm card carries a real constraint envelope instead of a fill-me-in placeholder.
+
+Cloned from the proven `command_data_handler` contract (the mobile data-browser protocol — see [Mobile Command-Data API](../services/command-center.md#mobile-command-data-api)): `correlation_id` in, response published on `{request_topic}/response/{correlation_id}`, subscribe-before-publish on the command-center side.
+
+Requires **`jarvis-command-sdk >= 0.6.0`**. See [jarvis-command-sdk: Context Provider Hooks](../libraries/command-sdk.md#context-provider-hooks) for the command-authoring side — `context_operations`, `execute_context_operation`, `ContextOperation`, `ContextResult`.
+
+### Topics
+
+Both topics are routable under the node's wildcard subscription `jarvis/nodes/{node_id}/#`. The op set here is static (two topics); the context *operations* themselves are dynamic — the operation name travels in the payload, not the topic, so installing a new provider command needs no listener change.
+
+| Topic | Purpose |
+|---|---|
+| `jarvis/nodes/{node_id}/context/operations` | Discovery — list every context op declared by every installed command |
+| `jarvis/nodes/{node_id}/context/query` | Run one declared op and return its result |
+
+### `context/operations` — discovery
+
+Request:
+
+```json
+{ "correlation_id": "..." }
+```
+
+Response, published to `.../context/operations/response/{correlation_id}`:
+
+```json
+{
+  "ok": true,
+  "providers": [
+    {
+      "command_name": "calendar",
+      "operations": [
+        {
+          "name": "availability",
+          "description": "Free/busy windows",
+          "params_schema": {
+            "start": { "type": "string", "required": true, "description": "ISO" },
+            "end": { "type": "string", "required": true, "description": "ISO" }
+          }
+        }
+      ]
+    }
+  ]
+}
+```
+
+Only commands that declare at least one context operation appear in `providers`. If `correlation_id` is missing, the node publishes nothing (there's no topic to answer on).
+
+### `context/query` — run one operation
+
+Request:
+
+```json
+{
+  "correlation_id": "...",
+  "command": "calendar",
+  "operation": "availability",
+  "params": { "start": "2026-07-20", "end": "2026-07-27" }
+}
+```
+
+`command` is optional — see Provider resolution below.
+
+Response, published to `.../context/query/response/{correlation_id}`:
+
+```json
+{
+  "ok": true,
+  "data": { "busy": ["Thu 15:30-16:00"], "free": ["Thu 14:00-15:30"] },
+  "error": null,
+  "command_name": "calendar",
+  "operation": "availability"
+}
+```
+
+### Provider resolution
+
+- **`command` given:** that command must be installed and declare the requested operation, or the node responds with a typed error.
+- **`command` omitted:** the first installed command whose `context_operations` declares the requested operation name answers it — a planner can ask for `availability` without knowing which package provides it.
+
+### Failure responses
+
+Every failure path still publishes a response — a silent drop would look to command-center like a node-offline timeout rather than a bad request, and the planner would degrade for the wrong reason.
+
+| Condition | Response |
+|---|---|
+| Missing/invalid `operation`, or non-object `params` | `{"ok": false, "error": "..."}` — rejected before any provider lookup |
+| No installed command declares the operation | `{"ok": false, "error": "no installed command provides '<op>'", "code": "no_provider"}` — a typed code so command-center can distinguish this from a transport failure |
+| Named `command` not installed | `{"ok": false, "error": "command '<name>' not installed"}` |
+| Required params missing (`ContextOperation.missing_required`) | `{"ok": false, "error": "missing required params: ..."}` — rejected before the provider is invoked |
+| Provider's `execute_context_operation` raises | `{"ok": false, "error": "<command>.<operation> failed: <exception>"}` — the exception never crashes the listener thread |
+| Result serializes to more than 128 KB | `{"ok": false, "error": "context result too large"}` — caps a runaway provider so it can't wedge the broker or blow command-center's request timeout |
+
+Malformed input that can't be tied to a `correlation_id` is dropped rather than answered: invalid JSON, non-object payloads, and topic ops outside `{operations, query}` all no-op instead of publishing.
 
 ## Built-in Commands
 
