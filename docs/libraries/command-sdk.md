@@ -3,7 +3,7 @@
 The `jarvis-command-sdk` Python package is the foundation for building Jarvis voice commands. It defines the `IJarvisCommand` interface that all Pantry-distributed and built-in commands implement, along with supporting types such as `FieldSpec` and `JarvisStorage`.
 
 **Package:** `jarvis-command-sdk`  
-**Current version:** `0.5.0`  
+**Current version:** `0.6.0`  
 **Install:** `pip install jarvis-command-sdk`
 
 ## Core Interfaces
@@ -18,7 +18,7 @@ All commands extend `IJarvisCommand`. Required overrides:
 | `description` | `str` (property) | One-line natural-language description for the LLM |
 | `run(**kwargs)` | `CommandResponse` | Executes the command |
 
-For commands that expose structured data records to the mobile app, see [Data Browser Hooks](#data-browser-hooks).
+For commands that expose structured data records to the mobile app, see [Data Browser Hooks](#data-browser-hooks). For commands that expose read-only, plan-time queries to server-side planners, see [Context Providers](#context-providers).
 
 ### `FieldSpec`
 
@@ -117,10 +117,95 @@ Marks a field as settable at record creation but immutable on edit (e.g. record 
 | Patchable via update op | ✓ | ✗ (silently dropped) |
 | Shown in edit form | ✓ | ✗ |
 
+## Context Providers
+
+Commands can declare typed, read-only queries that server-side planners (e.g. jarvis-command-center) can issue **at plan time only** — never during a live phone call, since the callee is untrusted input. Provider logic stays node-side so credentials never leave the node. Both hooks default to no-op/honest-failure, so existing commands are unaffected.
+
+Requires **`jarvis-command-sdk >= 0.6.0`**.
+
+### `IJarvisCommand.context_operations`
+
+```python
+@property
+def context_operations(self) -> list[ContextOperation]:
+    return []   # default
+```
+
+Commands override this to declare the operations they support.
+
+### `IJarvisCommand.execute_context_operation(operation, params)`
+
+```python
+def execute_context_operation(
+    self,
+    operation: str,
+    params: dict[str, Any],
+) -> ContextResult:
+    ...
+```
+
+Default implementation returns `ContextResult.failed(f"{command_name} does not implement '{operation}'")`.
+
+### `ContextOperation`
+
+```python
+from jarvis_command_sdk import ContextOperation
+
+ContextOperation(
+    name: str,
+    description: str,
+    params_schema: dict[str, dict[str, Any]] = {},
+    # flat map: {"param_name": {"type": str, "required": bool, "description": str}}
+)
+```
+
+`to_dict()` → `{"name", "description", "params_schema"}`.  
+`missing_required(params)` → list of required param names absent from `params`.
+
+### `ContextResult`
+
+```python
+from jarvis_command_sdk import ContextResult
+
+ContextResult(
+    data: dict[str, Any] = {},
+    error: str | None = None,
+)
+```
+
+`ok` property is `True` iff `error is None`. `to_dict()` → `{"ok", "data", "error"}`. `ContextResult.failed(error: str)` classmethod builds a failed result. `data` must be JSON-serialisable — it crosses MQTT to reach the requesting planner.
+
+### Example
+
+```python
+AVAILABILITY = ContextOperation(
+    name="availability",
+    description="Free/busy windows in a date range",
+    params_schema={
+        "start": {"type": "string", "required": True, "description": "ISO date"},
+        "end": {"type": "string", "required": True, "description": "ISO date"},
+        "granularity": {"type": "string", "required": False, "description": "…"},
+    },
+)
+
+class CalendarCommand(IJarvisCommand):
+    @property
+    def context_operations(self):
+        return [AVAILABILITY]
+
+    def execute_context_operation(self, operation, params):
+        if operation != "availability":
+            return ContextResult.failed(f"unknown op {operation}")
+        return ContextResult(data={"busy": [], "free": ["Thu 14:00-17:00"]})
+```
+
+See jarvis-node-setup's MQTT context-query handler and jarvis-command-center's `context_provider_client` for how planners discover and call providers over the wire.
+
 ## Changelog
 
 | Version | What changed |
 |---------|-------------|
+| 0.6.0 | `context_operations`, `execute_context_operation`, `ContextOperation`, `ContextResult` — see [Context Providers](#context-providers) |
 | 0.5.0 | `IJarvisDeviceProtocol.get_stream_source` optional async camera-streaming hook — see [Device Protocols](../extending/devices/protocols.md#get_stream_source--camera-streaming-hook-sdk-v050) |
 | 0.4.1 | `data_browser_supports_create`, `data_browser_create`, `FieldSpec.create_only` |
 | ≤ 0.3.x | `FieldSpec`, `JarvisStorage`, `data_browser_mode`, `display_summary` |
