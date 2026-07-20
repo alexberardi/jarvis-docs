@@ -33,6 +33,8 @@ For household settings routes (e.g. web search toggle) see [Mobile Household Set
 
 For camera streaming routes see [Camera Streaming](#camera-streaming) below.
 
+For outbound phone-call routes see [Phone Calls](#phone-calls) below.
+
 ## Blocking Voice Command Error Contract
 
 Added in jarvis-command-center#18. The blocking voice endpoints — `POST /api/v0/voice/command` and `POST /api/v0/voice/command/continue` — now return **422 Unprocessable Entity** for whole-request precondition failures (e.g. an unknown or expired `conversation_id`) instead of swallowing them into a `200` response with an `errors` payload.
@@ -191,6 +193,20 @@ Reworked in jarvis-command-center#38 (the last of a 4-repo change: jarvis-comman
 | `GET` | `/api/v0/cameras/stream/{stream_name}/{path}` | Household member (stream owner) | Proxy HLS/MP4 segments from go2rtc |
 
 The HLS proxy restricts `{path}` to media file suffixes (`.m3u8`, `.ts`, `.mp4`, `.m4s`, `.aac`, `.vtt`, `.key`) so it cannot be pivoted to go2rtc control endpoints like `/api/config`, which would disclose every household's camera/OAuth credentials.
+
+## Phone Calls
+
+Command-center can place outbound phone calls on a household's behalf via jarvis-phone-gateway. `GET /api/v0/phone-sessions/{session_id}` returns the session's state, including `contact_address` (the address resolved for the call, if any) alongside `contact_name`, `dialed_number`, `goal`, and `details`.
+
+### Outcome Card Fact Rendering Fix (jarvis-command-center#64)
+
+**Bug fix.** `post_outcome_card` (`app/services/phone_call_service.py`) rendered a call's outcome by iterating `outcome["facts"]` as a dict. jarvis-phone-gateway actually sends `facts` as a **list** of statements, so this raised `AttributeError: 'list' object has no attribute 'items'` mid-render — a completed call with a good stored summary delivered no outcome card at all.
+
+Rendering now handles all three shapes: a `list` renders each item as its own bullet, a `dict` renders `key: value` bullets (legacy/back-compat), and a scalar renders as a single bullet. An empty/falsy `facts` value omits the "What the business said" block entirely.
+
+### Address in Call Brief (jarvis-command-center#64)
+
+The call brief passed to the phone agent is the complete set of facts it may state — an address absent from the brief is an address the model will invent. When a resolved address is known (phonebook contact first, then web search), `create_call_plan` now appends `Address if asked: <address>` to the brief and the resolved address is stored as `contact_address` on the session, preferring the phonebook's verified address over a web-search result when both are available.
 
 ## Key Components
 
