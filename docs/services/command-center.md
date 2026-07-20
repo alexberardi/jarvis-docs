@@ -192,6 +192,50 @@ Reworked in jarvis-command-center#38 (the last of a 4-repo change: jarvis-comman
 
 The HLS proxy restricts `{path}` to media file suffixes (`.m3u8`, `.ts`, `.mp4`, `.m4s`, `.aac`, `.vtt`, `.key`) so it cannot be pivoted to go2rtc control endpoints like `/api/config`, which would disclose every household's camera/OAuth credentials.
 
+## Phone Calls
+
+Added in jarvis-command-center#61, building on the context-provider capability introduced by jarvis-command-sdk#7 (`jarvis-command-sdk >= 0.6.0`). The phone-call plan-draft step (`create_call_plan` in `app/services/phone_call_service.py`) can pull real, plan-time context from a household's nodes before the confirm card is shown to the user.
+
+### Context Provider Client (`app/services/context_provider_client.py`)
+
+`query_context(household_id, operation, params, *, command=None, timeout_s=8.0, db=None) -> ContextAnswer` asks a household's nodes for one typed [context operation](../libraries/command-sdk.md#context-provider-hooks).
+
+**Behaviour:**
+
+- **Transport:** the same subscribe-before-publish round trip (`MQTTClient.request_response`) used by the mobile command-data browser, against `jarvis/nodes/{node_id}/context/query`. The operation name travels in the payload, not the topic, so a newly installed provider needs no command-center change.
+- **Node selection:** tries the household's active nodes in liveness order — online nodes first, then offline ones by most-recently-seen (an offline node may still answer MQTT; the cost of trying is one timeout).
+- **`no_provider` falls through:** a node that reports `code: "no_provider"` doesn't have the queried command installed — that's not a failure, so the next node is tried. Any other node-side error (e.g. "iCloud unreachable") stops the search and is reported as-is.
+- **Never raises.** Every path — no nodes in the household, MQTT client unavailable, timeout, a malformed (non-JSON) response, or a real node-side error — returns a `ContextAnswer` with `ok=False` and a human-readable `error`.
+
+```python
+@dataclass
+class ContextAnswer:
+    ok: bool
+    data: dict[str, Any]
+    error: str | None
+    node_id: str | None
+    command_name: str | None
+```
+
+### Availability Envelope (`apply_availability_envelope`)
+
+`apply_availability_envelope(*, household_id, goal, details) -> str` bakes real calendar availability into a call brief for scheduling-shaped goals (`is_scheduling_goal` matches hints like "book", "schedule", "appointment", "reservation").
+
+**Flow:**
+
+1. Non-scheduling goals, or goals where the user (or the model) already supplied real times, are returned unchanged.
+2. Otherwise it calls `query_context(household_id, "availability", {"start": today, "end": today + 7 days})`.
+3. A successful answer is rendered into the brief as:
+   ```
+   Acceptable times: Thu 2-5pm; Fri after 4
+   Do not book: Thu 3:30 soccer
+   ```
+4. Any failure mode — no node, no calendar command installed, broker down, a malformed answer, or an exception during the lookup — degrades to a placeholder line (`Acceptable times: (calendar unavailable — fill in your availability)`) rather than blocking plan creation.
+
+**Why plan-time only:** context enters the brief here and only here. The call loop itself never gets a live calendar tool — the callee on a phone call is untrusted input, so a live context tool would be both an exfiltration channel and a re-opened prompt-injection surface. The user reviews (and can edit) the rendered envelope on the confirm card before the call is placed.
+
+**Reference provider:** `jarvis-cmd-calendar`'s `ReadCalendarCommand` implements the `availability` operation this section consumes — see [Building Commands: Pantry-Installable Commands](../commands/index.md#pantry-installable-commands).
+
 ## Key Components
 
 - **Prompt Engine** (`app/core/prompt_engine.py`) -- builds system prompts with speaker context and memories
