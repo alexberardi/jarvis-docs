@@ -88,6 +88,19 @@ Since jarvis-node-setup#55, every service URL a node needs — command-center, t
 - **Callers retry, they don't degrade.** The voice listener (`main.py`) distinguishes `ServiceUnresolvedError` (config-service down → retry indefinitely with capped exponential backoff, self-heals when it returns) from audio failures (bounded retry, then falls through to headless — a broken mic won't self-heal). The MQTT connect loop (`mqtt_tts_listener.py`) re-attempts discovery init and re-resolves the broker on every retry, so it's promoted from a failed first attempt to the real address as soon as config-service comes back — unbounded retries with capped backoff (up to 60 s), never "continuing without MQTT".
 - `config.json`'s `jarvis_config_service_url` is now the **only** thing read from JSON — the node's one bootstrap address. It is never used as a service-URL fallback.
 
+### LAN Override (`JARVIS_<SERVICE>_LAN_URL`)
+
+There's one deliberate escape hatch to the config-service-only rule. A per-service `JARVIS_<SERVICE>_LAN_URL` env short-circuits config-service for that service:
+
+```bash
+# .env — for a node on the same LAN as the server
+JARVIS_COMMAND_CENTER_LAN_URL=http://10.0.0.107:7703
+```
+
+config-service hands back the **cloud relay** URLs to every consumer, so a node co-located with the server would otherwise round-trip its audio through the internet and back — ~2s per turn — to reach a whisper instance a few feet away. The override keeps it on the wire (~7ms). This is the single biggest voice-latency lever for co-located nodes.
+
+It's **per-node and per-service**: remote and multi-household nodes leave it unset and keep resolving through config-service (the relay) exactly as before, so nothing about remote access changes. Only `command-center` matters for the voice hot path — the node proxies whisper and TTS through it. `JARVIS_CONFIG_URL` can likewise point config-service itself at the LAN box. (Node v0.1.152+.)
+
 ### URL Rewrite Style (`JARVIS_CONFIG_URL_STYLE`)
 
 config-service returns each service's registered coordinates as-is; whether those need rewriting for this node to actually reach them depends on the node's vantage point relative to the stack. `utils/config_env.py` computes the style from the config-service host and both entrypoints apply it the same way:
