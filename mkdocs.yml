@@ -63,6 +63,12 @@ markdown_extensions:
   - pymdownx.inlinehilite
   - pymdownx.snippets
   - pymdownx.mark
+  # Renders `:fontawesome-brands-discord:` / `:material-*:` icon shortcodes as
+  # SVGs (used by the homepage hero buttons + footer social links). Without this
+  # they render as literal text. Path is material.extensions.emoji (Material 9.4+).
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
   - attr_list
   - md_in_html
   - tables
