@@ -130,11 +130,20 @@ Node (mic) --> Whisper --> {text, speaker: {user_id, confidence}}
                      LLM can call: remember({content: "..."}) / forget({content_match: "..."})
 ```
 
-## Performance Target
+## Performance
 
-Total end-to-end latency target: **< 5 seconds** including:
+A full turn — you stop talking → Jarvis starts talking — runs in **~2.4 seconds** on a node co-located with the server, fully local (a 14B live model), no cloud inference. Where the time goes on that path:
 
-- Whisper transcription
-- Date context extraction
-- Command inference (tool routing)
-- Command execution and response
+| Stage | Time |
+|-------|------|
+| Endpointing (silence detection) | ~0.5s |
+| Transcription (audio upload + Whisper) | ~0.6s |
+| First LLM call (tool decision, KV-cache hit) | ~0.3s |
+| Act + speak (tool execution + TTS start) | ~0.7s |
+
+Two things dominate a *slow* turn, and neither is the model:
+
+- **Routing.** A node round-tripping audio through the cloud relay instead of the LAN adds ~2s per turn. Co-located nodes override to the LAN directly with `JARVIS_COMMAND_CENTER_LAN_URL` (see [node setup](../clients/node-setup.md)).
+- **Prefix-cache eviction.** The heavy static prompt (system prompt + tool definitions) is warmed into llama.cpp's KV cache; any interleaved LLM call on the single slot evicts it and forces a cold reprefill (~2.4s vs ~0.3s). Keep throwaway calls (wake greetings, background acks) off the critical path.
+
+Whisper itself transcribes a command in ~70ms — the transcription cost is almost entirely transport, not the model. Swapping to a smaller model saves nothing.
