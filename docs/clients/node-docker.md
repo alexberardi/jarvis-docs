@@ -165,9 +165,91 @@ The compose above is deliberately minimal. Three additions matter for anything b
 | `JARVIS_MASTER_KEY` | Supply the SQLCipher DB key externally instead of the auto-generated `db.key`. |
 | `JARVIS_<CONFIG_KEY>` | Override any `config.json` key — e.g. `JARVIS_ROOM`, `JARVIS_MQTT_ENABLED`. |
 
-### Voice mode
+## Voice mode
 
-The `:latest` image can't do voice — the audio stack (PyAudio, openWakeWord) isn't in it. Running a *voice* node in Docker needs the audio image plus host audio-device passthrough; in practice, voice nodes run on [Pi Zero hardware](node-setup.md) rather than in a container. Use the text-mode container for headless/REST scenarios.
+The `:latest` image is text-only. For a **real voice node** — wake word, microphone capture, and spoken responses — build the separate **audio image** and pass the host's audio through. This works on a **Linux** host with a running sound server and a mic/speaker (a desktop or server, not a Pi — Pi Zeros use the [native install](node-setup.md); macOS Docker Desktop can't pass host audio through at all).
+
+The audio image (`Dockerfile.audio`) layers the voice stack — PyAudio, openWakeWord (with wake models pre-baked), and ALSA/PulseAudio tooling — on top of the base node, and bakes in `JARVIS_NODE_MODE=voice`. It isn't published to a registry yet, so you **build it locally**; it needs the sibling `jarvis-command-sdk` repo as a build context.
+
+Audio reaches the container two ways at once — **`/dev/snd`** for microphone capture and the host's **PulseAudio/PipeWire socket** for playback — split across a base file and a PulseAudio overlay:
+
+```yaml title="docker-compose.audio.yaml — capture via /dev/snd"
+services:
+  jarvis-node-audio:
+    build:
+      context: .
+      dockerfile: Dockerfile.audio
+      additional_contexts:
+        jarvis-command-sdk: ../jarvis-command-sdk   # sibling repo, as a build context
+    container_name: jarvis-node-audio
+    restart: unless-stopped
+    ports:
+      - "7771:7771"
+    devices:
+      - "/dev/snd:/dev/snd"        # ALSA — microphone + speaker
+    group_add:
+      - "audio"                    # /dev/snd access inside the container
+    environment:
+      JARVIS_NODE_DB: /data/jarvis_node.db
+      JARVIS_SECRET_DIRECTORY: /data
+      # JARVIS_NODE_MODE=voice and JARVIS_NODE_OS=LINUX are baked into the audio image
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - jarvis-node-config:/config
+      - jarvis-node-data:/data
+      - jarvis-node-packages:/root/.jarvis/packages
+
+volumes:
+  jarvis-node-config:
+  jarvis-node-data:
+  jarvis-node-packages:
+```
+
+```yaml title="docker-compose.pulse.yaml — playback via the host sound server"
+services:
+  jarvis-node-audio:
+    environment:
+      PULSE_SERVER: unix:/run/user/${JARVIS_HOST_UID:-1000}/pulse/native
+      XDG_RUNTIME_DIR: /run/user/${JARVIS_HOST_UID:-1000}
+      JARVIS_AUDIO_OUTPUT_DEVICE: pulse
+    volumes:
+      - /run/user/${JARVIS_HOST_UID:-1000}/pulse/native:/run/user/${JARVIS_HOST_UID:-1000}/pulse/native
+```
+
+Build once, then bring it up with `JARVIS_HOST_UID` set to your login uid (so the PulseAudio socket path lines up):
+
+```bash
+# 1. Build the audio image (needs ../jarvis-command-sdk alongside this repo)
+docker compose -f docker-compose.audio.yaml build
+
+# 2. Start (base + pulse overlay)
+JARVIS_HOST_UID=$(id -u) docker compose \
+  -f docker-compose.audio.yaml -f docker-compose.pulse.yaml up -d
+
+# 3. First boot has no credentials → pair via the wizard at http://<host>:7771,
+#    then restart so it boots into the voice runtime:
+JARVIS_HOST_UID=$(id -u) docker compose \
+  -f docker-compose.audio.yaml -f docker-compose.pulse.yaml restart
+```
+
+Once provisioned, the baked-in `JARVIS_NODE_MODE=voice` sends the entrypoint into the full audio runtime: **openWakeWord** listens for the wake word (`hey_jarvis` by default), captures the utterance, routes it through command-center, and plays the spoken reply back through the host speaker.
+
+### Selecting the mic
+
+Device selection is by env (each maps to a `config.json` setting), typically kept in an `audio.env` file the base compose references:
+
+| Variable | Purpose |
+|---|---|
+| `JARVIS_MIC_DEVICE_NAME` | Substring-match the capture device by name, e.g. `Arctis` (or `JARVIS_MIC_DEVICE_INDEX` for an explicit index). |
+| `JARVIS_AUDIO_OUTPUT_DEVICE` | Playback device; `pulse` routes through the host sound server (set by the overlay). |
+| `JARVIS_MIC_SAMPLE_RATE` | Capture rate (default 48000, resampled to 16 kHz for wake detection). |
+
+!!! warning "Host prerequisites & the socket-timing trap"
+    - **Linux only** — macOS Docker Desktop can't pass host audio through.
+    - A **running sound server** (PulseAudio/PipeWire) under your login session, with `JARVIS_HOST_UID` set to that uid so `/run/user/<uid>/pulse/native` exists and matches.
+    - **The PulseAudio socket must exist *before* the container starts.** With `restart: unless-stopped`, a host reboot or graphical logout removes the socket, and the next start dies with a runc mount error (`Exited (127)`). Start the node only after your desktop session / sound server is up.
+    - The host user does **not** need to be in the `audio` group — `group_add: audio` grants it inside the container.
 
 ## Operating it
 
