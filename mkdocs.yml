@@ -164,6 +164,7 @@ nav:
   - Clients:
     - clients/index.md
     - Node Setup: clients/node-setup.md
+    - Node in Docker: clients/node-docker.md
     - Node Mobile: clients/node-mobile.md
     - Provisioning: clients/provisioning.md
   - Mobile App:

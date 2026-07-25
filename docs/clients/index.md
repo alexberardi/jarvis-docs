@@ -17,6 +17,10 @@ graph TD
 
 The primary voice interface. Runs on Raspberry Pi Zero hardware with a microphone and speaker. Handles wake word detection, audio capture, and sends voice commands to the command center. Receives spoken responses via MQTT.
 
+### [Node in Docker](node-docker.md)
+
+The same node codebase as a container — headless (text mode), driven over a REST API instead of a microphone. Runs anywhere Docker runs (a laptop on the LAN, a dev box, or alongside the server stack). Good for demos, development, and integration tests.
+
 ### [Mobile App (jarvis-node-mobile)](node-mobile.md)
 
 iOS and Android app built with React Native/Expo. Used for node provisioning (QR code scanning, WiFi setup), settings management, push notifications, and the deep research inbox.
