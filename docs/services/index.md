@@ -16,6 +16,7 @@ Jarvis is composed of small, focused microservices. Each runs as a Docker contai
 | [OCR Service](ocr-service.md) | 7031 | OCR with multiple backends | 3 - Specialized |
 | [Recipes Server](recipes-server.md) | 7030 | Recipe CRUD and meal planning | 3 - Specialized |
 | [Notifications](notifications.md) | 7712 | Push notifications and inbox | 3 - Specialized |
+| [Phone Gateway](phone-gateway.md) | 7713 | Outbound phone calls via Twilio (optional) | 3 - Specialized |
 | [Settings Server](settings-server.md) | 7708 | Settings aggregator (deprecation candidate — use config-service `/v1/settings/*`) | 4 - Management |
 | [MCP](mcp.md) | 7709 | Claude Code integration (potentially deprecated) | 4 - Management |
 | [Admin](admin.md) | 7711 (native) / 7710 (Docker) | Web admin UI + setup wizard | 5 - Clients |
@@ -32,7 +33,7 @@ Services are organized into tiers based on how foundational they are:
 - **Tier 0 (Foundation)** -- Must be running for anything to work. Config Service and PostgreSQL.
 - **Tier 1 (Core Infrastructure)** -- Auth and Logs. Most services depend on auth; logs degrade gracefully.
 - **Tier 2 (Command Processing)** -- Command Center and LLM Proxy. The voice command pipeline.
-- **Tier 3 (Specialized)** -- Domain services (whisper, TTS, OCR, recipes, notifications). Each is independently optional.
+- **Tier 3 (Specialized)** -- Domain services (whisper, TTS, OCR, recipes, notifications, phone gateway). Each is independently optional.
 - **Tier 4 (Management)** -- Settings, MCP, admin tools. Used for configuration and development.
 - **Tier 5 (Clients)** -- End-user interfaces (admin web UI, mobile app, Pi nodes).
 
@@ -63,6 +64,7 @@ graph TD
         OCR[OCR Service<br/>7031]
         RECIPES[Recipes Server<br/>7030]
         NOTIF[Notifications<br/>7712]
+        PHONE[Phone Gateway<br/>7713]
     end
 
     subgraph "Tier 4 - Management"
@@ -101,6 +103,14 @@ graph TD
     NOTIF --> CONFIG
     NOTIF --> LOGS
     NOTIF --> PG
+    PHONE --> AUTH
+    PHONE --> CONFIG
+    PHONE --> CC
+    PHONE --> WHISPER
+    PHONE --> LLM
+    PHONE --> TTS
+    PHONE --> REDIS
+    PHONE --> MINIO
 
     %% Tier 4
     SETTINGS --> CONFIG
@@ -116,6 +126,7 @@ graph TD
     CC -.-> WHISPER
     CC -.-> NOTIF
     CC -.-> TTS
+    CC -.-> PHONE
 ```
 
 ## Critical Path: Voice Commands
