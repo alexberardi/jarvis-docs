@@ -8,6 +8,7 @@ The Jarvis mobile app is built with Expo/React Native and runs on iOS and Androi
 - **Settings sync** -- View and edit node command settings via encrypted snapshots (K2 key)
 - **Push notifications** -- Receive alerts from Jarvis services (via `jarvis-notifications`)
 - **Inbox** -- Browse deep research results and other long-form content
+- **Phonebook** -- Manage the businesses Jarvis can call, including a do-not-call safety toggle
 - **Home Assistant** -- Device discovery and smart home control
 - **Node management** -- View paired nodes, rooms, and device status
 
@@ -76,6 +77,7 @@ jarvis-node-mobile/
 │   │   ├── SmartHome/         # Home Assistant integration
 │   │   ├── ImportKey/         # K2 key import
 │   │   ├── Inbox/             # Deep research results
+│   │   ├── Phonebook/         # Businesses Jarvis can call
 │   │   └── Settings/          # App settings
 │   ├── navigation/            # Tab layout + stack navigators
 │   ├── services/
@@ -143,6 +145,10 @@ The Inbox tab displays long-form results from deep research queries and other as
   ![Inbox detail](../assets/images/screenshots/inbox.png){ width="300" loading=lazy }
   <figcaption>Inbox items with category chips (deep research, alert, reminder) and relative timestamps</figcaption>
 </figure>
+
+## Phonebook
+
+The Phonebook screen (Settings → Phonebook) manages the businesses Jarvis is allowed to call, backed by the command center's phone-contacts API. See [Mobile App: Phonebook](../mobile/phonebook.md) for details on the list/add/edit UI, provenance badges, and the do-not-call safety toggle.
 
 ## Development
 
