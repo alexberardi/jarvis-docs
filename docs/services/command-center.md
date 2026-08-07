@@ -33,6 +33,8 @@ For household settings routes (e.g. web search toggle) see [Mobile Household Set
 
 For camera streaming routes see [Camera Streaming](#camera-streaming) below.
 
+For phone-call routes see [Phone Calls](#phone-calls) below.
+
 ## Blocking Voice Command Error Contract
 
 Added in jarvis-command-center#18. The blocking voice endpoints — `POST /api/v0/voice/command` and `POST /api/v0/voice/command/continue` — now return **422 Unprocessable Entity** for whole-request precondition failures (e.g. an unknown or expired `conversation_id`) instead of swallowing them into a `200` response with an `errors` payload.
@@ -191,6 +193,61 @@ Reworked in jarvis-command-center#38 (the last of a 4-repo change: jarvis-comman
 | `GET` | `/api/v0/cameras/stream/{stream_name}/{path}` | Household member (stream owner) | Proxy HLS/MP4 segments from go2rtc |
 
 The HLS proxy restricts `{path}` to media file suffixes (`.m3u8`, `.ts`, `.mp4`, `.m4s`, `.aac`, `.vtt`, `.key`) so it cannot be pivoted to go2rtc control endpoints like `/api/config`, which would disclose every household's camera/OAuth credentials.
+
+## Phone Calls
+
+Added in jarvis-command-center#57 (`jarvis/prds/phone-calls.md` P1), on top of #55 (server-plane callback dispatch) and #56 (household-settings int coercion). This is the CC half of the phone-calls feature — see [Phone Gateway](phone-gateway.md) for the Twilio-facing worker that actually dials.
+
+### `make_phone_call` Server Tool
+
+A `deep_research`-shaped server tool: spoken acknowledgment → background number resolve + plan draft → an editable confirm card. It is **always offered in the text-path tool whitelist**, even when the feature is disabled — a disabled `execute()` returns an honest spoken refusal instead of leaving the model to improvise a fake capability (the fix for a live finding where the model hallucinated device-control behavior for "Call Tony's Pizzeria"). The tool fails closed if the caller could not be identified as a speaker.
+
+### Data Model
+
+Migration `c3d4phone001` adds:
+
+- **`phone_call_sessions`** — state machine `draft → confirmed → dialing → in_call → wrapup → done|failed|declined|expired`, with a full audit trail: resolved vs. dialed number, `number_edited`, `confirmed_by`.
+- **`phone_contacts`** — the household phonebook, with DNC (do-not-call) enforcement checked at resolve time.
+
+### The Confirm Tap Is the Authorization
+
+Per the PRD's security requirements, tapping "confirm" on the plan card is the sole authorization point for actually dialing:
+
+- Single-use, atomic `draft → confirmed` transition via the `confirm_call` server callback.
+- The (possibly user-edited) number is re-validated at confirm time: E.164, US-only, emergency/short-code/premium numbers denied.
+- Caps are re-checked at confirm time (not just plan time).
+- On success, the job is enqueued via `LPUSH phone:dial` (Redis) for the phone gateway's dial worker to pick up.
+- **Enqueue failure lands the session `failed` with an honest card — never a stuck `confirmed`.**
+
+Other server callbacks: `cancel_call`, and `escalation_answer` (forwards the household's typed answer to the gateway worker that claimed the call — see [Escalation Event](#escalation-event) below).
+
+### Gateway-Facing Endpoints
+
+Endpoints matching `jarvis-phone-gateway/services/session_client.py`'s contract shape-for-shape:
+
+| Purpose | Description |
+|---|---|
+| Session snapshot | The gateway `GET`s the current session state before dialing |
+| `claim_dial` (CAS) | Atomic `confirmed → dialing` compare-and-set — single winner; a losing race returns `409` and the gateway drops the job (the queue is transport, never authorization) |
+| State transitions | All state changes for a session funnel through one choke point |
+| Turn append | Doubles as a heartbeat — CC uses turn recency as a liveness signal for the reaper |
+| Outcome | Delivers the attributed call summary card. Callee statements are always labeled as the business's, never rendered as Jarvis's own voice |
+
+#### Escalation Event
+
+The gateway posts `{type: "escalation", question}` when the on-call agent hits `[ESCALATE:]` mid-call (see [Phone Gateway: Call Lifecycle](phone-gateway.md#call-lifecycle)). Valid only while the session is `in_call`; an empty `question` is rejected with `400`. On a valid event, CC pushes an answer card to the initiating user — the question is attributed (never tappable, never rendered as Jarvis speaking), with a multiline answer editor that feeds `escalation_answer`, plus an end-call chip. The card carries a 10-minute TTL; the *real* ~25 s answer window is enforced gateway-side, so a late tap degrades through the existing "call may have ended" path.
+
+### Line-Type Lookup
+
+Number line-type lookup (mobile vs. landline, for UX hints) is delegated to the gateway's `POST /internal/lookup/line-type` — the gateway holds the Twilio credentials, CC never does. Degrades to `unknown` on lookup failure or gateway unavailability.
+
+### Caps and the Reaper
+
+Daily, concurrent, and monthly-minutes caps are enforced fail-closed at both plan time and confirm time. A 30 s reaper sweep fails sessions with a stale heartbeat or an over-limit duration (honest notification to the user + best-effort cancel request to the gateway worker), and expires stale, never-confirmed drafts.
+
+### `phone_calls.*` Settings
+
+Eight `phone_calls.*` settings control the feature, all household-admin editable via the [Mobile Household Settings API](#mobile-household-settings-api) allowlist. **`phone_calls.enabled` defaults to `false`** (fail-closed) — the tool speaks an honest refusal instead of dialing while disabled. Numeric settings (e.g. `plan_ttl_minutes`, `audio_retention_days`, the daily/concurrent/monthly caps) required the int-coercion support added in jarvis-command-center#56 (the allowlist coercion helper was previously bool-only).
 
 ## Key Components
 
@@ -357,6 +414,7 @@ These settings are persisted in PostgreSQL and editable via **Admin → Settings
 | `web_search.enabled` | `false` (per-household) | Master toggle for `quick_search` + `deep_research`. Fail-closed. See [Web Search](#web-search). |
 | `web_scraping.allow_external` | `false` (per-household) | Opt-in gate for the r.jina.ai reader-proxy fallback in deep research. Fail-closed. Household-admin controllable via mobile. See [Jina Reader Proxy](#jina-reader-proxy-web_scrapingallow_external). |
 | `updates.allow_check` | `false` (global) | Allow outbound version lookups to api.github.com for node release checks. Explicit version installs bypass this gate. Fail-closed. See [Update Checks](#update-checks). |
+| `phone_calls.enabled` | `false` (per-household) | Master toggle for the `make_phone_call` tool. Fail-closed — a disabled tool speaks an honest refusal instead of dialing. See [Phone Calls](#phone-calls). |
 
 
 ## Prompt Providers
@@ -491,6 +549,7 @@ The command center uses a fastText model to pre-route commands to the right tool
 - **jarvis-notifications** -- push notifications for deep research results (optional)
 - **jarvis-tts** -- text-to-speech (optional)
 - **jarvis-web-scraper** -- web content extraction for deep research (optional)
+- **jarvis-phone-gateway** -- dials and runs the live call for `make_phone_call` (optional; see [Phone Calls](#phone-calls) and [Phone Gateway](phone-gateway.md))
 
 ## Dependents
 
