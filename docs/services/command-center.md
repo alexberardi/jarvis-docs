@@ -192,6 +192,54 @@ Reworked in jarvis-command-center#38 (the last of a 4-repo change: jarvis-comman
 
 The HLS proxy restricts `{path}` to media file suffixes (`.m3u8`, `.ts`, `.mp4`, `.m4s`, `.aac`, `.vtt`, `.key`) so it cannot be pivoted to go2rtc control endpoints like `/api/config`, which would disclose every household's camera/OAuth credentials.
 
+## Phone Calls
+
+### Context-Provider Availability
+
+Added in jarvis-command-center#61 — third of a four-PR "context-provider primitive" series (jarvis-command-sdk#7 → jarvis-node-setup#79 → **jarvis-command-center#61** → jarvis-cmd-calendar#1). When drafting a phone-call plan for a scheduling-shaped goal, the planner queries the household's calendar [context provider](../extending/infrastructure/context-providers.md) (if the household has one) and pre-fills the confirm card's availability fields with real data instead of a placeholder — while keeping the live call loop itself free of any calendar access, since the callee is untrusted input.
+
+**New module:** `app/services/context_provider_client.py`
+
+```python
+from app.services.context_provider_client import query_context
+
+answer = query_context(
+    household_id,
+    operation="availability",
+    params={"start": "...", "end": "..."},
+    command="calendar",       # optional: target a specific command
+    timeout_s=8.0,
+)
+if answer.ok:
+    ...  # answer.data, answer.node_id, answer.command_name
+```
+
+`ContextAnswer` fields: `ok: bool`, `data: dict`, `error: str | None`, `node_id: str | None`, `command_name: str | None`. `ContextAnswer.unavailable(error, node_id=None)` builds a failed answer.
+
+**Node selection:** tries the household's nodes in liveness order (online-first, then most-recently-seen). A `no_provider` error code means "try the next node"; any other failure or a timeout stops the search and reports that failure.
+
+**MQTT wire contract:**
+
+| | Topic | Payload |
+|---|---|---|
+| Request | `jarvis/nodes/{node_id}/context/query` | `{"operation": str, "params": dict, "command"?: str, "correlation_id": uuid}` |
+| Response | `{request_topic}/response/{correlation_id}` | `{"ok": bool, "data": dict, "error"?: str, "code"?: "no_provider", "command_name"?: str}` |
+
+This follows the same subscribe-before-publish request/response pattern used by the mobile command-data browser (see [Data Browser Protocol](../extending/infrastructure/datastore.md#data-browser-protocol)).
+
+### Planner Integration — `apply_availability_envelope`
+
+`app/services/phone_call_service.py::apply_availability_envelope(*, household_id, goal, details) -> str` is called from `create_call_plan` right after the brief is drafted. `is_scheduling_goal()` detects scheduling-shaped goals (keywords like "book", "schedule", "appointment", "reservation", "reserve"); for those, it queries `operation="availability"` for the next 7 days and renders the result into the brief:
+
+```
+Acceptable times: <up to 6 free windows, semicolon-joined>
+Do not book: <up to 6 busy windows, semicolon-joined>
+```
+
+**Fails open to a placeholder, never blocks the plan.** The envelope degrades to `"Acceptable times: (calendar unavailable — fill in your availability)"` on: no scheduling goal detected, no household node, no context provider installed, node offline, MQTT unreachable, malformed JSON, or any exception. User-supplied times already present in the brief are left untouched.
+
+**Plan-time only by design** — this query happens once while drafting the plan; no live calendar tool is ever exposed inside an active call.
+
 ## Key Components
 
 - **Prompt Engine** (`app/core/prompt_engine.py`) -- builds system prompts with speaker context and memories
