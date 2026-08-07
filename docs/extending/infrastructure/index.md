@@ -12,6 +12,7 @@ This section covers the developer-facing APIs that your plugins can use at runti
 | [Secret Service](secrets.md) | `services/secret_service.py` | Read/write secrets from encrypted SQLite |
 | [Command Data Store](datastore.md) | `repositories/command_data_repository.py` | Generic key-value persistence with TTL |
 | [JarvisStorage](datastore.md#jarvisstorage-sdk-persistence-facade) | `jarvis_command_sdk.JarvisStorage` | SDK persistence facade for Pantry packages |
+| [Context Providers](context-providers.md) | `jarvis_command_sdk.ContextOperation` / `ContextResult` | Typed, read-only, plan-time-only queries a command exposes to server-side planners |
 | [Process Introspection](process.md) | `jarvis_command_sdk.process_alive` | PID-reuse-safe liveness check for pidfile-tracked daemons |
 | [Settings Snapshots](settings.md) | `services/settings_snapshot_service.py` | Build encrypted settings for mobile sync |
 | Command Registry | `repositories/command_registry_repository.py` | Enable/disable commands |
@@ -57,6 +58,7 @@ result = client.chat_text("What time is it in Tokyo?")
 | Cache data between command invocations | [Command Data Store](datastore.md) --- `CommandDataRepository` |
 | Store data in a Pantry package | [JarvisStorage](datastore.md#jarvisstorage-sdk-persistence-facade) --- SDK facade over `CommandDataRepository` |
 | Store temporary results with auto-expiry | [Command Data Store](datastore.md) --- `save()` with `expires_at` |
+| Expose a read-only, plan-time query to a planner | [Context Providers](context-providers.md) --- `context_operations` / `execute_context_operation` |
 | Check if a pidfile-tracked daemon is alive | [Process Introspection](process.md) --- `process_alive(pid, expected_comm=...)` |
 | Expose settings to the mobile app | [Settings Snapshots](settings.md) --- automatic via `required_secrets` |
 | Check if a command is enabled | Command Registry --- `CommandRegistryRepository.get_all()` |
