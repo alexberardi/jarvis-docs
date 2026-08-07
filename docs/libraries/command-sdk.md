@@ -3,7 +3,7 @@
 The `jarvis-command-sdk` Python package is the foundation for building Jarvis voice commands. It defines the `IJarvisCommand` interface that all Pantry-distributed and built-in commands implement, along with supporting types such as `FieldSpec` and `JarvisStorage`.
 
 **Package:** `jarvis-command-sdk`  
-**Current version:** `0.5.0`  
+**Current version:** `0.6.0`  
 **Install:** `pip install jarvis-command-sdk`
 
 ## Core Interfaces
@@ -18,7 +18,7 @@ All commands extend `IJarvisCommand`. Required overrides:
 | `description` | `str` (property) | One-line natural-language description for the LLM |
 | `run(**kwargs)` | `CommandResponse` | Executes the command |
 
-For commands that expose structured data records to the mobile app, see [Data Browser Hooks](#data-browser-hooks).
+For commands that expose structured data records to the mobile app, see [Data Browser Hooks](#data-browser-hooks). For commands that expose typed, read-only queries to server-side planners, see [Context Provider Hooks](#context-provider-hooks).
 
 ### `FieldSpec`
 
@@ -117,10 +117,73 @@ Marks a field as settable at record creation but immutable on edit (e.g. record 
 | Patchable via update op | ✓ | ✗ (silently dropped) |
 | Shown in edit form | ✓ | ✗ |
 
+## Context Provider Hooks
+
+Added in **`jarvis-command-sdk >= 0.6.0`** (jarvis-command-sdk#7). A command that holds live data (calendar events, device state, inventories) can declare **context operations** — typed, read-only queries that server-side planners (jarvis-command-center) invoke at **plan time**, before a plan is committed to. First consumer: the phone-call plan-draft step asks the calendar command for an `availability` operation so the confirm card carries a real constraint envelope instead of a fill-me-in placeholder. See [Command Center: Phone Calls](../services/command-center.md#phone-calls) for the caller side.
+
+**Design rules:**
+
+- **Plan-time only.** Context operations are never exposed as live tools inside a phone call or any other untrusted-counterparty loop — the callee on the other end of a call is untrusted input.
+- **Read-only.** An operation must never mutate command state; mutations belong to commands/callbacks.
+- **Node-side credentials.** The provider stays on the node; only the typed answer crosses the wire to command-center.
+- **Honest failure, not raising.** Both hooks default to no-op — `context_operations` returns `[]`, and the base `execute_context_operation` returns a `ContextResult.failed(...)` naming the unimplemented operation. Raising is safe (the node runtime converts it to an error result) but returning `ContextResult.failed(...)` gives the planner a clearer message.
+
+### `context_operations`
+
+```python
+@property
+def context_operations(self) -> list[ContextOperation]:
+    return []   # default: no context capability
+```
+
+Declares the typed queries this command can answer. Returns `[]` by default — most commands have nothing to add here.
+
+### `execute_context_operation(operation, params)`
+
+```python
+def execute_context_operation(
+    self, operation: str, params: dict[str, Any]
+) -> ContextResult:
+    ...
+```
+
+Answers one declared operation. Only called for operations present in `context_operations`; the node runtime validates required params (via `ContextOperation.missing_required`) before dispatching. The default implementation returns `ContextResult.failed(f"{self.command_name} does not implement '{operation}'")`.
+
+### `ContextOperation`
+
+```python
+from jarvis_command_sdk import ContextOperation
+
+ContextOperation(
+    name: str,
+    description: str,
+    params_schema: dict[str, dict[str, Any]] = {},   # {param: {"type", "required", "description"}}
+)
+```
+
+`params_schema` is deliberately a flat mapping rather than full JSON Schema — the node runtime validates required params before dispatching. `ContextOperation.missing_required(params)` returns the names of required params absent from a given call.
+
+### `ContextResult`
+
+```python
+from jarvis_command_sdk import ContextResult
+
+ContextResult(
+    data: dict[str, Any] = {},
+    error: str | None = None,
+)
+ContextResult.failed(error: str)   # convenience constructor, data={}
+```
+
+`ok` is `True` iff `error is None`. `data` must be JSON-serializable — it crosses MQTT to command-center. An `error` result is never fatal to the caller; planners are expected to degrade gracefully rather than block on a failed context query.
+
+**Reference implementation:** `jarvis-cmd-calendar`'s `ReadCalendarCommand` is the first context provider, declaring an `availability` operation that derives free/busy windows from the speaker's calendar (requires `jarvis-command-sdk >= 0.6.0`). See its row in [Pantry-Installable Commands](../commands/index.md#pantry-installable-commands).
+
 ## Changelog
 
 | Version | What changed |
 |---------|-------------|
+| 0.6.0 | `context_operations`, `execute_context_operation`, `ContextOperation`, `ContextResult` — context-provider capability (typed plan-time queries) — see [Context Provider Hooks](#context-provider-hooks) |
 | 0.5.0 | `IJarvisDeviceProtocol.get_stream_source` optional async camera-streaming hook — see [Device Protocols](../extending/devices/protocols.md#get_stream_source--camera-streaming-hook-sdk-v050) |
 | 0.4.1 | `data_browser_supports_create`, `data_browser_create`, `FieldSpec.create_only` |
 | ≤ 0.3.x | `FieldSpec`, `JarvisStorage`, `data_browser_mode`, `display_summary` |

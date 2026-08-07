@@ -2,6 +2,9 @@
 
 This page documents the complete flow from voice input to command response, including every hook and validation step.
 
+!!! note "Context operations are a separate, plan-time path"
+    `context_operations()` / `execute_context_operation()` (added in `jarvis-command-sdk` 0.6.0) are **not** part of this request lifecycle. They run at *plan time*, before a request is even routed — a server-side planner (e.g. command-center's phone-call plan-draft step) queries a command for typed, read-only data over the node's generic context handler. See [Context Provider Hooks](../libraries/command-sdk.md#context-provider-hooks).
+
 ## Full Lifecycle Diagram
 
 ```mermaid
