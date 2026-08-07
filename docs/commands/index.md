@@ -104,7 +104,7 @@ The following commands are available as standalone [Pantry](../architecture/clou
 | `PandoraCommand` | `pandora` | Stream Pandora Radio with voice control — skip, thumbs up/down, station listing |
 | `SpotifyCommand` | `spotify` | Stream Spotify with voice control via spotifyd — tracks, artists, albums, playlists |
 | `EmailCommand` | `email` | List, read, search, send, reply, archive email (Gmail/IMAP) |
-| `ReadCalendarCommand` | `get_calendar_events` | Calendar events (iCloud CalDAV, Google Calendar) |
+| `ReadCalendarCommand` | `get_calendar_events` | Calendar events (iCloud CalDAV, Google Calendar). First [context-provider](../libraries/command-sdk.md#context-provider-hooks) reference implementation — declares a plan-time `availability` operation (free/busy windows) consumed by command-center's phone-call planner (requires `jarvis-command-sdk >= 0.6.0`) |
 | `MedicationCommand` | `medication` | Personal + household medication tracking with dose reminders. Mark doses by voice; add and manage records in the app. Personal med alerts are push-only (not spoken aloud on shared nodes) |
 | `RottenTomatoesCommand` | `get_movie_rating` | Movie and TV ratings, what's in theaters — Tomatometer scores, no API key |
 | `DadJokeCommand` | `tell_dad_joke` | Random dad jokes via icanhazdadjoke.com — no configuration required |
