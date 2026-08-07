@@ -3,7 +3,7 @@
 The `jarvis-command-sdk` Python package is the foundation for building Jarvis voice commands. It defines the `IJarvisCommand` interface that all Pantry-distributed and built-in commands implement, along with supporting types such as `FieldSpec` and `JarvisStorage`.
 
 **Package:** `jarvis-command-sdk`  
-**Current version:** `0.5.0`  
+**Current version:** `0.5.1`  
 **Install:** `pip install jarvis-command-sdk`
 
 ## Core Interfaces
@@ -64,6 +64,10 @@ See [Datastore](../extending/infrastructure/datastore.md#jarvisstorage-sdk-persi
 
 Interface for direct LAN/cloud device control plugins (LIFX, Kasa, Nest, etc.), including the optional `get_stream_source` camera-streaming hook added in 0.5.0. See [Device Protocols](../extending/devices/protocols.md) for the full interface and hook reference.
 
+### `Alert`
+
+Time-sensitive notification produced by a background agent (`IJarvisAgent.get_alerts()`). Since 0.5.1 it carries three additive fields for the command-center attention broker: `dedupe_key` (stable identity across re-emits), `category` (per-source routing), and `target_user_id` (single-member addressing). See [Alert System](../extending/agents/alerts.md) for the full field reference and usage guide.
+
 ## Data Browser Hooks
 
 Commands can opt into the mobile app's **Add Record** flow (the **+** FAB in the record list). The full protocol — including the node-side `_op_create` handler and MQTT wire format — is documented in [Data Browser Protocol](../extending/infrastructure/datastore.md#data-browser-protocol). This page covers the SDK surface.
@@ -121,6 +125,7 @@ Marks a field as settable at record creation but immutable on edit (e.g. record 
 
 | Version | What changed |
 |---------|-------------|
+| 0.5.1 | `Alert` gains additive `dedupe_key`, `category`, `target_user_id` fields for the attention broker — see [Alert System](../extending/agents/alerts.md) |
 | 0.5.0 | `IJarvisDeviceProtocol.get_stream_source` optional async camera-streaming hook — see [Device Protocols](../extending/devices/protocols.md#get_stream_source--camera-streaming-hook-sdk-v050) |
 | 0.4.1 | `data_browser_supports_create`, `data_browser_create`, `FieldSpec.create_only` |
 | ≤ 0.3.x | `FieldSpec`, `JarvisStorage`, `data_browser_mode`, `display_summary` |
