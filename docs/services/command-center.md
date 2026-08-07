@@ -33,6 +33,8 @@ For household settings routes (e.g. web search toggle) see [Mobile Household Set
 
 For camera streaming routes see [Camera Streaming](#camera-streaming) below.
 
+For node-facing alert delivery routes (push/inbox, dedup, the `force` flag) see [Attention Broker — Alert Delivery](#attention-broker-alert-delivery) below.
+
 ## Blocking Voice Command Error Contract
 
 Added in jarvis-command-center#18. The blocking voice endpoints — `POST /api/v0/voice/command` and `POST /api/v0/voice/command/continue` — now return **422 Unprocessable Entity** for whole-request precondition failures (e.g. an unknown or expired `conversation_id`) instead of swallowing them into a `200` response with an `errors` payload.
@@ -307,6 +309,26 @@ Added in jarvis-command-center#35. Nodes can self-report a terminal status for t
 - Terminal-state immutability is enforced with a conditional `UPDATE` (not check-then-write), so this can never race the 2-minute sweeper or the cancel endpoint into clobbering an existing terminal state (e.g. "Cancelled by user").
 
 A node posting to an older command center that predates this endpoint gets a swallowed 404; the sweeper timeout remains the backstop in that case. The mobile app renders `task.error_message` verbatim on failure, so no separate mobile-side change was needed to surface the reason.
+
+## Attention Broker — Alert Delivery
+
+The attention broker (`app/services/attention_broker.py`) interposes on the node-facing alert endpoints below when `attention.enabled` is on for the household — journaling, deduping, and applying budget/quiet-hours gates before delivery falls through to the same downstream push/inbox services. Broker errors **fail open** to legacy delivery (losing governance for one event is preferable to losing a medication push to a broker bug).
+
+| Method | Path | Description |
+|--------|------|--------------|
+| `POST` | `/api/v0/node/push-notification` | Node-originated push notification (`PushNotificationRequest`) |
+| `POST` | `/api/v0/node/inbox-item` | Node-originated rich inbox item, optionally also pushed (`NodeInboxItemRequest`) |
+| `POST` | `/api/v0/node/send-link` | Node-originated tap-to-open URL push |
+
+### Safety-Class Dedup Fix (jarvis-command-center#62)
+
+**Safety fix.** The dedup gate previously applied its title-hash fallback key to safety-class categories (e.g. `medication`) as well as ordinary ones. A twice-daily medication reminder reuses its title, so the second dose was matched as a "duplicate" of the first and journaled instead of delivered — on 2026-07-19 this silently suppressed a real evening medication dose reminder.
+
+**Fix:** a safety-class alert now dedups **only** when the producer supplies an explicit `dedupe_key` on the request. The title-hash fallback key is never applied to a safety-class alert — a recurring same-title safety alert with no explicit key always delivers.
+
+### `force` Flag
+
+Both `PushNotificationRequest` and `NodeInboxItemRequest` accept an optional `force: bool = False` field. `force=True` bypasses **every** broker gate — dedup, consent ceiling, budget, quiet hours — and always delivers at the push rung, independent of category config. This is the producer-asserted "never silence this" signal, for safety-critical producers (medication, alarms) that need an unconditional guarantee beyond the safety-class dedup fix above.
 
 ## Secret Boot Guard (`ADMIN_API_KEY` / `JARVIS_AUTH_SECRET_KEY`)
 
