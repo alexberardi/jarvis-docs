@@ -1,0 +1,8493 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Build voice commands and integrations for the Jarvis assistant platform">
+      
+      
+      
+        <link rel="canonical" href="https://docs.jarvisautomation.dev/pantry/rejections/">
+      
+      
+        <link rel="prev" href="../">
+      
+      
+        <link rel="next" href="../../libraries/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.5">
+    
+    
+      
+        <title>Rejections - Jarvis Developer Docs</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/extra.css">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  
+  <script>
+    if (location.hostname === "docs.jarvisautomation.dev") {
+      var s = document.createElement("script");
+      s.defer = true;
+      s.src = "https://static.cloudflareinsights.com/beacon.min.js";
+      s.setAttribute("data-cf-beacon", JSON.stringify({ token: "8ab1d8fdf7a548e09d2d316660e3520c" }));
+      document.head.appendChild(s);
+    }
+  </script>
+
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="deep-purple" data-md-color-accent="amber">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#rejection-codes" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="Jarvis Developer Docs" class="md-header__button md-logo" aria-label="Jarvis Developer Docs" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Jarvis Developer Docs
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Rejections
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="deep-purple" data-md-color-accent="amber"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="deep-purple" data-md-color-accent="amber"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/alexberardi/jarvis" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    jarvis
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../.." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Home
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../getting-started/" class="md-tabs__link">
+          
+  
+  
+  Getting Started
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../architecture/" class="md-tabs__link">
+          
+  
+  
+  Architecture
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../extending/" class="md-tabs__link">
+          
+  
+  
+  Extending Jarvis
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../services/" class="md-tabs__link">
+          
+  
+  
+  Services
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../" class="md-tabs__link">
+          
+  
+  
+  Pantry
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../libraries/" class="md-tabs__link">
+          
+  
+  
+  Libraries
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../clients/" class="md-tabs__link">
+          
+  
+  
+  Clients
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../mobile/" class="md-tabs__link">
+          
+  
+  
+  Mobile App
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../security/" class="md-tabs__link">
+          
+  
+  
+  Security
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../contributing/" class="md-tabs__link">
+          
+  
+  
+  Contributing
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../troubleshooting/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Troubleshooting
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../blog/" class="md-tabs__link">
+          
+  
+  
+  Blog
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../reference/cli/" class="md-tabs__link">
+          
+  
+  
+  Reference
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="Jarvis Developer Docs" class="md-nav__button md-logo" aria-label="Jarvis Developer Docs" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Jarvis Developer Docs
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/alexberardi/jarvis" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    jarvis
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Getting Started
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Getting Started
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting-started/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Getting Started
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting-started/why-jarvis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Why Jarvis?
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting-started/installation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Installation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting-started/first-command/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Your First Command
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting-started/truenas/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    TrueNAS Setup
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting-started/configuration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Configuration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Architecture
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../architecture/voice-pipeline/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Voice Pipeline
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../architecture/service-discovery/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Service Discovery
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../architecture/authentication/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Authentication
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../architecture/cloud/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Cloud Services
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../architecture/deployment/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Deployment
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Extending Jarvis
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Extending Jarvis
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../extending/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Extending Jarvis
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_4_2" id="__nav_4_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Developer Toolkit
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Developer Toolkit
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../extending/toolkit/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Developer Toolkit (jdt)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../extending/toolkit/workflow/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Development Workflow
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../extending/toolkit/init/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    jdt init
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../extending/toolkit/test/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    jdt test
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../extending/toolkit/validate/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    jdt validate
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../extending/toolkit/manifest/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    jdt manifest
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../extending/toolkit/deploy/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    jdt deploy
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../extending/toolkit/claude-code/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Claude Code Integration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../extending/discovery/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Discovery System
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4_4" id="__nav_4_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Commands
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Commands
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../commands/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Building Commands
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../commands/interface-reference/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Interface Reference
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../commands/tutorial-simple/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Tutorial: Dice Roll
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../commands/tutorial-api/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Tutorial: API Integration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../commands/tutorial-oauth/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Tutorial: OAuth Command
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../commands/parameters/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Parameters
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../commands/secrets/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Secrets
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../commands/responses/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Responses
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../commands/lifecycle/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Lifecycle
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../commands/testing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Testing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_4_5" id="__nav_4_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Agents
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Agents
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../extending/agents/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Agents
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../extending/agents/alerts/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Alerts
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../extending/agents/scheduling/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Scheduling
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_4_6" id="__nav_4_6_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Prompt Providers
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Prompt Providers
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../extending/prompt-providers/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Prompt Providers
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../extending/prompt-providers/reference/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Reference
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4_7" >
+        
+          
+          <label class="md-nav__link" for="__nav_4_7" id="__nav_4_7_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Device Control
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4_7">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Device Control
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../extending/devices/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Device Control
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../extending/devices/managers/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Device Managers
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../extending/devices/protocols/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Device Protocols
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4_8" >
+        
+          
+          <label class="md-nav__link" for="__nav_4_8" id="__nav_4_8_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Providers
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_8_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4_8">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Providers
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../extending/providers/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Providers
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../extending/providers/stt/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Speech-to-Text
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../extending/providers/tts/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Text-to-Speech
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../extending/providers/wake-responses/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Wake Responses
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4_9" >
+        
+          
+          <label class="md-nav__link" for="__nav_4_9" id="__nav_4_9_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Infrastructure
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_9_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4_9">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Infrastructure
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../extending/infrastructure/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Infrastructure Services
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../extending/infrastructure/jcc-client/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Command Center Client
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../extending/infrastructure/secrets/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Secret Service
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../extending/infrastructure/datastore/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Command Data Store
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../extending/infrastructure/process/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Process Introspection
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../extending/infrastructure/settings/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Settings Snapshots
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Services
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Services
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../services/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Services
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../services/config-service/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Config Service
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../services/auth/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Auth
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../services/command-center/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Command Center
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../services/llm-proxy/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    LLM Proxy
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../services/whisper-api/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Whisper API
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../services/tts/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    TTS
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../services/ocr-service/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    OCR Service
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../services/recipes-server/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Recipes Server
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../services/logs/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Logs
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../services/settings-server/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Settings Server
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../services/mcp/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    MCP
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../services/notifications/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Notifications
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../services/admin/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Admin
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../services/installer/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Installer
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../services/pantry-runner/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Pantry Runner
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../services/pantry-store/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Pantry Store
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../services/pantry-web/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Pantry Web
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Pantry
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Pantry
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Rejections
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Rejections
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#static_analysis_disallowed_primitive" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Disallowed primitive in source
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Disallowed primitive in source">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#what-this-means" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What this means
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#why-we-flag-it" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Why we flag it
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#how-to-fix" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How to fix
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#static_analysis_raw_db_import" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Raw database import
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Raw database import">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#what-this-means_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What this means
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#why-we-flag-it_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Why we flag it
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#how-to-fix_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How to fix
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#static_analysis_sql_mutation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Direct SQL mutation
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Direct SQL mutation">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#what-this-means_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What this means
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#why-we-flag-it_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Why we flag it
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#how-to-fix_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How to fix
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#static_analysis_cross_command_access" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Cross-command access
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Cross-command access">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#what-this-means_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What this means
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#why-we-flag-it_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Why we flag it
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#how-to-fix_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How to fix
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#static_analysis_shadows_builtin_dir" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Shadows a built-in directory
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Shadows a built-in directory">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#what-this-means_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What this means
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#why-we-flag-it_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Why we flag it
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#how-to-fix_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How to fix
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#static_analysis_syntax_error" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Python syntax error
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Python syntax error">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#what-this-means_5" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What this means
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#why-we-flag-it_5" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Why we flag it
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#how-to-fix_5" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How to fix
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#static_analysis_missing_base_class" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Missing command base class
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Missing command base class">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#what-this-means_6" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What this means
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#why-we-flag-it_6" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Why we flag it
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#how-to-fix_6" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How to fix
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#static_analysis_transitive_inheritance" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Transitive base-class inheritance
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Transitive base-class inheritance">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#what-this-means_7" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What this means
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#why-we-flag-it_7" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Why we flag it
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#how-to-fix_7" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How to fix
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#manifest_bad_semver" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Invalid semantic version
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Invalid semantic version">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#what-this-means_8" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What this means
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#why-we-flag-it_8" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Why we flag it
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#how-to-fix_8" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How to fix
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#manifest_missing_required_field" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Missing required manifest field
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Missing required manifest field">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#what-this-means_9" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What this means
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#why-we-flag-it_9" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Why we flag it
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#how-to-fix_9" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How to fix
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#manifest_invalid_field_type" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Invalid manifest field type
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Invalid manifest field type">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#what-this-means_10" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What this means
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#why-we-flag-it_10" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Why we flag it
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#how-to-fix_10" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How to fix
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#manifest_unknown_category" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Unknown manifest category
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Unknown manifest category">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#what-this-means_11" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What this means
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#why-we-flag-it_11" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Why we flag it
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#how-to-fix_11" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How to fix
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#manifest_unknown_param_type" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Unknown parameter type
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Unknown parameter type">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#what-this-means_12" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What this means
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#why-we-flag-it_12" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Why we flag it
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#how-to-fix_12" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How to fix
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#manifest_unknown_secret_scope" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Unknown secret scope
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Unknown secret scope">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#what-this-means_13" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What this means
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#why-we-flag-it_13" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Why we flag it
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#how-to-fix_13" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How to fix
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#manifest_parse_error" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Manifest parse error
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Manifest parse error">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#what-this-means_14" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What this means
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#why-we-flag-it_14" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Why we flag it
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#how-to-fix_14" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How to fix
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#repo_missing_readme" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Missing README
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Missing README">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#what-this-means_15" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What this means
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#why-we-flag-it_15" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Why we flag it
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#how-to-fix_15" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How to fix
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#repo_missing_license" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Missing LICENSE
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Missing LICENSE">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#what-this-means_16" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What this means
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#why-we-flag-it_16" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Why we flag it
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#how-to-fix_16" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How to fix
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#repo_no_components_found" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        No components found
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="No components found">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#what-this-means_17" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What this means
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#why-we-flag-it_17" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Why we flag it
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#how-to-fix_17" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How to fix
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#repo_component_file_missing" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Component file missing
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Component file missing">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#what-this-means_18" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What this means
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#why-we-flag-it_18" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Why we flag it
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#how-to-fix_18" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How to fix
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#repo_unknown_component_type" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Unknown component type
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Unknown component type">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#what-this-means_19" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What this means
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#why-we-flag-it_19" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Why we flag it
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#how-to-fix_19" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How to fix
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#routine_missing_steps" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Routine missing steps
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Routine missing steps">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#what-this-means_20" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What this means
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#why-we-flag-it_20" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Why we flag it
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#how-to-fix_20" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How to fix
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#routine_missing_trigger_phrases" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Routine missing trigger phrases
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Routine missing trigger phrases">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#what-this-means_21" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What this means
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#why-we-flag-it_21" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Why we flag it
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#how-to-fix_21" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How to fix
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#routine_missing_response_instruction" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Routine missing response instruction
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Routine missing response instruction">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#what-this-means_22" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What this means
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#why-we-flag-it_22" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Why we flag it
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#how-to-fix_22" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How to fix
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#routine_step_missing_command" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Routine step missing command
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Routine step missing command">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#what-this-means_23" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What this means
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#why-we-flag-it_23" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Why we flag it
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#how-to-fix_23" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How to fix
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#routine_invalid_json" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Routine has invalid JSON
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Routine has invalid JSON">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#what-this-means_24" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What this means
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#why-we-flag-it_24" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Why we flag it
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#how-to-fix_24" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How to fix
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#apt_package_not_on_allowlist" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        APT package not on allow-list
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="APT package not on allow-list">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#what-this-means_25" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What this means
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#why-we-flag-it_25" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Why we flag it
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#how-to-fix_25" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How to fix
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#apt_source_not_on_allowlist" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        APT source not on allow-list
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="APT source not on allow-list">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#what-this-means_26" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What this means
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#why-we-flag-it_26" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Why we flag it
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#how-to-fix_26" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How to fix
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#apt_source_mismatch" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        APT source mismatch
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="APT source mismatch">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#what-this-means_27" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What this means
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#why-we-flag-it_27" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Why we flag it
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#how-to-fix_27" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How to fix
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#post_install_op_unknown_type" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Unknown post-install operation
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Unknown post-install operation">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#what-this-means_28" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What this means
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#why-we-flag-it_28" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Why we flag it
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#how-to-fix_28" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How to fix
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#post_install_op_missing_target" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Post-install operation missing target
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Post-install operation missing target">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#what-this-means_29" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What this means
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#why-we-flag-it_29" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Why we flag it
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#how-to-fix_29" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How to fix
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#post_install_op_not_on_allowlist" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Post-install operation not on allow-list
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Post-install operation not on allow-list">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#what-this-means_30" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What this means
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#why-we-flag-it_30" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Why we flag it
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#how-to-fix_30" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How to fix
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#lockfile_resolution_failed" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Lockfile resolution failed
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Lockfile resolution failed">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#what-this-means_31" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What this means
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#why-we-flag-it_31" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Why we flag it
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#how-to-fix_31" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How to fix
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#resolved_lockfile_exceeds_size_cap" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Resolved lockfile exceeds size cap
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Resolved lockfile exceeds size cap">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#what-this-means_32" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What this means
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#why-we-flag-it_32" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Why we flag it
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#how-to-fix_32" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How to fix
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_7" >
+        
+          
+          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Libraries
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Libraries
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../libraries/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Libraries
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../libraries/command-sdk/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Command SDK
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../libraries/log-client/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Log Client
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../libraries/config-client/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Config Client
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../libraries/settings-client/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Settings Client
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../libraries/auth-client/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Auth Client
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../libraries/web-scraper/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Web Scraper
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_8" >
+        
+          
+          <label class="md-nav__link" for="__nav_8" id="__nav_8_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Clients
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_8_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_8">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Clients
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../clients/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Clients
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../clients/node-setup/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Node Setup
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../clients/node-docker/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Node in Docker
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../clients/node-mobile/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Node Mobile
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../clients/provisioning/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Provisioning
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_9" >
+        
+          
+          <label class="md-nav__link" for="__nav_9" id="__nav_9_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Mobile App
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_9_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_9">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Mobile App
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../mobile/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Mobile App
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../mobile/home/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home & Chat
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../mobile/devices/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Devices
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../mobile/pantry/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Pantry
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../mobile/routines/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Routines
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../mobile/nodes/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Nodes
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../mobile/settings/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Settings
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../mobile/inbox/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Inbox
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../mobile/auth/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Authentication
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_10" >
+        
+          
+          <label class="md-nav__link" for="__nav_10" id="__nav_10_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Security
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_10_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_10">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Security
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../security/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Security
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../security/offline-mode/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Network Egress & Offline Mode
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../security/compliance-roadmap/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Compliance Roadmap
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../security/privacy-policy/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Privacy Policy
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_11" >
+        
+          
+          <label class="md-nav__link" for="__nav_11" id="__nav_11_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Contributing
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_11_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_11">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Contributing
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../contributing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Contributing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../contributing/coding-standards/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Coding Standards
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../contributing/testing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Testing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../contributing/integration-tests/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Integration Tests
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../troubleshooting/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Troubleshooting
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_13" >
+        
+          
+          <label class="md-nav__link" for="__nav_13" id="__nav_13_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Blog
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_13_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_13">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Blog
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../blog/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Blog
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../blog/jarvis-picks-up-the-phone/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Jarvis picks up the phone
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../blog/everything-was-green/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Everything was green
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../blog/llm-era-voice-assistant/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Self-hosted voice assistants in the LLM era
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_14" >
+        
+          
+          <label class="md-nav__link" for="__nav_14" id="__nav_14_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Reference
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_14_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_14">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Reference
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/cli/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CLI
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/env-vars/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Environment Variables
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/benchmarks/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Benchmarks
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#static_analysis_disallowed_primitive" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Disallowed primitive in source
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Disallowed primitive in source">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#what-this-means" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What this means
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#why-we-flag-it" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Why we flag it
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#how-to-fix" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How to fix
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#static_analysis_raw_db_import" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Raw database import
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Raw database import">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#what-this-means_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What this means
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#why-we-flag-it_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Why we flag it
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#how-to-fix_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How to fix
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#static_analysis_sql_mutation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Direct SQL mutation
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Direct SQL mutation">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#what-this-means_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What this means
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#why-we-flag-it_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Why we flag it
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#how-to-fix_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How to fix
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#static_analysis_cross_command_access" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Cross-command access
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Cross-command access">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#what-this-means_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What this means
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#why-we-flag-it_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Why we flag it
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#how-to-fix_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How to fix
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#static_analysis_shadows_builtin_dir" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Shadows a built-in directory
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Shadows a built-in directory">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#what-this-means_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What this means
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#why-we-flag-it_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Why we flag it
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#how-to-fix_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How to fix
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#static_analysis_syntax_error" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Python syntax error
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Python syntax error">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#what-this-means_5" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What this means
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#why-we-flag-it_5" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Why we flag it
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#how-to-fix_5" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How to fix
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#static_analysis_missing_base_class" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Missing command base class
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Missing command base class">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#what-this-means_6" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What this means
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#why-we-flag-it_6" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Why we flag it
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#how-to-fix_6" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How to fix
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#static_analysis_transitive_inheritance" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Transitive base-class inheritance
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Transitive base-class inheritance">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#what-this-means_7" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What this means
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#why-we-flag-it_7" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Why we flag it
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#how-to-fix_7" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How to fix
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#manifest_bad_semver" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Invalid semantic version
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Invalid semantic version">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#what-this-means_8" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What this means
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#why-we-flag-it_8" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Why we flag it
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#how-to-fix_8" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How to fix
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#manifest_missing_required_field" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Missing required manifest field
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Missing required manifest field">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#what-this-means_9" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What this means
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#why-we-flag-it_9" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Why we flag it
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#how-to-fix_9" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How to fix
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#manifest_invalid_field_type" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Invalid manifest field type
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Invalid manifest field type">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#what-this-means_10" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What this means
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#why-we-flag-it_10" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Why we flag it
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#how-to-fix_10" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How to fix
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#manifest_unknown_category" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Unknown manifest category
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Unknown manifest category">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#what-this-means_11" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What this means
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#why-we-flag-it_11" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Why we flag it
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#how-to-fix_11" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How to fix
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#manifest_unknown_param_type" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Unknown parameter type
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Unknown parameter type">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#what-this-means_12" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What this means
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#why-we-flag-it_12" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Why we flag it
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#how-to-fix_12" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How to fix
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#manifest_unknown_secret_scope" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Unknown secret scope
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Unknown secret scope">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#what-this-means_13" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What this means
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#why-we-flag-it_13" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Why we flag it
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#how-to-fix_13" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How to fix
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#manifest_parse_error" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Manifest parse error
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Manifest parse error">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#what-this-means_14" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What this means
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#why-we-flag-it_14" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Why we flag it
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#how-to-fix_14" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How to fix
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#repo_missing_readme" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Missing README
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Missing README">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#what-this-means_15" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What this means
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#why-we-flag-it_15" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Why we flag it
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#how-to-fix_15" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How to fix
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#repo_missing_license" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Missing LICENSE
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Missing LICENSE">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#what-this-means_16" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What this means
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#why-we-flag-it_16" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Why we flag it
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#how-to-fix_16" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How to fix
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#repo_no_components_found" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        No components found
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="No components found">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#what-this-means_17" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What this means
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#why-we-flag-it_17" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Why we flag it
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#how-to-fix_17" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How to fix
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#repo_component_file_missing" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Component file missing
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Component file missing">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#what-this-means_18" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What this means
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#why-we-flag-it_18" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Why we flag it
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#how-to-fix_18" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How to fix
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#repo_unknown_component_type" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Unknown component type
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Unknown component type">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#what-this-means_19" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What this means
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#why-we-flag-it_19" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Why we flag it
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#how-to-fix_19" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How to fix
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#routine_missing_steps" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Routine missing steps
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Routine missing steps">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#what-this-means_20" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What this means
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#why-we-flag-it_20" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Why we flag it
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#how-to-fix_20" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How to fix
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#routine_missing_trigger_phrases" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Routine missing trigger phrases
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Routine missing trigger phrases">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#what-this-means_21" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What this means
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#why-we-flag-it_21" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Why we flag it
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#how-to-fix_21" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How to fix
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#routine_missing_response_instruction" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Routine missing response instruction
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Routine missing response instruction">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#what-this-means_22" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What this means
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#why-we-flag-it_22" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Why we flag it
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#how-to-fix_22" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How to fix
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#routine_step_missing_command" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Routine step missing command
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Routine step missing command">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#what-this-means_23" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What this means
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#why-we-flag-it_23" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Why we flag it
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#how-to-fix_23" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How to fix
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#routine_invalid_json" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Routine has invalid JSON
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Routine has invalid JSON">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#what-this-means_24" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What this means
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#why-we-flag-it_24" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Why we flag it
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#how-to-fix_24" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How to fix
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#apt_package_not_on_allowlist" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        APT package not on allow-list
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="APT package not on allow-list">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#what-this-means_25" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What this means
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#why-we-flag-it_25" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Why we flag it
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#how-to-fix_25" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How to fix
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#apt_source_not_on_allowlist" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        APT source not on allow-list
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="APT source not on allow-list">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#what-this-means_26" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What this means
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#why-we-flag-it_26" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Why we flag it
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#how-to-fix_26" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How to fix
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#apt_source_mismatch" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        APT source mismatch
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="APT source mismatch">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#what-this-means_27" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What this means
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#why-we-flag-it_27" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Why we flag it
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#how-to-fix_27" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How to fix
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#post_install_op_unknown_type" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Unknown post-install operation
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Unknown post-install operation">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#what-this-means_28" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What this means
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#why-we-flag-it_28" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Why we flag it
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#how-to-fix_28" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How to fix
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#post_install_op_missing_target" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Post-install operation missing target
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Post-install operation missing target">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#what-this-means_29" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What this means
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#why-we-flag-it_29" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Why we flag it
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#how-to-fix_29" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How to fix
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#post_install_op_not_on_allowlist" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Post-install operation not on allow-list
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Post-install operation not on allow-list">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#what-this-means_30" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What this means
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#why-we-flag-it_30" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Why we flag it
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#how-to-fix_30" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How to fix
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#lockfile_resolution_failed" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Lockfile resolution failed
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Lockfile resolution failed">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#what-this-means_31" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What this means
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#why-we-flag-it_31" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Why we flag it
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#how-to-fix_31" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How to fix
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#resolved_lockfile_exceeds_size_cap" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Resolved lockfile exceeds size cap
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Resolved lockfile exceeds size cap">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#what-this-means_32" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What this means
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#why-we-flag-it_32" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Why we flag it
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#how-to-fix_32" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How to fix
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="rejection-codes">Rejection codes<a class="headerlink" href="#rejection-codes" title="Permanent link">&para;</a></h1>
+<p>When a package is submitted to the Pantry it runs through a validation pipeline, and any blocking failure (plus some non-blocking warnings) is reported as a structured finding rather than a free-form message. Each finding carries a stable snake_case <code>reason_code</code>, a severity (<code>error</code> blocks publication; <code>warning</code> does not), and a link to the matching section below. A reason code identifies exactly why a rejection or warning was raised, so you can map it directly to a fix. Reason codes are append-only: they are never renamed or repurposed once published, because submitters and tooling rely on them as stable wire identifiers.</p>
+<h2 id="static_analysis_disallowed_primitive">Disallowed primitive in source<a class="headerlink" href="#static_analysis_disallowed_primitive" title="Permanent link">&para;</a></h2>
+<p><strong>Reason code:</strong> <code>static_analysis_disallowed_primitive</code> · <strong>Severity:</strong> error</p>
+<h3 id="what-this-means">What this means<a class="headerlink" href="#what-this-means" title="Permanent link">&para;</a></h3>
+<p>A command's Python source uses a dynamic-execution primitive such as <code>eval</code>, <code>exec</code>, <code>compile</code>, <code>__import__</code>, or <code>getattr</code>-style dynamic dispatch. These let code do things the analyzer cannot verify ahead of time.</p>
+<h3 id="why-we-flag-it">Why we flag it<a class="headerlink" href="#why-we-flag-it" title="Permanent link">&para;</a></h3>
+<p>Dynamic execution can sidestep every other static check and run arbitrary code at runtime, which is a direct security risk to the host installation.</p>
+<h3 id="how-to-fix">How to fix<a class="headerlink" href="#how-to-fix" title="Permanent link">&para;</a></h3>
+<p>Remove the dynamic primitive and call the target directly. Replace <code>eval</code>/<code>exec</code> with explicit logic, replace <code>getattr(obj, name)()</code> with a normal attribute access or an explicit dispatch table, and import modules with ordinary <code>import</code> statements.</p>
+<h2 id="static_analysis_raw_db_import">Raw database import<a class="headerlink" href="#static_analysis_raw_db_import" title="Permanent link">&para;</a></h2>
+<p><strong>Reason code:</strong> <code>static_analysis_raw_db_import</code> · <strong>Severity:</strong> error</p>
+<h3 id="what-this-means_1">What this means<a class="headerlink" href="#what-this-means_1" title="Permanent link">&para;</a></h3>
+<p>The command imports the datastore or database layer directly instead of going through the sanctioned command data-store API.</p>
+<h3 id="why-we-flag-it_1">Why we flag it<a class="headerlink" href="#why-we-flag-it_1" title="Permanent link">&para;</a></h3>
+<p>Direct datastore access bypasses the isolation and validation the data-store API enforces, letting a command read or corrupt data belonging to the platform or other commands.</p>
+<h3 id="how-to-fix_1">How to fix<a class="headerlink" href="#how-to-fix_1" title="Permanent link">&para;</a></h3>
+<p>Remove the direct import and use the command data-store API provided to your command. Persist and read state only through that API.</p>
+<h2 id="static_analysis_sql_mutation">Direct SQL mutation<a class="headerlink" href="#static_analysis_sql_mutation" title="Permanent link">&para;</a></h2>
+<p><strong>Reason code:</strong> <code>static_analysis_sql_mutation</code> · <strong>Severity:</strong> error</p>
+<h3 id="what-this-means_2">What this means<a class="headerlink" href="#what-this-means_2" title="Permanent link">&para;</a></h3>
+<p>The source contains a raw SQL mutation: an <code>INSERT</code>, <code>UPDATE</code>, <code>DELETE</code>, or DDL statement (such as <code>CREATE</code>/<code>DROP</code>/<code>ALTER</code>).</p>
+<h3 id="why-we-flag-it_2">Why we flag it<a class="headerlink" href="#why-we-flag-it_2" title="Permanent link">&para;</a></h3>
+<p>Raw SQL mutations bypass the data-store API's access controls and can damage shared schema or data, and they are a common vector for injection.</p>
+<h3 id="how-to-fix_2">How to fix<a class="headerlink" href="#how-to-fix_2" title="Permanent link">&para;</a></h3>
+<p>Remove raw SQL writes and perform all data changes through the command data-store API instead of issuing SQL directly.</p>
+<h2 id="static_analysis_cross_command_access">Cross-command access<a class="headerlink" href="#static_analysis_cross_command_access" title="Permanent link">&para;</a></h2>
+<p><strong>Reason code:</strong> <code>static_analysis_cross_command_access</code> · <strong>Severity:</strong> error</p>
+<h3 id="what-this-means_3">What this means<a class="headerlink" href="#what-this-means_3" title="Permanent link">&para;</a></h3>
+<p>The command reaches into another command's module or data instead of staying within its own boundary.</p>
+<h3 id="why-we-flag-it_3">Why we flag it<a class="headerlink" href="#why-we-flag-it_3" title="Permanent link">&para;</a></h3>
+<p>Commands must remain isolated so they can be installed, updated, and removed independently; cross-command access creates hidden coupling and can leak or corrupt another command's state.</p>
+<h3 id="how-to-fix_3">How to fix<a class="headerlink" href="#how-to-fix_3" title="Permanent link">&para;</a></h3>
+<p>Remove imports of, and references to, other commands' modules and data. If you need shared behavior, factor it into your own command or use a supported public interface.</p>
+<h2 id="static_analysis_shadows_builtin_dir">Shadows a built-in directory<a class="headerlink" href="#static_analysis_shadows_builtin_dir" title="Permanent link">&para;</a></h2>
+<p><strong>Reason code:</strong> <code>static_analysis_shadows_builtin_dir</code> · <strong>Severity:</strong> error</p>
+<h3 id="what-this-means_4">What this means<a class="headerlink" href="#what-this-means_4" title="Permanent link">&para;</a></h3>
+<p>A file or package in your submission has a name that collides with a reserved or built-in directory name.</p>
+<h3 id="why-we-flag-it_4">Why we flag it<a class="headerlink" href="#why-we-flag-it_4" title="Permanent link">&para;</a></h3>
+<p>Shadowing a reserved name can override platform internals at import time, producing unpredictable behavior or breaking the runtime.</p>
+<h3 id="how-to-fix_4">How to fix<a class="headerlink" href="#how-to-fix_4" title="Permanent link">&para;</a></h3>
+<p>Rename the offending file or package to something that does not collide with a reserved or built-in directory name, and update any imports that referenced it.</p>
+<h2 id="static_analysis_syntax_error">Python syntax error<a class="headerlink" href="#static_analysis_syntax_error" title="Permanent link">&para;</a></h2>
+<p><strong>Reason code:</strong> <code>static_analysis_syntax_error</code> · <strong>Severity:</strong> error</p>
+<h3 id="what-this-means_5">What this means<a class="headerlink" href="#what-this-means_5" title="Permanent link">&para;</a></h3>
+<p>The analyzer could not parse a Python source file in your submission.</p>
+<h3 id="why-we-flag-it_5">Why we flag it<a class="headerlink" href="#why-we-flag-it_5" title="Permanent link">&para;</a></h3>
+<p>Source that does not parse cannot be analyzed for safety and cannot run, so it cannot be published.</p>
+<h3 id="how-to-fix_5">How to fix<a class="headerlink" href="#how-to-fix_5" title="Permanent link">&para;</a></h3>
+<p>Open the reported file, fix the syntax error, and confirm it parses cleanly (for example, run <code>python -m py_compile &lt;file&gt;</code>) before resubmitting.</p>
+<h2 id="static_analysis_missing_base_class">Missing command base class<a class="headerlink" href="#static_analysis_missing_base_class" title="Permanent link">&para;</a></h2>
+<p><strong>Reason code:</strong> <code>static_analysis_missing_base_class</code> · <strong>Severity:</strong> error</p>
+<h3 id="what-this-means_6">What this means<a class="headerlink" href="#what-this-means_6" title="Permanent link">&para;</a></h3>
+<p>A command class does not subclass the required command base class.</p>
+<h3 id="why-we-flag-it_6">Why we flag it<a class="headerlink" href="#why-we-flag-it_6" title="Permanent link">&para;</a></h3>
+<p>The base class defines the contract the runtime uses to load and invoke a command; without it the command cannot be registered or run safely.</p>
+<h3 id="how-to-fix_6">How to fix<a class="headerlink" href="#how-to-fix_6" title="Permanent link">&para;</a></h3>
+<p>Make your command class inherit directly from the required command base class and import it from its sanctioned location.</p>
+<h2 id="static_analysis_transitive_inheritance">Transitive base-class inheritance<a class="headerlink" href="#static_analysis_transitive_inheritance" title="Permanent link">&para;</a></h2>
+<p><strong>Reason code:</strong> <code>static_analysis_transitive_inheritance</code> · <strong>Severity:</strong> error</p>
+<h3 id="what-this-means_7">What this means<a class="headerlink" href="#what-this-means_7" title="Permanent link">&para;</a></h3>
+<p>Your command class only reaches the required base class transitively, through one or more intermediate classes, rather than inheriting from it directly.</p>
+<h3 id="why-we-flag-it_7">Why we flag it<a class="headerlink" href="#why-we-flag-it_7" title="Permanent link">&para;</a></h3>
+<p>The static analyzer cannot safely verify an indirect inheritance chain, so it cannot confirm the command implements the required contract.</p>
+<h3 id="how-to-fix_7">How to fix<a class="headerlink" href="#how-to-fix_7" title="Permanent link">&para;</a></h3>
+<p>Have your command class inherit directly from the required base class rather than through an intermediate subclass, so the inheritance is verifiable.</p>
+<h2 id="manifest_bad_semver">Invalid semantic version<a class="headerlink" href="#manifest_bad_semver" title="Permanent link">&para;</a></h2>
+<p><strong>Reason code:</strong> <code>manifest_bad_semver</code> · <strong>Severity:</strong> error</p>
+<h3 id="what-this-means_8">What this means<a class="headerlink" href="#what-this-means_8" title="Permanent link">&para;</a></h3>
+<p>The <code>version</code> value in your manifest is not a valid semantic version.</p>
+<h3 id="why-we-flag-it_8">Why we flag it<a class="headerlink" href="#why-we-flag-it_8" title="Permanent link">&para;</a></h3>
+<p>The store relies on valid, ordered semantic versions to compare releases and resolve upgrades; an invalid version breaks ordering.</p>
+<h3 id="how-to-fix_8">How to fix<a class="headerlink" href="#how-to-fix_8" title="Permanent link">&para;</a></h3>
+<p>Use a valid <code>MAJOR.MINOR.PATCH</code> version like <code>1.2.0</code> in your manifest's <code>version</code> field.</p>
+<h2 id="manifest_missing_required_field">Missing required manifest field<a class="headerlink" href="#manifest_missing_required_field" title="Permanent link">&para;</a></h2>
+<p><strong>Reason code:</strong> <code>manifest_missing_required_field</code> · <strong>Severity:</strong> error</p>
+<h3 id="what-this-means_9">What this means<a class="headerlink" href="#what-this-means_9" title="Permanent link">&para;</a></h3>
+<p>A field that the manifest is required to define is absent.</p>
+<h3 id="why-we-flag-it_9">Why we flag it<a class="headerlink" href="#why-we-flag-it_9" title="Permanent link">&para;</a></h3>
+<p>Required fields carry information the store and runtime cannot operate without, so a missing one makes the package unusable.</p>
+<h3 id="how-to-fix_9">How to fix<a class="headerlink" href="#how-to-fix_9" title="Permanent link">&para;</a></h3>
+<p>Add the named required field to your manifest with a valid value, then resubmit. The finding names the specific field that is missing.</p>
+<h2 id="manifest_invalid_field_type">Invalid manifest field type<a class="headerlink" href="#manifest_invalid_field_type" title="Permanent link">&para;</a></h2>
+<p><strong>Reason code:</strong> <code>manifest_invalid_field_type</code> · <strong>Severity:</strong> error</p>
+<h3 id="what-this-means_10">What this means<a class="headerlink" href="#what-this-means_10" title="Permanent link">&para;</a></h3>
+<p>A manifest field is present but has the wrong type (for example a string where a list or number is expected).</p>
+<h3 id="why-we-flag-it_10">Why we flag it<a class="headerlink" href="#why-we-flag-it_10" title="Permanent link">&para;</a></h3>
+<p>Fields of the wrong type cannot be parsed or used as intended and would fail unpredictably at runtime.</p>
+<h3 id="how-to-fix_10">How to fix<a class="headerlink" href="#how-to-fix_10" title="Permanent link">&para;</a></h3>
+<p>Correct the field to the expected type as named in the finding (for example, use a list instead of a single string), and resubmit.</p>
+<h2 id="manifest_unknown_category">Unknown manifest category<a class="headerlink" href="#manifest_unknown_category" title="Permanent link">&para;</a></h2>
+<p><strong>Reason code:</strong> <code>manifest_unknown_category</code> · <strong>Severity:</strong> error</p>
+<h3 id="what-this-means_11">What this means<a class="headerlink" href="#what-this-means_11" title="Permanent link">&para;</a></h3>
+<p>The manifest declares a category that is not one of the recognized Pantry categories.</p>
+<h3 id="why-we-flag-it_11">Why we flag it<a class="headerlink" href="#why-we-flag-it_11" title="Permanent link">&para;</a></h3>
+<p>Categories drive discovery and grouping in the store; an unrecognized category cannot be placed and may indicate a typo.</p>
+<h3 id="how-to-fix_11">How to fix<a class="headerlink" href="#how-to-fix_11" title="Permanent link">&para;</a></h3>
+<p>Set the <code>category</code> field to one of the supported category values. Check for typos against the documented category list.</p>
+<h2 id="manifest_unknown_param_type">Unknown parameter type<a class="headerlink" href="#manifest_unknown_param_type" title="Permanent link">&para;</a></h2>
+<p><strong>Reason code:</strong> <code>manifest_unknown_param_type</code> · <strong>Severity:</strong> error</p>
+<h3 id="what-this-means_12">What this means<a class="headerlink" href="#what-this-means_12" title="Permanent link">&para;</a></h3>
+<p>A command parameter in the manifest declares a type the platform does not recognize.</p>
+<h3 id="why-we-flag-it_12">Why we flag it<a class="headerlink" href="#why-we-flag-it_12" title="Permanent link">&para;</a></h3>
+<p>The runtime validates and coerces inputs by parameter type, so an unknown type cannot be processed.</p>
+<h3 id="how-to-fix_12">How to fix<a class="headerlink" href="#how-to-fix_12" title="Permanent link">&para;</a></h3>
+<p>Change the parameter's <code>type</code> to a supported parameter type, correcting any typos against the documented parameter types.</p>
+<h2 id="manifest_unknown_secret_scope">Unknown secret scope<a class="headerlink" href="#manifest_unknown_secret_scope" title="Permanent link">&para;</a></h2>
+<p><strong>Reason code:</strong> <code>manifest_unknown_secret_scope</code> · <strong>Severity:</strong> error</p>
+<h3 id="what-this-means_13">What this means<a class="headerlink" href="#what-this-means_13" title="Permanent link">&para;</a></h3>
+<p>The manifest requests a secret using a scope that is not a recognized secret scope.</p>
+<h3 id="why-we-flag-it_13">Why we flag it<a class="headerlink" href="#why-we-flag-it_13" title="Permanent link">&para;</a></h3>
+<p>Secret scopes govern what credentials a command may access; an unknown scope cannot be granted and may signal an attempt to over-reach.</p>
+<h3 id="how-to-fix_13">How to fix<a class="headerlink" href="#how-to-fix_13" title="Permanent link">&para;</a></h3>
+<p>Use one of the supported secret scopes for each declared secret, and remove or correct any scope that is not recognized.</p>
+<h2 id="manifest_parse_error">Manifest parse error<a class="headerlink" href="#manifest_parse_error" title="Permanent link">&para;</a></h2>
+<p><strong>Reason code:</strong> <code>manifest_parse_error</code> · <strong>Severity:</strong> error</p>
+<h3 id="what-this-means_14">What this means<a class="headerlink" href="#what-this-means_14" title="Permanent link">&para;</a></h3>
+<p>The manifest file itself could not be parsed (for example, malformed YAML/JSON).</p>
+<h3 id="why-we-flag-it_14">Why we flag it<a class="headerlink" href="#why-we-flag-it_14" title="Permanent link">&para;</a></h3>
+<p>If the manifest cannot be parsed, none of its declarations can be read, so the package cannot be validated or installed.</p>
+<h3 id="how-to-fix_14">How to fix<a class="headerlink" href="#how-to-fix_14" title="Permanent link">&para;</a></h3>
+<p>Fix the syntax of the manifest file so it parses cleanly (check indentation, quoting, and brackets), then resubmit.</p>
+<h2 id="repo_missing_readme">Missing README<a class="headerlink" href="#repo_missing_readme" title="Permanent link">&para;</a></h2>
+<p><strong>Reason code:</strong> <code>repo_missing_readme</code> · <strong>Severity:</strong> warning</p>
+<h3 id="what-this-means_15">What this means<a class="headerlink" href="#what-this-means_15" title="Permanent link">&para;</a></h3>
+<p>The repository does not contain a README file.</p>
+<h3 id="why-we-flag-it_15">Why we flag it<a class="headerlink" href="#why-we-flag-it_15" title="Permanent link">&para;</a></h3>
+<p>A README helps other users understand what the package does and how to use it; its absence does not block publication but lowers quality.</p>
+<h3 id="how-to-fix_15">How to fix<a class="headerlink" href="#how-to-fix_15" title="Permanent link">&para;</a></h3>
+<p>Add a <code>README</code> (for example <code>README.md</code>) at the repository root describing the package and how to use it.</p>
+<h2 id="repo_missing_license">Missing LICENSE<a class="headerlink" href="#repo_missing_license" title="Permanent link">&para;</a></h2>
+<p><strong>Reason code:</strong> <code>repo_missing_license</code> · <strong>Severity:</strong> error</p>
+<h3 id="what-this-means_16">What this means<a class="headerlink" href="#what-this-means_16" title="Permanent link">&para;</a></h3>
+<p>The repository does not contain a LICENSE file.</p>
+<h3 id="why-we-flag-it_16">Why we flag it<a class="headerlink" href="#why-we-flag-it_16" title="Permanent link">&para;</a></h3>
+<p>Without a license, others have no legal terms under which to use or redistribute the package, so it cannot be published to the store.</p>
+<h3 id="how-to-fix_16">How to fix<a class="headerlink" href="#how-to-fix_16" title="Permanent link">&para;</a></h3>
+<p>Add a <code>LICENSE</code> file at the repository root stating the license terms for your package, then resubmit.</p>
+<h2 id="repo_no_components_found">No components found<a class="headerlink" href="#repo_no_components_found" title="Permanent link">&para;</a></h2>
+<p><strong>Reason code:</strong> <code>repo_no_components_found</code> · <strong>Severity:</strong> error</p>
+<h3 id="what-this-means_17">What this means<a class="headerlink" href="#what-this-means_17" title="Permanent link">&para;</a></h3>
+<p>The validator found no installable components (such as commands or routines) in the repository.</p>
+<h3 id="why-we-flag-it_17">Why we flag it<a class="headerlink" href="#why-we-flag-it_17" title="Permanent link">&para;</a></h3>
+<p>A package with no components has nothing to install and would publish an empty entry.</p>
+<h3 id="how-to-fix_17">How to fix<a class="headerlink" href="#how-to-fix_17" title="Permanent link">&para;</a></h3>
+<p>Ensure your components are present and discoverable in the expected locations, and that the manifest references them. Resubmit once at least one valid component is found.</p>
+<h2 id="repo_component_file_missing">Component file missing<a class="headerlink" href="#repo_component_file_missing" title="Permanent link">&para;</a></h2>
+<p><strong>Reason code:</strong> <code>repo_component_file_missing</code> · <strong>Severity:</strong> error</p>
+<h3 id="what-this-means_18">What this means<a class="headerlink" href="#what-this-means_18" title="Permanent link">&para;</a></h3>
+<p>The manifest references a component file that does not exist in the repository.</p>
+<h3 id="why-we-flag-it_18">Why we flag it<a class="headerlink" href="#why-we-flag-it_18" title="Permanent link">&para;</a></h3>
+<p>A declared component that has no file behind it cannot be installed and signals a broken or out-of-sync submission.</p>
+<h3 id="how-to-fix_18">How to fix<a class="headerlink" href="#how-to-fix_18" title="Permanent link">&para;</a></h3>
+<p>Add the missing file at the path the manifest references, or correct the path in the manifest to point at the existing file.</p>
+<h2 id="repo_unknown_component_type">Unknown component type<a class="headerlink" href="#repo_unknown_component_type" title="Permanent link">&para;</a></h2>
+<p><strong>Reason code:</strong> <code>repo_unknown_component_type</code> · <strong>Severity:</strong> error</p>
+<h3 id="what-this-means_19">What this means<a class="headerlink" href="#what-this-means_19" title="Permanent link">&para;</a></h3>
+<p>A component declares a type the platform does not recognize.</p>
+<h3 id="why-we-flag-it_19">Why we flag it<a class="headerlink" href="#why-we-flag-it_19" title="Permanent link">&para;</a></h3>
+<p>The store installs and runs each component according to its type, so an unknown type cannot be handled.</p>
+<h3 id="how-to-fix_19">How to fix<a class="headerlink" href="#how-to-fix_19" title="Permanent link">&para;</a></h3>
+<p>Set each component's type to one of the supported component types, fixing any typos against the documented component types.</p>
+<h2 id="routine_missing_steps">Routine missing steps<a class="headerlink" href="#routine_missing_steps" title="Permanent link">&para;</a></h2>
+<p><strong>Reason code:</strong> <code>routine_missing_steps</code> · <strong>Severity:</strong> error</p>
+<h3 id="what-this-means_20">What this means<a class="headerlink" href="#what-this-means_20" title="Permanent link">&para;</a></h3>
+<p>A routine component does not define any steps.</p>
+<h3 id="why-we-flag-it_20">Why we flag it<a class="headerlink" href="#why-we-flag-it_20" title="Permanent link">&para;</a></h3>
+<p>A routine with no steps does nothing when triggered and is almost certainly an authoring mistake.</p>
+<h3 id="how-to-fix_20">How to fix<a class="headerlink" href="#how-to-fix_20" title="Permanent link">&para;</a></h3>
+<p>Add a non-empty <code>steps</code> list to the routine, with at least one step that the routine should perform.</p>
+<h2 id="routine_missing_trigger_phrases">Routine missing trigger phrases<a class="headerlink" href="#routine_missing_trigger_phrases" title="Permanent link">&para;</a></h2>
+<p><strong>Reason code:</strong> <code>routine_missing_trigger_phrases</code> · <strong>Severity:</strong> error</p>
+<h3 id="what-this-means_21">What this means<a class="headerlink" href="#what-this-means_21" title="Permanent link">&para;</a></h3>
+<p>A routine does not define any trigger phrases.</p>
+<h3 id="why-we-flag-it_21">Why we flag it<a class="headerlink" href="#why-we-flag-it_21" title="Permanent link">&para;</a></h3>
+<p>Without trigger phrases there is no way to invoke the routine, so it can never run.</p>
+<h3 id="how-to-fix_21">How to fix<a class="headerlink" href="#how-to-fix_21" title="Permanent link">&para;</a></h3>
+<p>Add one or more trigger phrases to the routine so it can be matched and invoked.</p>
+<h2 id="routine_missing_response_instruction">Routine missing response instruction<a class="headerlink" href="#routine_missing_response_instruction" title="Permanent link">&para;</a></h2>
+<p><strong>Reason code:</strong> <code>routine_missing_response_instruction</code> · <strong>Severity:</strong> error</p>
+<h3 id="what-this-means_22">What this means<a class="headerlink" href="#what-this-means_22" title="Permanent link">&para;</a></h3>
+<p>A routine does not define a response instruction.</p>
+<h3 id="why-we-flag-it_22">Why we flag it<a class="headerlink" href="#why-we-flag-it_22" title="Permanent link">&para;</a></h3>
+<p>The response instruction tells the assistant how to respond when the routine runs; without it the routine has no defined output behavior.</p>
+<h3 id="how-to-fix_22">How to fix<a class="headerlink" href="#how-to-fix_22" title="Permanent link">&para;</a></h3>
+<p>Add the required response instruction field to the routine, describing how it should respond when triggered.</p>
+<h2 id="routine_step_missing_command">Routine step missing command<a class="headerlink" href="#routine_step_missing_command" title="Permanent link">&para;</a></h2>
+<p><strong>Reason code:</strong> <code>routine_step_missing_command</code> · <strong>Severity:</strong> error</p>
+<h3 id="what-this-means_23">What this means<a class="headerlink" href="#what-this-means_23" title="Permanent link">&para;</a></h3>
+<p>A step in a routine does not specify the command it should run.</p>
+<h3 id="why-we-flag-it_23">Why we flag it<a class="headerlink" href="#why-we-flag-it_23" title="Permanent link">&para;</a></h3>
+<p>A step with no command cannot be executed, leaving the routine partially undefined.</p>
+<h3 id="how-to-fix_23">How to fix<a class="headerlink" href="#how-to-fix_23" title="Permanent link">&para;</a></h3>
+<p>Add the <code>command</code> field to each routine step, naming a valid command for that step to invoke.</p>
+<h2 id="routine_invalid_json">Routine has invalid JSON<a class="headerlink" href="#routine_invalid_json" title="Permanent link">&para;</a></h2>
+<p><strong>Reason code:</strong> <code>routine_invalid_json</code> · <strong>Severity:</strong> error</p>
+<h3 id="what-this-means_24">What this means<a class="headerlink" href="#what-this-means_24" title="Permanent link">&para;</a></h3>
+<p>A routine component file is not valid JSON and could not be parsed.</p>
+<h3 id="why-we-flag-it_24">Why we flag it<a class="headerlink" href="#why-we-flag-it_24" title="Permanent link">&para;</a></h3>
+<p>Routines are JSON components; if the JSON does not parse, the routine cannot be read or installed.</p>
+<h3 id="how-to-fix_24">How to fix<a class="headerlink" href="#how-to-fix_24" title="Permanent link">&para;</a></h3>
+<p>Fix the JSON syntax in the routine file (check commas, quoting, and braces) so it parses cleanly, then resubmit.</p>
+<h2 id="apt_package_not_on_allowlist">APT package not on allow-list<a class="headerlink" href="#apt_package_not_on_allowlist" title="Permanent link">&para;</a></h2>
+<p><strong>Reason code:</strong> <code>apt_package_not_on_allowlist</code> · <strong>Severity:</strong> error</p>
+<h3 id="what-this-means_25">What this means<a class="headerlink" href="#what-this-means_25" title="Permanent link">&para;</a></h3>
+<p>The package declares an APT system package that is not on the Pantry allow-list.</p>
+<h3 id="why-we-flag-it_25">Why we flag it<a class="headerlink" href="#why-we-flag-it_25" title="Permanent link">&para;</a></h3>
+<p>System packages are installed with elevated privileges, so only vetted packages on the allow-list may be requested.</p>
+<h3 id="how-to-fix_25">How to fix<a class="headerlink" href="#how-to-fix_25" title="Permanent link">&para;</a></h3>
+<p>Remove the disallowed package, or request only allow-listed APT packages. If you need a package that is not allow-listed, propose it for review through the allow-list process.</p>
+<h2 id="apt_source_not_on_allowlist">APT source not on allow-list<a class="headerlink" href="#apt_source_not_on_allowlist" title="Permanent link">&para;</a></h2>
+<p><strong>Reason code:</strong> <code>apt_source_not_on_allowlist</code> · <strong>Severity:</strong> error</p>
+<h3 id="what-this-means_26">What this means<a class="headerlink" href="#what-this-means_26" title="Permanent link">&para;</a></h3>
+<p>The package declares an APT source (repository) that is not on the Pantry allow-list.</p>
+<h3 id="why-we-flag-it_26">Why we flag it<a class="headerlink" href="#why-we-flag-it_26" title="Permanent link">&para;</a></h3>
+<p>Untrusted APT sources can serve arbitrary system packages, so only vetted sources may be added.</p>
+<h3 id="how-to-fix_26">How to fix<a class="headerlink" href="#how-to-fix_26" title="Permanent link">&para;</a></h3>
+<p>Remove the unapproved APT source, or use only allow-listed sources. To add a new source, submit it for review through the allow-list process.</p>
+<h2 id="apt_source_mismatch">APT source mismatch<a class="headerlink" href="#apt_source_mismatch" title="Permanent link">&para;</a></h2>
+<p><strong>Reason code:</strong> <code>apt_source_mismatch</code> · <strong>Severity:</strong> error</p>
+<h3 id="what-this-means_27">What this means<a class="headerlink" href="#what-this-means_27" title="Permanent link">&para;</a></h3>
+<p>A declared APT source's key URL or repository line does not match the registered allow-list entry for that source.</p>
+<h3 id="why-we-flag-it_27">Why we flag it<a class="headerlink" href="#why-we-flag-it_27" title="Permanent link">&para;</a></h3>
+<p>Even an allow-listed source is only trusted with its exact registered key and repo line; a mismatch could point at a substituted or tampered repository.</p>
+<h3 id="how-to-fix_27">How to fix<a class="headerlink" href="#how-to-fix_27" title="Permanent link">&para;</a></h3>
+<p>Make your declared source's key URL and repository line match the registered allow-list entry exactly, then resubmit.</p>
+<h2 id="post_install_op_unknown_type">Unknown post-install operation<a class="headerlink" href="#post_install_op_unknown_type" title="Permanent link">&para;</a></h2>
+<p><strong>Reason code:</strong> <code>post_install_op_unknown_type</code> · <strong>Severity:</strong> error</p>
+<h3 id="what-this-means_28">What this means<a class="headerlink" href="#what-this-means_28" title="Permanent link">&para;</a></h3>
+<p>A post-install operation declares an operation type the platform does not recognize.</p>
+<h3 id="why-we-flag-it_28">Why we flag it<a class="headerlink" href="#why-we-flag-it_28" title="Permanent link">&para;</a></h3>
+<p>Post-install operations run during installation; an unknown operation type cannot be executed safely or predictably.</p>
+<h3 id="how-to-fix_28">How to fix<a class="headerlink" href="#how-to-fix_28" title="Permanent link">&para;</a></h3>
+<p>Change the operation to one of the supported post-install operation types, correcting any typos against the documented operation types.</p>
+<h2 id="post_install_op_missing_target">Post-install operation missing target<a class="headerlink" href="#post_install_op_missing_target" title="Permanent link">&para;</a></h2>
+<p><strong>Reason code:</strong> <code>post_install_op_missing_target</code> · <strong>Severity:</strong> error</p>
+<h3 id="what-this-means_29">What this means<a class="headerlink" href="#what-this-means_29" title="Permanent link">&para;</a></h3>
+<p>A post-install operation does not specify the target it acts on.</p>
+<h3 id="why-we-flag-it_29">Why we flag it<a class="headerlink" href="#why-we-flag-it_29" title="Permanent link">&para;</a></h3>
+<p>Without a target the operation has nothing to act on and cannot be executed.</p>
+<h3 id="how-to-fix_29">How to fix<a class="headerlink" href="#how-to-fix_29" title="Permanent link">&para;</a></h3>
+<p>Add the required target field to the post-install operation, naming the resource or path it should operate on.</p>
+<h2 id="post_install_op_not_on_allowlist">Post-install operation not on allow-list<a class="headerlink" href="#post_install_op_not_on_allowlist" title="Permanent link">&para;</a></h2>
+<p><strong>Reason code:</strong> <code>post_install_op_not_on_allowlist</code> · <strong>Severity:</strong> error</p>
+<h3 id="what-this-means_30">What this means<a class="headerlink" href="#what-this-means_30" title="Permanent link">&para;</a></h3>
+<p>A post-install operation is not permitted by the Pantry allow-list.</p>
+<h3 id="why-we-flag-it_30">Why we flag it<a class="headerlink" href="#why-we-flag-it_30" title="Permanent link">&para;</a></h3>
+<p>Post-install operations can change the host system, so only vetted, allow-listed operations may run.</p>
+<h3 id="how-to-fix_30">How to fix<a class="headerlink" href="#how-to-fix_30" title="Permanent link">&para;</a></h3>
+<p>Remove the disallowed operation, or use only allow-listed post-install operations. To add a new operation, submit it for review through the allow-list process.</p>
+<h2 id="lockfile_resolution_failed">Lockfile resolution failed<a class="headerlink" href="#lockfile_resolution_failed" title="Permanent link">&para;</a></h2>
+<p><strong>Reason code:</strong> <code>lockfile_resolution_failed</code> · <strong>Severity:</strong> error</p>
+<h3 id="what-this-means_31">What this means<a class="headerlink" href="#what-this-means_31" title="Permanent link">&para;</a></h3>
+<p>The validator could not resolve your package's dependencies into a lockfile.</p>
+<h3 id="why-we-flag-it_31">Why we flag it<a class="headerlink" href="#why-we-flag-it_31" title="Permanent link">&para;</a></h3>
+<p>A package whose dependencies cannot be resolved cannot be installed reproducibly, and an unresolvable dependency set often signals a conflict or a missing package.</p>
+<h3 id="how-to-fix_31">How to fix<a class="headerlink" href="#how-to-fix_31" title="Permanent link">&para;</a></h3>
+<p>Check your declared dependencies for conflicts, typos, or unavailable versions, resolve them so a lockfile can be produced, and resubmit.</p>
+<h2 id="resolved_lockfile_exceeds_size_cap">Resolved lockfile exceeds size cap<a class="headerlink" href="#resolved_lockfile_exceeds_size_cap" title="Permanent link">&para;</a></h2>
+<p><strong>Reason code:</strong> <code>resolved_lockfile_exceeds_size_cap</code> · <strong>Severity:</strong> error</p>
+<h3 id="what-this-means_32">What this means<a class="headerlink" href="#what-this-means_32" title="Permanent link">&para;</a></h3>
+<p>Dependency resolution succeeded, but the resulting lockfile is larger than the allowed size cap.</p>
+<h3 id="why-we-flag-it_32">Why we flag it<a class="headerlink" href="#why-we-flag-it_32" title="Permanent link">&para;</a></h3>
+<p>An oversized resolved dependency set usually means an unexpectedly large dependency tree, which increases install size, attack surface, and resolution risk.</p>
+<h3 id="how-to-fix_32">How to fix<a class="headerlink" href="#how-to-fix_32" title="Permanent link">&para;</a></h3>
+<p>Reduce your dependency footprint by removing or tightening unnecessary dependencies so the resolved lockfile fits within the size cap, then resubmit.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+        
+<div class="md-social">
+  
+    
+    
+    
+    
+    <a href="https://discord.com/invite/kMfKr7EZZ" target="_blank" rel="noopener" title="Join the Jarvis Discord" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M492.5 69.8c-.2-.3-.4-.6-.8-.7-38.1-17.5-78.4-30-119.7-37.1-.4-.1-.8 0-1.1.1s-.6.4-.8.8c-5.5 9.9-10.5 20.2-14.9 30.6-44.6-6.8-89.9-6.8-134.4 0-4.5-10.5-9.5-20.7-15.1-30.6-.2-.3-.5-.6-.8-.8s-.7-.2-1.1-.2C162.5 39 122.2 51.5 84.1 69c-.3.1-.6.4-.8.7C7.1 183.5-13.8 294.6-3.6 404.2c0 .3.1.5.2.8s.3.4.5.6c44.4 32.9 94 58 146.8 74.2.4.1.8.1 1.1 0s.7-.4.9-.7c11.3-15.4 21.4-31.8 30-48.8.1-.2.2-.5.2-.8s0-.5-.1-.8-.2-.5-.4-.6-.4-.3-.7-.4c-15.8-6.1-31.2-13.4-45.9-21.9-.3-.2-.5-.4-.7-.6s-.3-.6-.3-.9 0-.6.2-.9.3-.5.6-.7c3.1-2.3 6.2-4.7 9.1-7.1.3-.2.6-.4.9-.4s.7 0 1 .1c96.2 43.9 200.4 43.9 295.5 0 .3-.1.7-.2 1-.2s.7.2.9.4c2.9 2.4 6 4.9 9.1 7.2.2.2.4.4.6.7s.2.6.2.9-.1.6-.3.9-.4.5-.6.6c-14.7 8.6-30 15.9-45.9 21.8-.2.1-.5.2-.7.4s-.3.4-.4.7-.1.5-.1.8.1.5.2.8c8.8 17 18.8 33.3 30 48.8.2.3.6.6.9.7s.8.1 1.1 0c52.9-16.2 102.6-41.3 147.1-74.2.2-.2.4-.4.5-.6s.2-.5.2-.8c12.3-126.8-20.5-236.9-86.9-334.5zm-302 267.7c-29 0-52.8-26.6-52.8-59.2s23.4-59.2 52.8-59.2c29.7 0 53.3 26.8 52.8 59.2 0 32.7-23.4 59.2-52.8 59.2m195.4 0c-29 0-52.8-26.6-52.8-59.2s23.4-59.2 52.8-59.2c29.7 0 53.3 26.8 52.8 59.2 0 32.7-23.2 59.2-52.8 59.2"/></svg>
+    </a>
+  
+    
+    
+    
+    
+    <a href="https://github.com/alexberardi/jarvis" target="_blank" rel="noopener" title="Jarvis on GitHub" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.tabs", "navigation.sections", "navigation.expand", "navigation.top", "content.code.copy", "content.code.annotate", "search.highlight", "search.suggest"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+    
+  </body>
+</html>
