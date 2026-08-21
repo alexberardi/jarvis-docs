@@ -3,6 +3,10 @@
 
 Quick fixes for common Jarvis issues. If your problem is not listed here, check the [Getting Help](#getting-help) section at the bottom.
 
+!!! tip "Having trouble?"
+
+    Reach out here: [:fontawesome-brands-discord: **Ask in the Jarvis help channel**](https://discord.gg/aKa2J3NcP) -- we're happy to help.
+
 ## Installation Issues
 
 ### Docker not found
@@ -372,3 +376,4 @@ If your issue is not listed here:
     - Your platform (macOS/Linux/TrueNAS)
     - The output of `docker compose ps`
     - Relevant service logs
+5. **Ask in the help channel** on Discord -- often the fastest way to get unstuck: [:fontawesome-brands-discord: Jarvis help channel](https://discord.gg/aKa2J3NcP)

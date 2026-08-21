@@ -4,6 +4,12 @@ Notes on self-hosted voice, local LLMs, and how Jarvis is built — written for 
 
 ---
 
+## [Jarvis starts paying attention](jarvis-starts-paying-attention.md)
+
+Jarvis 0.3.0 stops only answering when spoken to and starts *noticing* — you heading out for an appointment, arriving home, a game ending — then reacts, quietly and on your terms. A "leave by 2:55" nudge that does the math on your node, presence that shares only home/away, plain-English automations, and a voice loop that talks back in about two seconds.
+
+---
+
 ## [Jarvis picks up the phone](jarvis-picks-up-the-phone.md)
 
 Jarvis 0.2.0 can make real phone calls on your behalf — book a table, ask a shop if they've got the thing, call the vet. The hard part wasn't the phone; it was the manners. Plus errands you describe out loud, a scheduler, and a Jarvis that finally has a personality you get to pick.

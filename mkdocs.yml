@@ -196,6 +196,7 @@ nav:
   - Troubleshooting: troubleshooting/index.md
   - Blog:
     - blog/index.md
+    - "Jarvis starts paying attention": blog/jarvis-starts-paying-attention.md
     - "Jarvis picks up the phone": blog/jarvis-picks-up-the-phone.md
     - "Everything was green": blog/everything-was-green.md
     - "Self-hosted voice assistants in the LLM era": blog/llm-era-voice-assistant.md
