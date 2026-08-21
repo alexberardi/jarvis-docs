@@ -5121,6 +5121,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../../blog/jarvis-starts-paying-attention/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Jarvis starts paying attention
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../blog/jarvis-picks-up-the-phone/" class="md-nav__link">
         
   
@@ -5954,7 +5982,7 @@
 <h1 id="node-jarvis-node-setup">Node (jarvis-node-setup)<a class="headerlink" href="#node-jarvis-node-setup" title="Permanent link">&para;</a></h1>
 <p>The Jarvis node is the primary voice interface for Jarvis. It runs on Raspberry Pi hardware (Pi Zero 2 W, Pi 4, Pi 5), any 64-bit Linux machine, or inside Docker with a mic and speaker attached. macOS is supported for development (native only; Docker Desktop has no audio hardware access via VM).</p>
 <h2 id="quick-install">Quick Install<a class="headerlink" href="#quick-install" title="Permanent link">&para;</a></h2>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>curl<span class="w"> </span>-fsSL<span class="w"> </span>https://raw.githubusercontent.com/alexberardi/jarvis-node-setup/v0.1.149/install.sh<span class="w"> </span><span class="p">|</span><span class="w"> </span>sudo<span class="w"> </span>bash
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>curl<span class="w"> </span>-fsSL<span class="w"> </span>https://raw.githubusercontent.com/alexberardi/jarvis-node-setup/v0.3.0/install.sh<span class="w"> </span><span class="p">|</span><span class="w"> </span>sudo<span class="w"> </span>bash
 </code></pre></div>
 <p>This installs to <code>/opt/jarvis-node</code>, sets up a systemd service, and configures audio. After install, pair the node with your server using the mobile app or <code>authorize_node.py</code>.</p>
 <p>Flags:</p>
@@ -5976,7 +6004,7 @@
 </tr>
 <tr>
 <td><code>--version TAG</code></td>
-<td>Install a specific version (e.g. <code>v0.1.149</code>)</td>
+<td>Install a specific version (e.g. <code>v0.3.0</code>)</td>
 </tr>
 <tr>
 <td><code>--local</code></td>
