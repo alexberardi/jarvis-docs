@@ -63,6 +63,26 @@ Before installing, make sure you have Docker and Docker Compose:
         found` or a CMake compiler-detection failure — not an obvious "install
         Xcode" message. Install the tools above **before** running the installer.
 
+=== "Windows"
+
+    Install [Docker Desktop](https://www.docker.com/products/docker-desktop/), then:
+
+    1. Open **Settings → General** and make sure **Use the WSL 2 based engine** is ticked.
+    2. Apply & Restart, and confirm Docker Desktop reports **Engine running**.
+
+    ```powershell
+    # Verify
+    docker compose version
+    ```
+
+    **For an NVIDIA GPU:** keep the **Windows** driver current — recent GeForce drivers include WSL2 CUDA support. Do **not** install a Linux NVIDIA driver inside WSL; that breaks passthrough. Verify with:
+
+    ```powershell
+    docker run --rm --gpus all nvidia/cuda:12.4.1-base-ubuntu22.04 nvidia-smi
+    ```
+
+    If that prints your GPU, nothing further is needed — `nvidia-container-toolkit` is only required for Docker Engine on Linux.
+
 === "Linux (NVIDIA GPU)"
 
     Follow the Ubuntu/Debian steps above, then install the [NVIDIA Container Toolkit](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html):
@@ -121,9 +141,14 @@ Download the `jarvis-admin` binary, which includes a guided setup wizard:
 
 <!-- jarvis:install-cmd:start -->
 ```bash
-curl -fsSL https://raw.githubusercontent.com/alexberardi/jarvis-admin/v0.3.0/install.sh | sh
+curl -fsSL https://raw.githubusercontent.com/alexberardi/jarvis-admin/v0.3.1/install.sh | sh
 ```
 <!-- jarvis:install-cmd:end -->
+
+!!! note "Windows"
+    This one-liner is a shell script, so it does not run on Windows. Use
+    [Option 4](#option-4-github-releases-manual) and download
+    `jarvis-admin-windows-x64.exe` instead.
 
 This detects your OS and architecture, downloads the latest release, and installs to `~/.jarvis/bin/`. The installer also:
 
@@ -209,6 +234,12 @@ npx @alexberardi/jarvis-admin
 
 Same setup wizard, no binary on disk.
 
+!!! warning "Currently behind"
+    The npm package is on **0.3.0**. Until it catches up, this route installs an
+    older build that has known install-blocking bugs on Windows and Docker —
+    prefer [Option 1](#option-1-one-line-install-recommended) or
+    [Option 4](#option-4-github-releases-manual).
+
 ## Option 3: Docker
 
 Run the admin panel as a container:
@@ -232,14 +263,29 @@ Download a standalone binary from the [Releases page](https://github.com/alexber
 
 | Platform | Binary |
 |----------|--------|
+| Windows (x64) | `jarvis-admin-windows-x64.exe` |
 | macOS (Apple Silicon) | `jarvis-admin-darwin-arm64` |
 | Linux (x86_64) | `jarvis-admin-linux-x64` |
 | Linux (ARM64 / Pi 5) | `jarvis-admin-linux-arm64` |
 
-```bash
-chmod +x jarvis-admin-*
-./jarvis-admin-*
-```
+=== "Windows"
+
+    Double-click `jarvis-admin-windows-x64.exe`, or run it from PowerShell:
+
+    ```powershell
+    .\jarvis-admin-windows-x64.exe
+    ```
+
+    **Leave the console window open** — it is the setup server, and closing it
+    ends the wizard. Then open
+    [http://localhost:7711](http://localhost:7711).
+
+=== "macOS / Linux"
+
+    ```bash
+    chmod +x jarvis-admin-*
+    ./jarvis-admin-*
+    ```
 
 ## Option 5: From Source (Developers)
 
@@ -347,20 +393,44 @@ If you previously installed Jarvis as a TrueNAS App and need to clean up, remove
 
 To start fresh while keeping Docker images cached:
 
-```bash
-# Stop the admin service
-systemctl --user stop jarvis-admin   # Linux
-# launchctl unload ~/Library/LaunchAgents/com.jarvis.admin.plist  # macOS
+=== "Linux / macOS"
 
-# Remove containers and data
-cd ~/.jarvis/compose && docker compose down -v
+    ```bash
+    # Stop the admin service
+    systemctl --user stop jarvis-admin   # Linux
+    # launchctl unload ~/Library/LaunchAgents/com.jarvis.admin.plist  # macOS
 
-# Remove generated config
-rm -rf ~/.jarvis/compose ~/.jarvis/admin.json ~/.jarvis/bin/jarvis-admin
+    # Remove containers and data
+    cd ~/.jarvis/compose && docker compose down -v
 
-# Re-install
-cd ~ && curl -fsSL https://raw.githubusercontent.com/alexberardi/jarvis-admin/v0.3.0/install.sh | sh
-```
+    # Remove generated config
+    rm -rf ~/.jarvis/compose ~/.jarvis/admin.json ~/.jarvis/bin/jarvis-admin
+
+    # Re-install
+    cd ~ && curl -fsSL https://raw.githubusercontent.com/alexberardi/jarvis-admin/v0.3.1/install.sh | sh
+    ```
+
+=== "Windows"
+
+    ```powershell
+    # Close the jarvis-admin console window first, then:
+
+    # Remove containers AND data
+    cd $env:USERPROFILE\.jarvis\compose
+    docker compose down -v
+
+    # Remove generated config
+    Remove-Item -Recurse -Force $env:USERPROFILE\.jarvis
+
+    # Re-install: download jarvis-admin-windows-x64.exe from the Releases page
+    # and run it again (see Option 4 above).
+    ```
+
+!!! warning "`-v` is not optional"
+    Without `down -v` the Postgres volume survives, so a fresh install inherits
+    the half-configured state of the previous attempt and reproduces the same
+    errors. Deleting `~/.jarvis` (or `%USERPROFILE%\.jarvis`) on its own is not
+    enough — the data lives in Docker volumes, not in that folder.
 
 ## Uninstalling
 
