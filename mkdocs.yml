@@ -159,6 +159,7 @@ nav:
   - Pantry:
     - Overview: pantry/index.md
     - Rejections: pantry/rejections.md
+    - Running Your Own Pantry: pantry/self-hosting.md
   - Libraries:
     - libraries/index.md
     - Command SDK: libraries/command-sdk.md

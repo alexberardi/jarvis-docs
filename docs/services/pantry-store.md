@@ -11,6 +11,7 @@ The Pantry Store is the server-side API for the Jarvis Pantry — the package re
 | **Framework** | FastAPI + SQLAlchemy |
 | **Database** | PostgreSQL (Fly managed) |
 | **Health endpoint** | `GET /health` |
+| **Self-hosting** | `docker-compose.local.yaml` (see [Running Your Own Pantry](../pantry/self-hosting.md)) |
 
 ## Submission Pipeline
 
@@ -88,6 +89,40 @@ Because the endpoint is unauthenticated and triggers LLM generation, it carries 
 | `RATE_LIMIT_DISABLED` | `false` | Set `true` in dev to bypass all rate limits (submission and forge-generation alike) |
 
 Requests over the cap receive `429 Too Many Requests`. The limit check runs before generation starts, so a rate-limited request never reaches the LLM.
+
+## Self-Hosting Features
+
+Three opt-in features support a Pantry run on your own network. They are documented as a guide in
+[Running Your Own Pantry](../pantry/self-hosting.md); this section lists what the service exposes.
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `FORGE_LOCAL_LLM_ENABLED` | `false` | Master switch for the local LLM features. Off, `/v1/forge/local-llm*` return `404` and no local model is listed. |
+| `FORGE_LOCAL_BASE_URL` / `FORGE_LOCAL_API_KEY` / `FORGE_LOCAL_MODEL` | — | First-run defaults for the local server. Values saved through the API win. |
+| `FORGE_LOCAL_TIMEOUT` / `FORGE_LOCAL_MAX_TOKENS` | `900` / `8192` | Read timeout in seconds and output cap for local models |
+| `PANTRY_UPSTREAM_URL` | — | Public Pantry API to list next to local packages. Empty serves only what this Pantry holds. |
+| `PANTRY_UPSTREAM_TTL_SECONDS` / `PANTRY_UPSTREAM_TIMEOUT_SECONDS` | `300` / `8` | Cache lifetime and request timeout for the mirror |
+| `PANTRY_GITHUB_TOKEN` | — | Clone token for private repositories when adding a package. Never stored. |
+| `ADMIN_API_KEY` | — | Required to add private packages and to change or probe the local LLM server; those endpoints refuse to run without it |
+
+| Method | Path | Auth | Purpose |
+|---|---|---|---|
+| `GET` | `/v1/forge/features` | none | `{local_llm, private_packages, upstream_mirror, admin_key_configured}` |
+| `GET` | `/v1/forge/local-llm` | none, or `X-Admin-Key` to see the address | Saved settings: `base_url`, `has_api_key`, `default_model`, `source`. The key is never returned, and `base_url` is empty unless the request carries the admin key. |
+| `PUT` | `/v1/forge/local-llm` | `X-Admin-Key` (required) | Save `base_url`, `api_key` (omit to keep, `""` to clear) and `default_model` |
+| `POST` | `/v1/forge/local-llm/detect` | `X-Admin-Key` (required) | List the models the server reports at `/v1/models` |
+| `POST` | `/v1/admin/commands/from-repo` | `X-Admin-Key` (required) | Publish a package from a Git repository, with no AI review or container test |
+| `DELETE` | `/v1/admin/commands/{name}/local` | `X-Admin-Key` (required) | Unpublish a package added from a repository |
+
+Settings that change at runtime (the local server's address, key and default model) are stored in the `app_settings`
+table. Everything else remains environment-only. With the mirror on, `GET /v1/commands` and `/v1/categories` merge local
+and public packages and each item carries `"source"`. The field is present with or without the mirror: `"local"` for a package an administrator
+added from a repository, `"pantry"` for one published through this Pantry, `"upstream"` for a mirrored one. Local packages
+belong to one reserved author row (`is_local`, stored username `_local`) that no login can reach.
+
+!!! note "Database driver"
+    SQLAlchemy 2.1 maps a bare `postgresql://` URL to the psycopg v3 driver, which this project does not install.
+    `app/db.py` and Alembic's `env.py` use `postgresql+psycopg2://` instead.
 
 ## Deployment
 
