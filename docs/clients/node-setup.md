@@ -166,6 +166,32 @@ Set `not_for_me_quiet_seconds` in `config.json` (default `20.0`). Raise it if si
 }
 ```
 
+### Configuring the debounce
+
+Set `wake_debounce_secs` in `config.json` (default `8.0`) to change how long an accepted wake blocks the next one. The
+default also swallows a repeat request made within a few seconds of an answer; lower it if your household talks back
+quickly. Values below `0.5` are raised to `0.5` so one "Hey Jarvis" cannot fire twice on consecutive chunks.
+
+```json
+{
+  "wake_debounce_secs": 3.0
+}
+```
+
+### Pauses after the wake word
+
+By default the recording stops as soon as the end-of-speech silence window passes, counted from the first chunk, so
+someone who says "Hey Jarvis" and then pauses is stopped before they start. Set `listen_onset_wait_secs` (default `0`,
+off) to hold the silence stop until speech has been heard, for up to that many seconds:
+
+```json
+{
+  "listen_onset_wait_secs": 2.0
+}
+```
+
+If no speech arrives within the wait, the recording ends as it would have anyway.
+
 ### suppress_wake_for() API
 
 Any caller can extend the gate programmatically:
@@ -235,6 +261,11 @@ def pre_route(self, voice_command: str) -> PreRouteResult | None:
 ```
 
 This skips the LLM entirely, reducing latency to near-zero for simple commands like "pause" or "stop".
+
+The built-in time command also answers date questions this way, from the node's clock: "what day is it" (and
+"tomorrow" / "yesterday"), "what's the date", "what year is it", "what month is it", "is it the weekend" and "how many
+days until Christmas". Without the fast path these went to the model, which tended to answer with the time of day or
+invent a date.
 
 ### Installing Commands from the Pantry
 
