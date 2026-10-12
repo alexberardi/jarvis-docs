@@ -37,6 +37,9 @@ The `/transcribe` endpoint accepts a WAV file upload. Optional query parameters 
 | `temperature_inc` | `0.2` | Temperature increment on decode failure |
 | `beam_size` | `5` | Beam size for beam search (1–16) |
 
+When Whisper is called through [Command Center](command-center.md), `prompt` and `preprocess` default to the
+`whisper.prompt` and `whisper.preprocess` settings (see [Whisper Hints](command-center.md#whisper-hints)).
+
 The response always includes a `speaker` field. Speaker identification is only populated when the `voice.recognition_enabled` setting is on (default off) and the request doesn't opt out via the `speaker_recognition` query parameter:
 
 ```json
