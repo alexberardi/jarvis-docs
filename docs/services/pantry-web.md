@@ -46,12 +46,16 @@ The UI reads both with a `?? []` fallback so a missing field never causes a runt
 without the route simply reads as "everything off", so nothing extra appears and nothing breaks. Each page also checks
 the flag itself, so opening its URL directly on a Pantry without the feature says it is unavailable.
 
-- **Settings** shows what the backend has saved (never the key itself). **Detect models** asks the *backend* to list the
+- **Settings** shows what the backend has saved (never the key itself; the server address only once the admin key has
+  been entered, since the backend does not reveal it to anyone else). **Detect models** asks the *backend* to list the
   model server's models, and **Save** stores the address, key and default. The browser never contacts the model server.
 - **Forge** lists detected local models first (`local:<model>`, free) and preselects the default. The API-key field is
-  disabled for them, because the backend uses its saved server and key.
+  disabled for them and the page sends an empty key, because the backend uses its saved server and key and ignores one
+  supplied by the caller.
 - **Private** posts a repository URL (optional tag or branch, optional GitHub token) to
-  `POST /v1/admin/commands/from-repo` and lists packages whose `source` is `local`.
+  `POST /v1/admin/commands/from-repo` and lists the packages whose `source` is `local`: only the ones an administrator
+  added from a repository. Packages published through the Pantry's pipeline (`pantry`) and mirrored ones (`upstream`)
+  are not listed, so **Unpublish** is only offered for packages it can act on.
 
 **Admin key.** Changing the settings and adding or unpublishing a private package need the Pantry's `ADMIN_API_KEY`,
 sent as `X-Admin-Key`. The pages keep it in `sessionStorage`, so it lasts for that browser tab only and is never written

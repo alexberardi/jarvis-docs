@@ -108,7 +108,7 @@ Three opt-in features support a Pantry run on your own network. They are documen
 | Method | Path | Auth | Purpose |
 |---|---|---|---|
 | `GET` | `/v1/forge/features` | none | `{local_llm, private_packages, upstream_mirror, admin_key_configured}` |
-| `GET` | `/v1/forge/local-llm` | none | Saved settings: `base_url`, `has_api_key`, `default_model`, `source`. The key is never returned. |
+| `GET` | `/v1/forge/local-llm` | none, or `X-Admin-Key` to see the address | Saved settings: `base_url`, `has_api_key`, `default_model`, `source`. The key is never returned, and `base_url` is empty unless the request carries the admin key. |
 | `PUT` | `/v1/forge/local-llm` | `X-Admin-Key` (required) | Save `base_url`, `api_key` (omit to keep, `""` to clear) and `default_model` |
 | `POST` | `/v1/forge/local-llm/detect` | `X-Admin-Key` (required) | List the models the server reports at `/v1/models` |
 | `POST` | `/v1/admin/commands/from-repo` | `X-Admin-Key` (required) | Publish a package from a Git repository, with no AI review or container test |
@@ -116,7 +116,9 @@ Three opt-in features support a Pantry run on your own network. They are documen
 
 Settings that change at runtime (the local server's address, key and default model) are stored in the `app_settings`
 table. Everything else remains environment-only. With the mirror on, `GET /v1/commands` and `/v1/categories` merge local
-and public packages and each item carries `"source": "local" | "upstream"`.
+and public packages and each item carries `"source"`. The field is present with or without the mirror: `"local"` for a package an administrator
+added from a repository, `"pantry"` for one published through this Pantry, `"upstream"` for a mirrored one. Local packages
+belong to one reserved author row (`is_local`, stored username `_local`) that no login can reach.
 
 !!! note "Database driver"
     SQLAlchemy 2.1 maps a bare `postgresql://` URL to the psycopg v3 driver, which this project does not install.

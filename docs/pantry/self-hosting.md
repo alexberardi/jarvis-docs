@@ -131,12 +131,14 @@ request again with a new `ref` to publish a new version.
   endpoint (a public submission, for example), the request is refused with `409`. Rename the package in the manifest or
   unpublish the existing one first.
 - **"Private" means unreviewed and local, not secret.** A package added this way is listed, shown and downloadable
-  through the same public routes as every other package on this Pantry (`"source": "local"`). Keep the Pantry on a
+  through the same public routes as every other package on this Pantry (`"source": "local"`, against `"pantry"` for a
+  public submission and `"upstream"` for a mirrored package). Keep the Pantry on a
   network where that is acceptable, or put an access-controlled proxy in front of it.
 - **Unpublish.** `DELETE /v1/admin/commands/{name}/local` hides a package; it is not deleted, and publishing the same
   name again brings it back. Only packages added this way can be unpublished here.
 - **In the web interface** the **Private** page does the same add, list and unpublish from a form. It appears only when
-  the Pantry has an admin key.
+  the Pantry has an admin key, and it lists only the packages added this way (`source` is `local`), never public
+  submissions or mirrored packages.
 
 ## The admin key
 
