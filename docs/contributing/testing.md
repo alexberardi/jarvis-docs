@@ -217,6 +217,31 @@ E2E test results are written to JSON files containing:
 - Analysis with command success rates and a confusion matrix
 - Recommendations for improving low-performing commands
 
+## Acoustic Voice-Path Tests
+
+The command-parsing E2E tests above start from text. To test the whole voice path with a real wake word and real audio,
+use `tools/acoustic_test/` in [`jarvis-node-setup`](https://github.com/alexberardi/jarvis-node-setup). Home Assistant
+speaks `Hey Jarvis, <phrase>` through a speaker placed near the node, and the tool reads the node's log to report, per
+phrase, the wake score, transcript, route, reply and the time from the end of recording to the first audio. The audio is
+identical on every run, so settings can be compared on the same phrases.
+
+```bash
+export HA_URL=http://homeassistant.local:8123 HA_TOKEN_FILE=~/.ha-token
+export PLAYER_ENTITY=media_player.kitchen_speaker NODE_SSH=pi@jarvis-node.local
+
+echo '["what time is it", {"utt": "did you feed the dog", "wake": ""}]' \
+  | python -m tools.acoustic_test.run --out runs.jsonl --volume 0.3
+python -m tools.acoustic_test.mic_level 0.15 0.35
+```
+
+- A phrase with `"wake": ""` is chatter that should **not** be answered; it is reported as a false answer if it is.
+- Verdicts are `answered`, `miss` (the wake model did not fire), `dropped` (woke, but judged not addressed to the node) and
+  `error`.
+- Check the level first with `mic_level`: speech whose peak is at or below the room's noise floor is not heard by the wake
+  model, and a loud speaker next to the microphone flatters every result.
+- Identical audio can score very differently between runs (speaker start-up clipping, household noise), so use a few
+  dozen phrases and compare settings across several runs.
+
 ## Performance Target
 
 Total end-to-end voice latency target: **under 5 seconds**, including:
