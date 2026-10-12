@@ -375,6 +375,14 @@ household (or node) settings above:
 Keep the prompt to one or two short sentences. A long, command-heavy prompt can make Whisper invent a command out of
 room noise (for example "Hey Jarvis, tell me a joke." from silence).
 
+!!! warning "The prompt also applies to wake-clip verification"
+    `whisper.prompt` is sent with every transcription, including the short wake clip that
+    `voice.wake_verification_mode` transcribes to check the wake phrase was actually spoken. A prompt that contains the
+    wake phrase pushes Whisper towards hearing it, which makes verification more forgiving: a real but quiet wake
+    verifies more often (the reason to use it), and a borderline false wake can verify too. If you rely on `enforce`
+    mode to suppress false wakes (television, side conversations), test with your own non-wake audio before enabling a
+    prompt that names the wake phrase.
+
 The hints are sent as query parameters, which is where Whisper reads them (see
 [Whisper API](whisper-api.md#transcription)). A request that passes its own `prompt` or `preprocess` overrides the setting.
 If the settings lookup fails, transcription continues without hints.
