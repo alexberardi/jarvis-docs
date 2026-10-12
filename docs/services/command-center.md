@@ -356,8 +356,36 @@ These settings are persisted in PostgreSQL and editable via **Admin → Settings
 |---|---|---|
 | `web_search.enabled` | `false` (per-household) | Master toggle for `quick_search` + `deep_research`. Fail-closed. See [Web Search](#web-search). |
 | `web_scraping.allow_external` | `false` (per-household) | Opt-in gate for the r.jina.ai reader-proxy fallback in deep research. Fail-closed. Household-admin controllable via mobile. See [Jina Reader Proxy](#jina-reader-proxy-web_scrapingallow_external). |
+| `whisper.prompt` | empty (per-household or per-node) | Initial prompt sent to Whisper with every transcription. See [Whisper Hints](#whisper-hints). |
+| `whisper.preprocess` | `false` (per-household or per-node) | Ask Whisper to normalize the audio level and trim silence before transcribing. See [Whisper Hints](#whisper-hints). |
 | `updates.allow_check` | `false` (global) | Allow outbound version lookups to api.github.com for node release checks. Explicit version installs bypass this gate. Fail-closed. See [Update Checks](#update-checks). |
 
+
+### Whisper Hints
+
+Command Center sends two optional hints to Whisper's `/transcribe` endpoint on every request, both read from the
+household (or node) settings above:
+
+- **`whisper.prompt`** primes the decoder with text it should expect. A short prompt that contains the wake phrase and a
+  typical command, for example `Hey Jarvis, set a timer for ten minutes.`, improves wake-clip verification and command
+  accuracy on quiet or distant speech.
+- **`whisper.preprocess`** normalizes the audio level and trims silence. Turn it on for quiet or far-field microphones,
+  and leave it off for close, loud ones.
+
+Keep the prompt to one or two short sentences. A long, command-heavy prompt can make Whisper invent a command out of
+room noise (for example "Hey Jarvis, tell me a joke." from silence).
+
+!!! warning "The prompt also applies to wake-clip verification"
+    `whisper.prompt` is sent with every transcription, including the short wake clip that
+    `voice.wake_verification_mode` transcribes to check the wake phrase was actually spoken. A prompt that contains the
+    wake phrase pushes Whisper towards hearing it, which makes verification more forgiving: a real but quiet wake
+    verifies more often (the reason to use it), and a borderline false wake can verify too. If you rely on `enforce`
+    mode to suppress false wakes (television, side conversations), test with your own non-wake audio before enabling a
+    prompt that names the wake phrase.
+
+The hints are sent as query parameters, which is where Whisper reads them (see
+[Whisper API](whisper-api.md#transcription)). A request that passes its own `prompt` or `preprocess` overrides the setting.
+If the settings lookup fails, transcription continues without hints.
 
 ## Prompt Providers
 
