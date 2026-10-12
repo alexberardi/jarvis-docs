@@ -13,6 +13,12 @@ The Pantry Web is the browser-based interface for the Jarvis Pantry — a market
 | `/commands/<slug>` | Command detail — description, install status, test results |
 | `/submit` | Package submission form with static-analysis preview |
 | `/forge` | Full CodeMirror editor with live static-analysis preview |
+| `/settings` | Local LLM server for the Forge: address, key, **Detect models**, default model. Shown only when the Pantry has `FORGE_LOCAL_LLM_ENABLED` on |
+| `/private` | Add a package from a Git repository, list and unpublish private packages. Shown only when the Pantry has an `ADMIN_API_KEY` |
+
+The header links to `/settings` and `/private` appear only when `GET /v1/forge/features` reports them on; against an older
+Pantry they simply do not show. Both pages ask for the Pantry's admin key when it is set (kept for the browser session
+only). See [Running Your Own Pantry](pantry-store.md#running-your-own-pantry).
 
 ## Authentication
 

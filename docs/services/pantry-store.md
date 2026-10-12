@@ -89,6 +89,77 @@ Because the endpoint is unauthenticated and triggers LLM generation, it carries 
 
 Requests over the cap receive `429 Too Many Requests`. The limit check runs before generation starts, so a rate-limited request never reaches the LLM.
 
+## Running Your Own Pantry
+
+Three opt-in features make it practical to run a Pantry on a home or office network. Each is off until its variable is
+set, so a deployment that sets none of them behaves exactly as the public Pantry does.
+
+| Feature | Switch | What it does | Needs an admin key? |
+|---|---|---|---|
+| [Local LLM for the Forge](#local-llm-for-the-forge) | `FORGE_LOCAL_LLM_ENABLED=true` | The Forge generates packages with an OpenAI-compatible server you run (llama-swap, llama.cpp, vLLM, Ollama) | For changes, when `ADMIN_API_KEY` is set |
+| [Upstream mirror](#upstream-mirror) | `PANTRY_UPSTREAM_URL=<public Pantry API>` | One catalogue: your packages first, then the public ones | No |
+| [Private packages](#private-packages) | `ADMIN_API_KEY` set | Publish a package straight from a Git repository | Yes, always |
+
+`GET /v1/forge/features` reports which are on (`local_llm`, `private_packages`, `upstream_mirror`), and the web interface
+hides what is off.
+
+### Local LLM for the Forge
+
+The server address, API key and default model are set on the web interface's Settings page and stored in the
+`app_settings` table. `FORGE_LOCAL_BASE_URL`, `FORGE_LOCAL_API_KEY` and `FORGE_LOCAL_MODEL` are first-run defaults only;
+a value saved as an empty string was cleared on purpose and does not fall back.
+
+| Method | Path | Admin key | Purpose |
+|---|---|---|---|
+| `GET` | `/v1/forge/local-llm` | no | `{base_url, has_api_key, default_model, source}`. The key is never returned. |
+| `PUT` | `/v1/forge/local-llm` | when set | Save `{base_url, api_key, default_model}`. Omit `api_key` to keep the stored key; `""` clears it. |
+| `POST` | `/v1/forge/local-llm/detect` | when set | Test the supplied address and key (or the saved ones) and return `{ok, models, error}` |
+| `GET` | `/v1/forge/models` | no | Detected models first as `local:<model>` (the default marked `"default": true`), then hosted models |
+
+While the switch is off, `/v1/forge/local-llm*` return 404 and no local models are listed. Models are found with
+`GET {server}/v1/models` and cached for 30 seconds; an unreachable server yields an empty list, not an error. A local
+model needs no per-request API key.
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `FORGE_LOCAL_LLM_ENABLED` | `false` | Master switch |
+| `FORGE_LOCAL_TIMEOUT` | `900` | Seconds to wait for a local model's reply |
+| `FORGE_LOCAL_MAX_TOKENS` | `8192` | Output cap for local models |
+
+The server fetches whatever address is saved. With no `ADMIN_API_KEY` anyone who can reach the port can change it, so
+keep an unauthenticated Pantry on a trusted network.
+
+### Upstream Mirror
+
+With `PANTRY_UPSTREAM_URL` set, `GET /v1/commands` and `/v1/categories` merge the public catalogue with your own packages.
+Your packages come first and a local name shadows a public one; each item has `"source": "local" | "upstream"`. Detail,
+versions and download answer locally first and fall back to the public Pantry. Nodes still clone each package from its
+GitHub repository; the Pantry only brokers the lookup.
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `PANTRY_UPSTREAM_URL` | empty (off) | API address of the public Pantry to mirror |
+| `PANTRY_UPSTREAM_TTL_SECONDS` | `300` | How long the fetched list is cached |
+| `PANTRY_UPSTREAM_TIMEOUT_SECONDS` | `8` | Request timeout |
+
+If the upstream is offline the last good copy is served, or only your own packages if there never was one. Downloading an
+upstream-only package while it is offline returns `502`. Nothing is written upstream or stored locally.
+
+### Private Packages
+
+`POST /v1/admin/commands/from-repo` clones a Git repository, validates its manifest and publishes it under a reserved
+author `local`; `DELETE /v1/admin/commands/{name}/local` unpublishes it. **This path has no AI review and no container
+test**, so it refuses to run unless `ADMIN_API_KEY` is set and requires `X-Admin-Key`.
+
+```bash
+curl -X POST "$PANTRY/v1/admin/commands/from-repo" \
+  -H "X-Admin-Key: $ADMIN_API_KEY" -H 'Content-Type: application/json' \
+  -d '{"github_repo_url": "https://github.com/you/jarvis-cmd-thing", "ref": "v1.0.0"}'
+```
+
+A private GitHub repository needs a clone token, in the request (`token`) or `PANTRY_GITHUB_TOKEN`. It is used for the
+clone only and is never stored or returned. A node installing a private package needs its own access to the repository.
+
 ## Deployment
 
 ```bash
