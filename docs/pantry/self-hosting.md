@@ -92,7 +92,8 @@ Set `PANTRY_UPSTREAM_URL` to the public Pantry's API and your Pantry lists the p
 as one store, so a node needs only one address.
 
 - `GET /v1/commands` merges both: your packages first, then the public ones. A local name **shadows** a public one. Each
-  item carries `"source": "local"` or `"upstream"`, and search, category and type filters, sorting and pagination apply to
+  item carries `"source"` (`"local"` for a package added from a repository, `"pantry"` for a public submission to this
+  Pantry, `"upstream"` for a mirrored one), and search, category and type filters, sorting and pagination apply to
   the merged list. `/v1/categories` counts both.
 - `GET /v1/commands/{name}`, `/versions` and `/download` answer locally first and fall back to the public Pantry.
 - The public list is cached for `PANTRY_UPSTREAM_TTL_SECONDS` (default 300) with a request timeout of
