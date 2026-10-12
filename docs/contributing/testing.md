@@ -234,9 +234,12 @@ echo '["what time is it", {"utt": "did you feed the dog", "wake": ""}]' \
 python -m tools.acoustic_test.mic_level 0.15 0.35
 ```
 
-- A phrase with `"wake": ""` is chatter that should **not** be answered; it is reported as a false answer if it is.
-- Verdicts are `answered`, `miss` (the wake model did not fire), `dropped` (woke, but judged not addressed to the node) and
-  `error`.
+- A phrase that should be answered is `answered`, `miss` (the wake model did not fire), `dropped` (woke, but judged not
+  addressed to the node) or `error`.
+- A phrase with `"wake": ""` is chatter that should **not** be answered: it is `ignored` when the node did not answer it
+  and `false_answer` when it did.
+- The speaker fetches the generated speech from Home Assistant Cloud's address by default; set `HA_MEDIA_BASE_URL` to an
+  address the speaker can reach to keep it local. Log windows are corrected for clock skew between machines.
 - Check the level first with `mic_level`: speech whose peak is at or below the room's noise floor is not heard by the wake
   model, and a loud speaker next to the microphone flatters every result.
 - Identical audio can score very differently between runs (speaker start-up clipping, household noise), so use a few
