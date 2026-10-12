@@ -98,7 +98,7 @@ Optional variables for [running your own Pantry](../pantry/self-hosting.md). Eac
 
 | Variable | Default | Description |
 |----------|---------|-------------|
-| `ADMIN_API_KEY` | — | Required to add private packages. When set, also protects changes to the local LLM settings (sent as `X-Admin-Key`). |
+| `ADMIN_API_KEY` | — | Required to add private packages **and** to change or probe the local LLM server (sent as `X-Admin-Key`). Those endpoints refuse to run without it. |
 | `FORGE_LOCAL_LLM_ENABLED` | `false` | Master switch for the local LLM features (Settings page, `local:` models) |
 | `FORGE_LOCAL_BASE_URL` | — | First-run default for the local OpenAI-compatible server address |
 | `FORGE_LOCAL_API_KEY` | — | First-run default for that server's API key |

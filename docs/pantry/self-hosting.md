@@ -127,6 +127,12 @@ request again with a new `ref` to publish a new version.
 - **Private GitHub repositories.** Supply a token in the request (`token`) or set `PANTRY_GITHUB_TOKEN`. It is used for
   the clone only, is never stored and is removed from error text. A node installing a private repository needs its own
   access to it.
+- **It never replaces a reviewed package.** If a package with that name already exists and was not added through this
+  endpoint (a public submission, for example), the request is refused with `409`. Rename the package in the manifest or
+  unpublish the existing one first.
+- **"Private" means unreviewed and local, not secret.** A package added this way is listed, shown and downloadable
+  through the same public routes as every other package on this Pantry (`"source": "local"`). Keep the Pantry on a
+  network where that is acceptable, or put an access-controlled proxy in front of it.
 - **Unpublish.** `DELETE /v1/admin/commands/{name}/local` hides a package; it is not deleted, and publishing the same
   name again brings it back. Only packages added this way can be unpublished here.
 - **In the web interface** the **Private** page does the same add, list and unpublish from a form. It appears only when
@@ -138,19 +144,20 @@ request again with a new `ref` to publish a new version.
 
 | Action | With no key set | With a key set |
 |---|---|---|
-| Change or probe the local LLM server (`PUT` and `detect`) | open to anyone who can reach the port | needs the key |
+| Change or probe the local LLM server (`PUT` and `detect`) | **refused** (`403`) | needs the key |
 | Add or unpublish a private package | **refused** (`403`) | needs the key |
 | Existing moderation endpoints | unchanged | unchanged |
 
-With no key set, anyone on the network can change the saved LLM server, and the Pantry will fetch whatever address is
-saved, so keep it on a trusted network and do not expose the API to untrusted clients. The web interface keeps the key in
-the browser tab's `sessionStorage` only.
+A wrong or missing key is `401`. The key is compared in constant time. Endpoints that change what nodes install or where
+the Pantry sends requests never run on an open Pantry. The saved model-server API key is only ever sent to the saved
+server; probing another address with `detect` uses the key in that request, never the saved one. The web interface keeps
+the admin key in the browser tab's `sessionStorage` only.
 
 ## Checking what is enabled
 
 ```bash
 curl -s http://pantry.lan:7721/v1/forge/features
-# {"local_llm": true, "private_packages": true, "upstream_mirror": true}
+# {"local_llm": true, "private_packages": true, "upstream_mirror": true, "admin_key_configured": true}
 ```
 
 The web interface reads this to decide which links to show.

@@ -103,14 +103,14 @@ Three opt-in features support a Pantry run on your own network. They are documen
 | `PANTRY_UPSTREAM_URL` | — | Public Pantry API to list next to local packages. Empty serves only what this Pantry holds. |
 | `PANTRY_UPSTREAM_TTL_SECONDS` / `PANTRY_UPSTREAM_TIMEOUT_SECONDS` | `300` / `8` | Cache lifetime and request timeout for the mirror |
 | `PANTRY_GITHUB_TOKEN` | — | Clone token for private repositories when adding a package. Never stored. |
-| `ADMIN_API_KEY` | — | Required to add private packages; also protects changes to the local LLM settings when set |
+| `ADMIN_API_KEY` | — | Required to add private packages and to change or probe the local LLM server; those endpoints refuse to run without it |
 
 | Method | Path | Auth | Purpose |
 |---|---|---|---|
-| `GET` | `/v1/forge/features` | none | `{local_llm, private_packages, upstream_mirror}` |
+| `GET` | `/v1/forge/features` | none | `{local_llm, private_packages, upstream_mirror, admin_key_configured}` |
 | `GET` | `/v1/forge/local-llm` | none | Saved settings: `base_url`, `has_api_key`, `default_model`, `source`. The key is never returned. |
-| `PUT` | `/v1/forge/local-llm` | `X-Admin-Key` when set | Save `base_url`, `api_key` (omit to keep, `""` to clear) and `default_model` |
-| `POST` | `/v1/forge/local-llm/detect` | `X-Admin-Key` when set | List the models the server reports at `/v1/models` |
+| `PUT` | `/v1/forge/local-llm` | `X-Admin-Key` (required) | Save `base_url`, `api_key` (omit to keep, `""` to clear) and `default_model` |
+| `POST` | `/v1/forge/local-llm/detect` | `X-Admin-Key` (required) | List the models the server reports at `/v1/models` |
 | `POST` | `/v1/admin/commands/from-repo` | `X-Admin-Key` (required) | Publish a package from a Git repository, with no AI review or container test |
 | `DELETE` | `/v1/admin/commands/{name}/local` | `X-Admin-Key` (required) | Unpublish a package added from a repository |
 
