@@ -1,8 +1,8 @@
 # Privacy Policy
 
-**Last updated:** July 13, 2026
+**Last updated:** October 12, 2026
 
-This privacy policy describes how Jarvis Automation ("we", "us", "Jarvis") handles information collected through the Jarvis platform, including the **Jarvis Automation** mobile app, the self-hosted backend services, and optional cloud services.
+This privacy policy describes how Jarvis Automation ("we", "us", "Jarvis") handles information collected through the Jarvis platform, including the **Jarvis Automation** mobile app, the **Jarvis desktop agent** and the **Jarvis Browser Control** browser extension, the self-hosted backend services, and optional cloud services.
 
 Jarvis is **self-hosted by default**. Most data flows in Jarvis never reach servers operated by us — they stay on hardware you own and operate. This policy distinguishes between the two cases.
 
@@ -18,8 +18,11 @@ Jarvis is **self-hosted by default**. Most data flows in Jarvis never reach serv
 | Google account data (Calendar, Drive, Gmail, Nest) | Google, then your own server | Only when you enroll OAuth |
 | Local network scan results (Wi-Fi SSIDs, device IPs) | Your device only | During node provisioning |
 | Camera images (QR codes) | Your device only (transient) | During node pairing |
+| Browser tab titles and URLs (Browser Control extension) | Your own server, via the desktop agent on your computer | Only when you ask Jarvis to do something with your tabs |
+| Visible page text (Browser Control extension) | Your own server, via the desktop agent on your computer | Only when you ask Jarvis to read or act on a page |
+| Screen captures (desktop agent, "read the screen") | Your own server | Only when you ask Jarvis to read your screen |
 
-We do not sell your data. We do not run analytics on the mobile app or the self-hosted backend.
+We do not sell your data. We do not run analytics on the mobile app, the desktop agent, the browser extension or the self-hosted backend.
 
 ## Information you provide
 
@@ -48,6 +51,32 @@ The mobile app does not include any third-party analytics, advertising, crash re
 - Your own Jarvis server (the host you configured)
 - Jarvis Automation cloud services that you have explicitly opted into (Pantry package store)
 - Third-party OAuth providers (Google, etc.) only when you initiate an OAuth flow
+
+## Information the desktop agent and browser extension handle
+
+The **Jarvis desktop agent** runs on your computer and connects only to the Jarvis server you
+configured. It acts on your computer (opening apps, managing windows, reading the screen) only
+when you ask Jarvis to. Screen captures are sent to your own server for that one request and
+are not kept by the agent.
+
+The **Jarvis Browser Control** extension (Chrome, Firefox and other Chromium browsers) lets
+Jarvis work with your browser tabs. It:
+
+- **Communicates only with the Jarvis desktop agent on the same computer**, through the
+  browser's native-messaging channel. It makes no network requests of its own. Web pages and
+  other extensions cannot send it anything.
+- **Reads tab titles and URLs** when you ask Jarvis to list, open, switch or close tabs.
+- **Reads a page's visible text** when you ask Jarvis to read or summarise a page. It never
+  reads form fields, including text boxes, dropdowns and passwords. It does not type into,
+  fill in or click anything on a page.
+- **Controls audio and video** on a page (play, pause, seek) when you ask it to.
+- **Stores nothing.** It keeps no history, cookies, browsing data or settings.
+
+This data goes from the extension to the desktop agent, then to **your own Jarvis server**, and
+is used only to carry out your request. It never reaches Jarvis Automation or any third party.
+It is not sold, not used for advertising, profiling or creditworthiness, and not used for any
+purpose unrelated to the feature you invoked. What your server keeps (for example, the
+conversation transcript) follows your server's own retention settings.
 
 ## Information our cloud services collect
 
