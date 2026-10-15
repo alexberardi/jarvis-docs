@@ -47,7 +47,7 @@ graph LR
 | **[Getting Started](getting-started/index.md)** | Install Jarvis, start services, and send your first voice command. |
 | **[Extending Jarvis](extending/index.md)** | The plugin system — commands, agents, device adapters, prompt providers, and more. |
 | **[Architecture](architecture/index.md)** | Understand the voice pipeline, service discovery, and authentication patterns. |
-| **[Cloud Services](architecture/cloud.md)** | Pantry (command store), Notifications Relay, Web Chat, and the Command SDK. |
+| **[Cloud Services](architecture/cloud.md)** | Pantry (command store), Notifications Relay, and the Command SDK. |
 | **[Services](services/index.md)** | Reference for every microservice — APIs, configuration, and dependencies. |
 
 ## Built-in Commands

@@ -99,7 +99,7 @@ Nearly every service depends on auth for request validation:
 
 - jarvis-command-center, jarvis-whisper-api, jarvis-tts, jarvis-ocr-service, jarvis-recipes-server, jarvis-logs, jarvis-notifications, jarvis-settings-server, jarvis-mcp, jarvis-admin, jarvis-config-service
 
-The admin Users panel (jarvis-admin) and the mobile/web forced-password-change gates (jarvis-node-mobile, jarvis-web) consume the superuser and change-password endpoints directly.
+The admin Users panel (jarvis-admin) and the mobile/web forced-password-change gates (jarvis-node-mobile, and the jarvisd web app that replaced jarvis-web) consume the superuser and change-password endpoints directly.
 
 ## Impact if Down
 
