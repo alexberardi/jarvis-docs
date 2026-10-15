@@ -23,7 +23,7 @@ Jarvis is composed of small, focused microservices. Each runs as a Docker contai
 | [Pantry Store](pantry-store.md) | 7721 | Cloud package store + AI Forge | Cloud |
 | [Pantry Runner](pantry-runner.md) | — | Sandboxed package validation jobs | Cloud |
 | [Pantry Web](pantry-web.md) | — | Pantry browsing SPA | Cloud |
-| Web Chat (`jarvis-web`) | 7722 | Browser chat (Next.js) | Cloud |
+| Web Chat (`jarvis-web`, **retired**) | 7722 | Replaced by the jarvisd web app ([jarvis-server](https://github.com/alexberardi/jarvis-server), port 7710) | — |
 
 ## Dependency Tiers
 

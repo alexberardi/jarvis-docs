@@ -76,7 +76,7 @@ python utils/authorize_node.py \
 Replace `<ADMIN_API_KEY>` with the value from the previous step, and `<household-uuid>` with the household ID from the `--list` output.
 
 !!! note "Source installs only"
-    The `authorize_node.py` script is in the `jarvis-node-setup` directory, which is only available if you cloned the repository. If you installed via Docker or the one-line installer, skip to [Try the Web Chat](#5-try-the-web-chat) instead.
+    The `authorize_node.py` script is in the `jarvis-node-setup` directory, which is only available if you cloned the repository. If you installed via Docker or the one-line installer, skip to [Chat from a browser](#5-chat-from-a-browser) instead.
 
 ## 4. Send Your First Command
 
@@ -123,17 +123,22 @@ The request flowed through the full voice pipeline:
 
 In a real voice interaction, Whisper (speech-to-text) runs before step 1, and TTS (text-to-speech) runs after step 4.
 
-## 5. Try the Web Chat
+## 5. Chat from a Browser
 
-If you enabled `jarvis-web` during installation, open the web chat interface:
+Browser chat is the web app built into jarvisd, the single-binary server in [jarvis-server](https://github.com/alexberardi/jarvis-server). If you run jarvisd, open it on port 7710:
 
 ```
-http://localhost:7722
+http://localhost:7710
 ```
 
-Log in with the superuser account you created during the setup wizard. Type a message like "what is the capital of France" and press Enter.
+Sign in and open **Chat**. Any household member can use it, not only the superuser. Type a message like "what is the capital of France" and press Enter.
 
-The web chat sends commands through the same pipeline as voice nodes, so it is a convenient way to test without setting up audio hardware.
+The chat sends commands through the same pipeline as voice nodes, so it is a convenient way to test without setting up audio hardware.
+
+!!! note "jarvis-web is retired"
+    The separate Next.js web chat (`jarvis-web`, port 7722) is no longer maintained. Installs that enabled it keep running it, but it gets no fixes; use the jarvisd web app or the mobile app instead.
+
+    On the multi-container Docker stack, port 7710 is the older admin UI, which has no chat. Use the mobile app or the `curl` commands above there.
 
 ## 6. Set Up Voice (Optional)
 

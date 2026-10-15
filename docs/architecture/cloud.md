@@ -19,7 +19,6 @@ graph TB
         direction TB
         Pantry["Pantry<br/>:7721"]
         Relay["Notifications Relay"]
-        Web["Web Chat<br/>:7722"]
     end
 
     subgraph External ["External"]
@@ -205,33 +204,9 @@ This avoids exposing your self-hosted auth service to the public internet.
 
 ---
 
-## Web Chat
+## Web Chat (retired)
 
-> A browser-based interface to talk to Jarvis --- no Pi Zero required.
-
-**Port:** 7722 | **Stack:** Next.js + React + Tailwind CSS | **Auth:** JWT (via jarvis-auth)
-
-Web Chat provides a chat interface that connects directly to the command center. It is useful for testing commands during development, for users who do not have a Pi Zero node, or as a secondary interface alongside voice.
-
-### Architecture
-
-Web Chat is a thin client. All intelligence lives in the command center --- the web app just proxies requests:
-
-```
-Browser → Next.js (:7722) → Command Center (:7703)
-                           → Auth (:7701)
-```
-
-- **No direct LLM access** --- messages go through the command center's full pipeline (tool routing, validation, execution)
-- **SSE streaming** --- responses stream in real-time via Server-Sent Events
-- **Node selector** --- choose which node's command set to use (each node may have different commands installed)
-
-### API Proxy Routes
-
-| Browser Path | Proxied To |
-|-------------|------------|
-| `/api/auth/*` | `jarvis-auth:7701/auth/*` |
-| `/api/cc/*` | `jarvis-command-center:7703/api/v0/*` |
+The separate Next.js web chat (`jarvis-web`, port 7722) is retired and no longer maintained. Browser chat is now the web app built into jarvisd, the single-binary server in [jarvis-server](https://github.com/alexberardi/jarvis-server): open `http://<server>:7710` and sign in. Every household member gets Chat, Add-ons, Inbox and Account there; administrators also see the admin pages.
 
 ---
 
@@ -286,13 +261,11 @@ All cloud services can run self-hosted (same Docker containers as everything els
 |---------|-------------|--------------|-------|
 | Pantry | Docker + PostgreSQL | Any VPS | Needs GitHub OAuth app credentials |
 | Relay | Docker | Fly.io / Cloudflare | Stateless, no database |
-| Web Chat | Docker / `npm run start` | Vercel / any Node.js host | Needs access to CC + Auth |
 | SDK | PyPI package | N/A | Library, not a service |
 
 The `jarvis` CLI manages cloud services the same way as local ones:
 
 ```bash
 jarvis start jarvis-pantry          # Start Pantry locally
-jarvis start jarvis-web             # Start Web Chat locally
 jarvis health jarvis-pantry         # Check health
 ```
