@@ -195,6 +195,33 @@ def allow_direct_answer(self) -> bool:
 
 **Default:** `False`
 
+### `is_risky -> bool`
+
+Whether running this command has consequences that are hard to undo: it spends money, contacts someone, or changes something outside the home. Errands treat a new risky step as a change that needs your approval, and a risky command can only run without a tap through an explicit household rule.
+
+```python
+@property
+def is_risky(self) -> bool:
+    return True
+```
+
+**Default:** `False`
+
+### `run_without_confirmation -> bool`
+
+Whether this command is safe to run in the background without anyone tapping to approve it, when no household rule says otherwise. Use it for read-only lookups (weather, drive time, search) and for small, reversible actions on the node itself (a reminder, a timer, a list item). It is ignored for commands that are `is_risky` or that take a `business` argument.
+
+```python
+@property
+def run_without_confirmation(self) -> bool:
+    return True
+```
+
+**Default:** `False`
+
+!!! note "Coming with the SDK release"
+    The Python SDK and node-setup send this property in a coming release. Until then, commands on Python nodes always ask. The Go desktop node already sends it.
+
 ### `required_packages -> List[JarvisPackage]`
 
 Pip dependencies for this command. At install time, `install_command.py` collects all `required_packages` from enabled commands, checks for version conflicts against each other and against `requirements.txt`, and writes the merged result to `custom-requirements.txt`.
@@ -267,6 +294,19 @@ def all_possible_secrets(self) -> List[IJarvisSecret]:
 ```
 
 **Default:** Delegates to `required_secrets`.
+
+---
+
+## Running without a tap (household rules)
+
+Live voice turns never use these rules: a person is right there. Background work does: errands, signal automations and watches. For each action Jarvis checks these in order, and the first match wins:
+
+1. a rule set for that particular watch or goal;
+2. a household rule for the command, set by a household admin (allow, ask or block);
+3. the command's own `run_without_confirmation`;
+4. otherwise it asks.
+
+Nothing runs on its own until the household turns on background errands, and everything that ran on its own shows up in the app as a "Ran on its own" card.
 
 ---
 
