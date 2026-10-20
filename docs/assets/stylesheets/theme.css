@@ -6,13 +6,6 @@ stacks only: nothing is fetched. Purple is kept for actions, selection and focus
 greys do the rest. Every text pair is WCAG AA in both themes.
 */
 
-/* Type scale: B's body is 15px. Material sizes off the html root (125% by default, with
-   137.5%/150% steps at wide viewports), so pin the root to 112.5%: .md-typeset's 0.8rem
-   base then lands on exactly 15px, and 1rem is 18px. */
-html {
-  font-size: 112.5%;
-}
-
 /* Light scheme (B light). */
 [data-md-color-scheme="default"] {
   --md-hue: 255deg;
@@ -77,7 +70,7 @@ html {
   --md-primary-fg-color: #c084fc;
   --md-primary-fg-color--light: #d1a5fd;
   --md-primary-fg-color--dark: #a855f7;
-  --md-primary-bg-color: #111115;
+  --md-primary-bg-color: #1d0b2b;
   --md-accent-fg-color: #c084fc;
   --md-accent-bg-color: #2e1f3d;
 
@@ -116,24 +109,26 @@ html {
   --md-code-font: ui-monospace, 'SF Mono', 'Cascadia Mono', 'JetBrains Mono', Menlo, Consolas, monospace;
 }
 
-/* Type scale (B): title 24/650, heading 18/600, sub 15/600, body 15/1.55. */
+/* Type scale (B): title 24/650, heading 18/600, sub 15/600, body 15/1.55. Set in px so
+   the scale is fixed, not fluid: Material otherwise scales the html root at wide viewports
+   (125% -> 137.5% -> 150%), which would stretch the body off B's 15px. */
 .md-typeset {
-  font-size: 0.8rem;
+  font-size: 15px;
   line-height: 1.55;
 }
 .md-typeset h1 {
-  font-size: 1.5rem;
+  font-size: 24px;
   line-height: 1.25;
   font-weight: 650;
   color: var(--md-default-fg-color);
 }
 .md-typeset h2 {
-  font-size: 1.2rem;
+  font-size: 18px;
   line-height: 1.35;
   font-weight: 600;
 }
 .md-typeset h3 {
-  font-size: 1rem;
+  font-size: 15px;
   line-height: 1.4;
   font-weight: 600;
   letter-spacing: -0.01em;
@@ -257,18 +252,18 @@ html {
 .admonition,
 .md-typeset details {
   border-radius: 12px;
-  padding: 0 1rem;
+  padding: 0 16px;
 }
 .admonition-title,
 .md-typeset summary {
   border-top-left-radius: 10px;
   border-top-right-radius: 10px;
-  padding-top: 0.6rem;
-  padding-bottom: 0.6rem;
+  padding-top: 8px;
+  padding-bottom: 8px;
 }
 .admonition > *,
 .md-typeset details > * {
-  font-size: 0.8rem;
+  font-size: 15px;
 }
 
 /* note / info: neutral (B has no blue; border-strong keeps the text AA). */
@@ -657,12 +652,22 @@ input:focus-visible,
   transform: none;
 }
 
+/* Reduced motion: drop movement, keep colour and opacity. Material's movement is the drawer
+   slide, the search overlay, the tab underline and the nav collapse — all transform — so
+   those stop. The 120ms colour hovers above stay: they are colour-only and aid comprehension. */
 @media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
-    animation-duration: 0.001ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.001ms !important;
+  .md-sidebar--primary,
+  .md-search__inner,
+  .md-search__overlay,
+  .md-tabs__link,
+  .md-nav__toggle~.md-nav,
+  .md-nav__toggle:checked~.md-nav,
+  .md-header__topic,
+  .md-tooltip,
+  .md-tooltip2,
+  .md-dialog,
+  .md-skip {
+    transition: none !important;
+    animation: none !important;
   }
 }

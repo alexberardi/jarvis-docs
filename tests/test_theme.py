@@ -51,3 +51,40 @@ def test_theme_css_sets_system_font_stacks(built_site):
     css = _read(built_site, "assets", "stylesheets", "theme.css")
     assert "system-ui" in css, "B uses the system font stack, no web font"
     assert "ui-monospace" in css, "B uses the system mono stack for code"
+
+
+def _block(css, selector):
+    """The CSS declaration block for a simple selector (first match)."""
+    idx = css.find(selector + " {")
+    assert idx != -1, f"{selector} missing from theme.css"
+    start = css.find("{", idx)
+    end = css.find("}", start)
+    return css[start + 1 : end]
+
+
+def test_type_scale_is_b(built_site):
+    css = _read(built_site, "assets", "stylesheets", "theme.css")
+    body = _block(css, ".md-typeset")
+    assert "font-size: 15px" in body, "B body is 15px"
+    assert "line-height: 1.55" in body, "B body line height is 1.55"
+    h1 = _block(css, ".md-typeset h1")
+    assert "font-size: 24px" in h1, "B title is 24px"
+    assert "font-weight: 650" in h1, "B title weight is 650"
+    h2 = _block(css, ".md-typeset h2")
+    assert "font-size: 18px" in h2, "B heading is 18px"
+    h3 = _block(css, ".md-typeset h3")
+    assert "font-size: 15px" in h3, "B subheading is 15px"
+
+
+def test_reduced_motion_keeps_colour_transitions(built_site):
+    css = _read(built_site, "assets", "stylesheets", "theme.css")
+    idx = css.find("@media (prefers-reduced-motion: reduce)")
+    assert idx != -1, "B ships a prefers-reduced-motion block"
+    start = css.find("{", idx)
+    end = css.find("}", start)
+    block = css[start:end]
+    # Emil's rule: reduced motion removes movement, not colour and opacity changes.
+    assert "transition-duration: 0.001ms" not in block, (
+        "reduced motion must not kill the colour hovers"
+    )
+    assert "transition: none" in block, "reduced motion must stop the transform motion"
