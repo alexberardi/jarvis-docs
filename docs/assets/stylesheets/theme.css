@@ -10,6 +10,10 @@ greys do the rest. Every text pair is WCAG AA in both themes.
 [data-md-color-scheme="default"] {
   --md-hue: 255deg;
 
+  /* B's surface and border, for the header and the tabs bar. */
+  --jb-surface: #ffffff;
+  --jb-border: #e2e2e8;
+
   --md-default-bg-color: #f6f6f8;
   --md-default-bg-color--light: #f6f6f8b3;
   --md-default-bg-color--lighter: #f6f6f84d;
@@ -57,6 +61,9 @@ greys do the rest. Every text pair is WCAG AA in both themes.
 /* Dark scheme (B dark). Surfaces sit one step lighter than the background. */
 [data-md-color-scheme="slate"] {
   --md-hue: 255deg;
+
+  --jb-surface: #1a1a20;
+  --jb-border: #2e2e38;
 
   --md-default-bg-color: #111115;
   --md-default-bg-color--light: #1a1a20;
@@ -139,10 +146,11 @@ greys do the rest. Every text pair is WCAG AA in both themes.
   font-weight: 600;
 }
 
-/* Header: not a saturated purple slab — surface with dark text, one step lighter than
-   the background in dark. */
+/* Header and tabs bar: not a saturated purple slab. Both sit on B's surface (#ffffff light,
+   #1a1a20 dark, one step lighter than the background) with text in the body colour; Material
+   paints both with the primary. One hairline in B's border closes the band. */
 .md-header {
-  background-color: var(--md-default-bg-color--light);
+  background-color: var(--jb-surface);
   color: var(--md-default-fg-color);
 }
 .md-header .md-header__title {
@@ -177,6 +185,24 @@ greys do the rest. Every text pair is WCAG AA in both themes.
 .md-header .md-nav__link[for],
 .md-header .md-source {
   color: var(--md-default-fg-color);
+}
+
+.md-tabs {
+  background-color: var(--jb-surface);
+  color: var(--md-default-fg-color--lighter);
+  border-bottom: 1px solid var(--jb-border);
+}
+/* Tabs: muted at full opacity (Material dims them to 0.7, which drops the muted grey below
+   AA), primary for the active tab and hover. Colour is listed first after opacity so the
+   reduced-motion block below can keep both without the transform. */
+.md-tabs__link {
+  opacity: 1;
+  transition: opacity 250ms, color 120ms ease, transform 400ms cubic-bezier(0.1, 0.7, 0.1, 1);
+}
+.md-tabs__item--active .md-tabs__link,
+.md-tabs__link:hover,
+.md-tabs__link:focus {
+  color: var(--md-primary-fg-color);
 }
 
 /* Sidebar sits on the page background. */
@@ -653,21 +679,29 @@ input:focus-visible,
 }
 
 /* Reduced motion: drop movement, keep colour and opacity. Material's movement is the drawer
-   slide, the search overlay, the tab underline and the nav collapse — all transform — so
-   those stop. The 120ms colour hovers above stay: they are colour-only and aid comprehension. */
+   slide, the search overlay's scale, the tab slide-in, the header topic slide and the nav
+   collapse, all transform, so those stop. The tabs, the header topic and the search overlay
+   also fade, so they keep their opacity (and colour) transitions and lose only the transform.
+   The 120ms colour hovers above stay: they are colour-only and aid comprehension. */
 @media (prefers-reduced-motion: reduce) {
   .md-sidebar--primary,
   .md-search__inner,
-  .md-search__overlay,
-  .md-tabs__link,
   .md-nav__toggle~.md-nav,
   .md-nav__toggle:checked~.md-nav,
-  .md-header__topic,
   .md-tooltip,
   .md-tooltip2,
   .md-dialog,
   .md-skip {
     transition: none !important;
     animation: none !important;
+  }
+  .md-tabs__link {
+    transition-property: opacity, color !important;
+  }
+  .md-header__topic {
+    transition: opacity 150ms !important;
+  }
+  .md-search__overlay {
+    transition-property: width, height, opacity !important;
   }
 }

@@ -88,3 +88,21 @@ def test_reduced_motion_keeps_colour_transitions(built_site):
         "reduced motion must not kill the colour hovers"
     )
     assert "transition: none" in block, "reduced motion must stop the transform motion"
+
+
+def test_header_and_tabs_sit_on_the_surface(built_site):
+    # Material paints .md-header and .md-tabs with the primary; B wants neither to be a
+    # violet slab. Both must sit on B's surface token in both schemes.
+    css = _read(built_site, "assets", "stylesheets", "theme.css")
+    light = css.split('[data-md-color-scheme="slate"]', 1)[0]
+    dark = css.split('[data-md-color-scheme="slate"]', 1)[1]
+    assert "--jb-surface: #ffffff" in light, "light surface is B's #ffffff"
+    assert "--jb-surface: #1a1a20" in dark, "dark surface is B's #1a1a20"
+    for selector in (".md-header", ".md-tabs"):
+        body = _block(css, selector)
+        assert "background-color: var(--jb-surface)" in body, (
+            f"{selector} must sit on the surface, not the primary"
+        )
+        assert "primary" not in body.split("background-color:", 1)[1].split(";", 1)[0]
+    tabs = _block(css, ".md-tabs")
+    assert "border-bottom" in tabs, "the tabs bar has a hairline divider"
