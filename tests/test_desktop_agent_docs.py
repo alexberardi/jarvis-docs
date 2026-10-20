@@ -56,10 +56,17 @@ def test_page_has_the_permission_steps(built_site):
         assert needle in html, f"desktop agent page is missing {needle!r}"
 
 
+def _article(html):
+    # Only the page body: the nav sidebar links desktop-agent/ on every page.
+    start = html.index("<article")
+    return html[start : html.index("</article>", start)]
+
+
 def test_page_is_linked_from_install_clients_and_troubleshooting(built_site):
-    for parts in (
-        ("getting-started", "installation", "index.html"),
-        ("clients", "index.html"),
-        ("troubleshooting", "index.html"),
+    for parts, link in (
+        (("getting-started", "installation", "index.html"), "clients/desktop-agent/"),
+        (("clients", "index.html"), 'href="desktop-agent/"'),
+        (("troubleshooting", "index.html"), "clients/desktop-agent/#troubleshooting"),
     ):
-        assert "desktop-agent/" in _read(built_site, *parts), f"{'/'.join(parts)} doesn't link the page"
+        body = _article(_read(built_site, *parts))
+        assert link in body, f"{'/'.join(parts)} doesn't link the page"
