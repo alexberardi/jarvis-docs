@@ -205,6 +205,24 @@ greys do the rest. Every text pair is WCAG AA in both themes.
   color: var(--md-primary-fg-color);
 }
 
+/* Phone drawer, root level: Material paints the title (logo + site name) with the primary
+   and the GitHub row with the dark primary. Same surface as the header instead: title in
+   the body colour, logo in the primary, the source row muted, one hairline under them. */
+@media screen and (max-width: 76.234375em) {
+  .md-nav--primary .md-nav__title[for="__drawer"] {
+    background-color: var(--jb-surface);
+    color: var(--md-default-fg-color);
+  }
+  .md-nav--primary .md-nav__title[for="__drawer"] .md-logo {
+    color: var(--md-primary-fg-color);
+  }
+  .md-nav__source {
+    background-color: var(--jb-surface);
+    color: var(--md-default-fg-color--lighter);
+    border-bottom: 1px solid var(--jb-border);
+  }
+}
+
 /* Sidebar sits on the page background. */
 .md-sidebar--primary {
   background-color: var(--md-default-bg-color);

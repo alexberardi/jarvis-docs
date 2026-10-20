@@ -106,3 +106,19 @@ def test_header_and_tabs_sit_on_the_surface(built_site):
         assert "primary" not in body.split("background-color:", 1)[1].split(";", 1)[0]
     tabs = _block(css, ".md-tabs")
     assert "border-bottom" in tabs, "the tabs bar has a hairline divider"
+
+
+def test_phone_drawer_root_sits_on_the_surface(built_site):
+    # Below 76.25em Material paints the drawer's root title (logo + site name) with the
+    # primary and the GitHub row with the dark primary: a violet block when the hamburger
+    # opens. Both must sit on B's surface, inside the drawer's media query.
+    css = _read(built_site, "assets", "stylesheets", "theme.css")
+    media = "@media screen and (max-width: 76.234375em)"
+    assert media in css, "the drawer overrides live in Material's drawer media query"
+    drawer = css.split(media, 1)[1]
+    for selector in ('.md-nav--primary .md-nav__title[for="__drawer"]', ".md-nav__source"):
+        body = _block(drawer, selector)
+        assert "background-color: var(--jb-surface)" in body, (
+            f"{selector} must sit on the surface, not the primary"
+        )
+        assert "primary" not in body.split("background-color:", 1)[1].split(";", 1)[0]
