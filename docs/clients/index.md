@@ -29,6 +29,10 @@ iOS and Android app built with React Native/Expo. Used for node provisioning (QR
 
 Headless provisioning for Pi Zero nodes. When a fresh node boots, it creates a WiFi access point (`jarvis-XXXX`) and waits for the mobile app to configure it with WiFi credentials, encryption keys, and command center registration.
 
+### [Desktop Agent & Browser Control](desktop-agent.md)
+
+The desktop agent (`jarvis-agent`) runs on your own computer, and the Jarvis Browser Control extension lets Jarvis work with your browser tabs and record macros (Teach Jarvis). Macros need the extension's website access turned on.
+
 ## How Clients Authenticate
 
 | Client | Auth Method | Header |

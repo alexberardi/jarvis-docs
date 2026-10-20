@@ -174,6 +174,7 @@ nav:
     - Node in Docker: clients/node-docker.md
     - Node Mobile: clients/node-mobile.md
     - Provisioning: clients/provisioning.md
+    - Desktop Agent & Browser Control: clients/desktop-agent.md
   - Mobile App:
     - mobile/index.md
     - Home & Chat: mobile/home.md
