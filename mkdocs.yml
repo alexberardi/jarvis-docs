@@ -16,18 +16,22 @@ extra:
 
 theme:
   name: material
+  # B · Quiet Violet: the CSS owns the colours (assets/stylesheets/theme.css maps B's
+  # tokens onto Material's variables for both schemes), so the palette is custom/custom.
+  # font: false keeps the system font stacks; nothing is fetched.
+  font: false
   palette:
     - media: "(prefers-color-scheme: light)"
       scheme: default
-      primary: deep purple
-      accent: amber
+      primary: custom
+      accent: custom
       toggle:
         icon: material/brightness-7
         name: Switch to dark mode
     - media: "(prefers-color-scheme: dark)"
       scheme: slate
-      primary: deep purple
-      accent: amber
+      primary: custom
+      accent: custom
       toggle:
         icon: material/brightness-4
         name: Switch to light mode
@@ -46,6 +50,7 @@ theme:
   custom_dir: docs/overrides
 
 extra_css:
+  - assets/stylesheets/theme.css
   - assets/stylesheets/extra.css
 
 markdown_extensions:

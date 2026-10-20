@@ -1,0 +1,668 @@
+/* B · Quiet Violet — the docs site theme.
+
+Maps the design direction chosen in jarvis-server #331 (docs/design/directions/tokens.py,
+DIRECTIONS["B"]) onto MkDocs Material's CSS variables, in both colour schemes. System font
+stacks only: nothing is fetched. Purple is kept for actions, selection and focus; neutral
+greys do the rest. Every text pair is WCAG AA in both themes.
+*/
+
+/* Type scale: B's body is 15px. Material sizes off the html root (125% by default, with
+   137.5%/150% steps at wide viewports), so pin the root to 112.5%: .md-typeset's 0.8rem
+   base then lands on exactly 15px, and 1rem is 18px. */
+html {
+  font-size: 112.5%;
+}
+
+/* Light scheme (B light). */
+[data-md-color-scheme="default"] {
+  --md-hue: 255deg;
+
+  --md-default-bg-color: #f6f6f8;
+  --md-default-bg-color--light: #f6f6f8b3;
+  --md-default-bg-color--lighter: #f6f6f84d;
+  --md-default-bg-color--lightest: #f6f6f81f;
+  --md-default-fg-color: #16161b;
+  --md-default-fg-color--light: #16161b8a;
+  --md-default-fg-color--lighter: #5b5b68;
+  --md-default-fg-color--lightest: #5b5b684d;
+
+  --md-primary-fg-color: #8A00C4;
+  --md-primary-fg-color--light: #a537d6;
+  --md-primary-fg-color--dark: #6f009f;
+  --md-primary-bg-color: #ffffff;
+  --md-accent-fg-color: #8A00C4;
+  --md-accent-bg-color: #f2e6fa;
+
+  --md-code-fg-color: #16161b;
+  --md-code-bg-color: #f0f0f3;
+  --md-code-bg-color--light: #f0f0f3b3;
+  --md-code-bg-color--lighter: #f0f0f34d;
+  --md-code-hl-color: #8A00C4;
+  --md-code-hl-color--light: #8A00C41a;
+
+  --md-typeset-a-color: #8A00C4;
+  --md-typeset-kbd-color: #f0f0f3;
+  --md-typeset-kbd-accent-color: #ffffff;
+  --md-typeset-kbd-border-color: #e2e2e8;
+  --md-typeset-table-color: #00000014;
+  --md-typeset-table-color--light: rgba(0, 0, 0, 0.035);
+
+  --md-admonition-fg-color: #16161b;
+  --md-admonition-bg-color: #f0f0f3;
+
+  --md-footer-bg-color: #16161be6;
+  --md-footer-bg-color--dark: #16161b;
+  --md-footer-fg-color: #f2f2f5;
+  --md-footer-fg-color--light: #a6a6b4;
+  --md-footer-fg-color--lighter: #a6a6b4b3;
+
+  --md-shadow-z1: 0 0.2rem 0.5rem #16161b0d, 0 0 0.05rem #16161b1a;
+  --md-shadow-z2: 0 0.2rem 0.5rem #16161b1a, 0 0 0.05rem #16161b26;
+  --md-shadow-z3: 0 0.2rem 0.5rem #16161b33, 0 0 0.05rem #16161b40;
+}
+
+/* Dark scheme (B dark). Surfaces sit one step lighter than the background. */
+[data-md-color-scheme="slate"] {
+  --md-hue: 255deg;
+
+  --md-default-bg-color: #111115;
+  --md-default-bg-color--light: #1a1a20;
+  --md-default-bg-color--lighter: #1a1a208c;
+  --md-default-bg-color--lightest: #1a1a2040;
+  --md-default-fg-color: #f2f2f5;
+  --md-default-fg-color--light: #f2f2f5cc;
+  --md-default-fg-color--lighter: #a6a6b4;
+  --md-default-fg-color--lightest: #a6a6b44d;
+
+  --md-primary-fg-color: #c084fc;
+  --md-primary-fg-color--light: #d1a5fd;
+  --md-primary-fg-color--dark: #a855f7;
+  --md-primary-bg-color: #111115;
+  --md-accent-fg-color: #c084fc;
+  --md-accent-bg-color: #2e1f3d;
+
+  --md-code-fg-color: #f2f2f5;
+  --md-code-bg-color: #23232b;
+  --md-code-bg-color--light: #23232bd9;
+  --md-code-bg-color--lighter: #23232b8c;
+  --md-code-hl-color: #c084fc;
+  --md-code-hl-color--light: #c084fc1a;
+
+  --md-typeset-a-color: #c084fc;
+  --md-typeset-kbd-color: #23232b;
+  --md-typeset-kbd-accent-color: #111115;
+  --md-typeset-kbd-border-color: #2e2e38;
+  --md-typeset-table-color: #f2f2f51f;
+  --md-typeset-table-color--light: rgba(242, 242, 245, 0.06);
+
+  --md-admonition-fg-color: #f2f2f5;
+  --md-admonition-bg-color: #1a1a20;
+
+  --md-footer-bg-color: #1a1a20;
+  --md-footer-bg-color--dark: #23232b;
+  --md-footer-fg-color: #f2f2f5;
+  --md-footer-fg-color--light: #a6a6b4;
+  --md-footer-fg-color--lighter: #a6a6b4b3;
+
+  --md-shadow-z1: 0 0.2rem 0.5rem #00000040, 0 0 0.05rem #00000066;
+  --md-shadow-z2: 0 0.2rem 0.5rem #00000066, 0 0 0.05rem #00000080;
+  --md-shadow-z3: 0 0.2rem 0.5rem #00000099, 0 0 0.05rem #000000b3;
+}
+
+/* B's system font stacks, in both schemes (Material's body rule reads these vars). */
+[data-md-color-scheme="default"],
+[data-md-color-scheme="slate"] {
+  --md-text-font: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --md-code-font: ui-monospace, 'SF Mono', 'Cascadia Mono', 'JetBrains Mono', Menlo, Consolas, monospace;
+}
+
+/* Type scale (B): title 24/650, heading 18/600, sub 15/600, body 15/1.55. */
+.md-typeset {
+  font-size: 0.8rem;
+  line-height: 1.55;
+}
+.md-typeset h1 {
+  font-size: 1.5rem;
+  line-height: 1.25;
+  font-weight: 650;
+  color: var(--md-default-fg-color);
+}
+.md-typeset h2 {
+  font-size: 1.2rem;
+  line-height: 1.35;
+  font-weight: 600;
+}
+.md-typeset h3 {
+  font-size: 1rem;
+  line-height: 1.4;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+.md-typeset h4,
+.md-typeset h5,
+.md-typeset h6 {
+  font-weight: 600;
+}
+
+/* Header: not a saturated purple slab — surface with dark text, one step lighter than
+   the background in dark. */
+.md-header {
+  background-color: var(--md-default-bg-color--light);
+  color: var(--md-default-fg-color);
+}
+.md-header .md-header__title {
+  color: var(--md-default-fg-color);
+}
+.md-header .md-header__title .md-ellipsis {
+  color: var(--md-default-fg-color);
+}
+.md-header .md-logo {
+  color: var(--md-primary-fg-color);
+}
+.md-header [for="__drawer"] {
+  color: var(--md-default-fg-color);
+}
+.md-header .md-search__form {
+  background-color: var(--md-code-bg-color);
+  color: var(--md-default-fg-color);
+}
+.md-header .md-search__input {
+  background-color: transparent;
+  color: var(--md-default-fg-color);
+}
+.md-header .md-search__input::-webkit-input-placeholder {
+  color: var(--md-default-fg-color--lighter);
+}
+.md-header .md-search__input::placeholder {
+  color: var(--md-default-fg-color--lighter);
+}
+.md-header .md-search__icon {
+  color: var(--md-default-fg-color--lighter);
+}
+.md-header .md-nav__link[for],
+.md-header .md-source {
+  color: var(--md-default-fg-color);
+}
+
+/* Sidebar sits on the page background. */
+.md-sidebar--primary {
+  background-color: var(--md-default-bg-color);
+}
+
+/* Nav: muted for the rest, primary for active and hover. */
+.md-nav--primary .md-nav__link {
+  color: var(--md-default-fg-color--lighter);
+  transition: color 120ms ease;
+}
+.md-nav--primary .md-nav__link--reference {
+  color: var(--md-default-fg-color--lighter);
+}
+.md-nav--primary .md-nav__item--active > .md-nav__link {
+  color: var(--md-primary-fg-color);
+}
+.md-nav--primary .md-nav__link[for]:hover,
+.md-nav--primary .md-nav__link[href]:hover,
+.md-nav--primary .md-nav__link[for]:focus,
+.md-nav--primary .md-nav__link[href]:focus {
+  color: var(--md-primary-fg-color);
+}
+.md-nav--primary .md-nav__link .md-nav__icon:after {
+  background-color: currentcolor;
+}
+.md-nav--secondary .md-nav__link {
+  color: var(--md-default-fg-color--lighter);
+  transition: color 120ms ease;
+}
+.md-nav--secondary .md-nav__link:hover,
+.md-nav--secondary .md-nav__link:focus {
+  color: var(--md-primary-fg-color);
+}
+.md-nav--secondary .md-nav__link--active,
+.md-nav--secondary .md-nav__link--active:hover {
+  color: var(--md-primary-fg-color);
+}
+.md-nav__item--active .md-nav--secondary {
+  border-color: var(--md-primary-fg-color);
+}
+
+/* Content links and the reading progress bar use the primary. */
+.md-typeset a {
+  color: var(--md-typeset-a-color);
+}
+.md-typeset a:focus-visible {
+  color: var(--md-typeset-a-color);
+}
+.md-progress__bar {
+  background-color: var(--md-primary-fg-color);
+}
+
+/* Code: 8px radius on blocks and controls, surface-alt wells. */
+.md-typeset code {
+  border-radius: 4px;
+}
+.md-typeset pre {
+  border-radius: 8px;
+}
+.md-typeset pre > code {
+  border-radius: 8px;
+}
+.md-typeset kbd {
+  border-radius: 4px;
+}
+.md-typeset table {
+  border-radius: 8px;
+}
+
+/* Admonitions: card radius 12px, B's status + soft pairs. */
+.admonition,
+.md-typeset details {
+  border-radius: 12px;
+  padding: 0 1rem;
+}
+.admonition-title,
+.md-typeset summary {
+  border-top-left-radius: 10px;
+  border-top-right-radius: 10px;
+  padding-top: 0.6rem;
+  padding-bottom: 0.6rem;
+}
+.admonition > *,
+.md-typeset details > * {
+  font-size: 0.8rem;
+}
+
+/* note / info: neutral (B has no blue; border-strong keeps the text AA). */
+[data-md-color-scheme="default"] .admonition.note,
+[data-md-color-scheme="default"] .md-typeset details.note,
+[data-md-color-scheme="default"] .admonition.info,
+[data-md-color-scheme="default"] .md-typeset details.info {
+  border-color: #84848f;
+}
+[data-md-color-scheme="default"] .note > .admonition-title,
+[data-md-color-scheme="default"] .md-typeset .note > summary,
+[data-md-color-scheme="default"] .info > .admonition-title,
+[data-md-color-scheme="default"] .md-typeset .info > summary {
+  background-color: #84848f14;
+}
+[data-md-color-scheme="default"] .note > .admonition-title:before,
+[data-md-color-scheme="default"] .md-typeset .note > summary:before,
+[data-md-color-scheme="default"] .info > .admonition-title:before,
+[data-md-color-scheme="default"] .md-typeset .info > summary:before {
+  background-color: #84848f;
+}
+[data-md-color-scheme="default"] .note > .admonition-title:after,
+[data-md-color-scheme="default"] .md-typeset .note > summary:after,
+[data-md-color-scheme="default"] .info > .admonition-title:after,
+[data-md-color-scheme="default"] .md-typeset .info > summary:after {
+  color: #84848f;
+}
+[data-md-color-scheme="default"] .admonition.note:focus-within,
+[data-md-color-scheme="default"] .md-typeset details.note:focus-within,
+[data-md-color-scheme="default"] .admonition.info:focus-within,
+[data-md-color-scheme="default"] .md-typeset details.info:focus-within {
+  box-shadow: 0 0 0 0.2rem #84848f1a;
+}
+
+/* tip / success: B success + soft. */
+[data-md-color-scheme="default"] .admonition.tip,
+[data-md-color-scheme="default"] .md-typeset details.tip,
+[data-md-color-scheme="default"] .admonition.success,
+[data-md-color-scheme="default"] .md-typeset details.success {
+  border-color: #1d7339;
+}
+[data-md-color-scheme="default"] .tip > .admonition-title,
+[data-md-color-scheme="default"] .md-typeset .tip > summary,
+[data-md-color-scheme="default"] .success > .admonition-title,
+[data-md-color-scheme="default"] .md-typeset .success > summary {
+  background-color: #e3f3e8;
+}
+[data-md-color-scheme="default"] .tip > .admonition-title:before,
+[data-md-color-scheme="default"] .md-typeset .tip > summary:before,
+[data-md-color-scheme="default"] .success > .admonition-title:before,
+[data-md-color-scheme="default"] .md-typeset .success > summary:before {
+  background-color: #1d7339;
+}
+[data-md-color-scheme="default"] .tip > .admonition-title:after,
+[data-md-color-scheme="default"] .md-typeset .tip > summary:after,
+[data-md-color-scheme="default"] .success > .admonition-title:after,
+[data-md-color-scheme="default"] .md-typeset .success > summary:after {
+  color: #1d7339;
+}
+[data-md-color-scheme="default"] .admonition.tip:focus-within,
+[data-md-color-scheme="default"] .md-typeset details.tip:focus-within,
+[data-md-color-scheme="default"] .admonition.success:focus-within,
+[data-md-color-scheme="default"] .md-typeset details.success:focus-within {
+  box-shadow: 0 0 0 0.2rem #1d73391a;
+}
+
+/* warning: B warning + soft. */
+[data-md-color-scheme="default"] .admonition.warning,
+[data-md-color-scheme="default"] .md-typeset details.warning {
+  border-color: #8a5300;
+}
+[data-md-color-scheme="default"] .warning > .admonition-title,
+[data-md-color-scheme="default"] .md-typeset .warning > summary {
+  background-color: #fbefd9;
+}
+[data-md-color-scheme="default"] .warning > .admonition-title:before,
+[data-md-color-scheme="default"] .md-typeset .warning > summary:before {
+  background-color: #8a5300;
+}
+[data-md-color-scheme="default"] .warning > .admonition-title:after,
+[data-md-color-scheme="default"] .md-typeset .warning > summary:after {
+  color: #8a5300;
+}
+[data-md-color-scheme="default"] .admonition.warning:focus-within,
+[data-md-color-scheme="default"] .md-typeset details.warning:focus-within {
+  box-shadow: 0 0 0 0.2rem #8a53001a;
+}
+
+/* danger / failure / bug: B danger + soft. */
+[data-md-color-scheme="default"] .admonition.danger,
+[data-md-color-scheme="default"] .md-typeset details.danger,
+[data-md-color-scheme="default"] .admonition.failure,
+[data-md-color-scheme="default"] .md-typeset details.failure,
+[data-md-color-scheme="default"] .admonition.bug,
+[data-md-color-scheme="default"] .md-typeset details.bug {
+  border-color: #bf2530;
+}
+[data-md-color-scheme="default"] .danger > .admonition-title,
+[data-md-color-scheme="default"] .md-typeset .danger > summary,
+[data-md-color-scheme="default"] .failure > .admonition-title,
+[data-md-color-scheme="default"] .md-typeset .failure > summary,
+[data-md-color-scheme="default"] .bug > .admonition-title,
+[data-md-color-scheme="default"] .md-typeset .bug > summary {
+  background-color: #fbe5e6;
+}
+[data-md-color-scheme="default"] .danger > .admonition-title:before,
+[data-md-color-scheme="default"] .md-typeset .danger > summary:before,
+[data-md-color-scheme="default"] .failure > .admonition-title:before,
+[data-md-color-scheme="default"] .md-typeset .failure > summary:before,
+[data-md-color-scheme="default"] .bug > .admonition-title:before,
+[data-md-color-scheme="default"] .md-typeset .bug > summary:before {
+  background-color: #bf2530;
+}
+[data-md-color-scheme="default"] .danger > .admonition-title:after,
+[data-md-color-scheme="default"] .md-typeset .danger > summary:after,
+[data-md-color-scheme="default"] .failure > .admonition-title:after,
+[data-md-color-scheme="default"] .md-typeset .failure > summary:after,
+[data-md-color-scheme="default"] .bug > .admonition-title:after,
+[data-md-color-scheme="default"] .md-typeset .bug > summary:after {
+  color: #bf2530;
+}
+[data-md-color-scheme="default"] .admonition.danger:focus-within,
+[data-md-color-scheme="default"] .md-typeset details.danger:focus-within,
+[data-md-color-scheme="default"] .admonition.failure:focus-within,
+[data-md-color-scheme="default"] .md-typeset details.failure:focus-within,
+[data-md-color-scheme="default"] .admonition.bug:focus-within,
+[data-md-color-scheme="default"] .md-typeset details.bug:focus-within {
+  box-shadow: 0 0 0 0.2rem #bf25301a;
+}
+
+/* example: the primary. */
+[data-md-color-scheme="default"] .admonition.example,
+[data-md-color-scheme="default"] .md-typeset details.example {
+  border-color: #8A00C4;
+}
+[data-md-color-scheme="default"] .example > .admonition-title,
+[data-md-color-scheme="default"] .md-typeset .example > summary {
+  background-color: #f2e6fa;
+}
+[data-md-color-scheme="default"] .example > .admonition-title:before,
+[data-md-color-scheme="default"] .md-typeset .example > summary:before {
+  background-color: #8A00C4;
+}
+[data-md-color-scheme="default"] .example > .admonition-title:after,
+[data-md-color-scheme="default"] .md-typeset .example > summary:after {
+  color: #8A00C4;
+}
+[data-md-color-scheme="default"] .admonition.example:focus-within,
+[data-md-color-scheme="default"] .md-typeset details.example:focus-within {
+  box-shadow: 0 0 0 0.2rem #8A00C41a;
+}
+
+/* quote: muted neutral. */
+[data-md-color-scheme="default"] .admonition.quote,
+[data-md-color-scheme="default"] .md-typeset details.quote {
+  border-color: #84848f;
+}
+[data-md-color-scheme="default"] .quote > .admonition-title,
+[data-md-color-scheme="default"] .md-typeset .quote > summary {
+  background-color: #84848f14;
+}
+[data-md-color-scheme="default"] .quote > .admonition-title:before,
+[data-md-color-scheme="default"] .md-typeset .quote > summary:before {
+  background-color: #84848f;
+}
+[data-md-color-scheme="default"] .quote > .admonition-title:after,
+[data-md-color-scheme="default"] .md-typeset .quote > summary:after {
+  color: #84848f;
+}
+
+[data-md-color-scheme="slate"] .admonition.note,
+[data-md-color-scheme="slate"] .md-typeset details.note,
+[data-md-color-scheme="slate"] .admonition.info,
+[data-md-color-scheme="slate"] .md-typeset details.info {
+  border-color: #787889;
+}
+[data-md-color-scheme="slate"] .note > .admonition-title,
+[data-md-color-scheme="slate"] .md-typeset .note > summary,
+[data-md-color-scheme="slate"] .info > .admonition-title,
+[data-md-color-scheme="slate"] .md-typeset .info > summary {
+  background-color: #78788914;
+}
+[data-md-color-scheme="slate"] .note > .admonition-title:before,
+[data-md-color-scheme="slate"] .md-typeset .note > summary:before,
+[data-md-color-scheme="slate"] .info > .admonition-title:before,
+[data-md-color-scheme="slate"] .md-typeset .info > summary:before {
+  background-color: #787889;
+}
+[data-md-color-scheme="slate"] .note > .admonition-title:after,
+[data-md-color-scheme="slate"] .md-typeset .note > summary:after,
+[data-md-color-scheme="slate"] .info > .admonition-title:after,
+[data-md-color-scheme="slate"] .md-typeset .info > summary:after {
+  color: #a6a6b4;
+}
+[data-md-color-scheme="slate"] .admonition.note:focus-within,
+[data-md-color-scheme="slate"] .md-typeset details.note:focus-within,
+[data-md-color-scheme="slate"] .admonition.info:focus-within,
+[data-md-color-scheme="slate"] .md-typeset details.info:focus-within {
+  box-shadow: 0 0 0 0.2rem #7878891a;
+}
+
+[data-md-color-scheme="slate"] .admonition.tip,
+[data-md-color-scheme="slate"] .md-typeset details.tip,
+[data-md-color-scheme="slate"] .admonition.success,
+[data-md-color-scheme="slate"] .md-typeset details.success {
+  border-color: #72d697;
+}
+[data-md-color-scheme="slate"] .tip > .admonition-title,
+[data-md-color-scheme="slate"] .md-typeset .tip > summary,
+[data-md-color-scheme="slate"] .success > .admonition-title,
+[data-md-color-scheme="slate"] .md-typeset .success > summary {
+  background-color: #173022;
+}
+[data-md-color-scheme="slate"] .tip > .admonition-title:before,
+[data-md-color-scheme="slate"] .md-typeset .tip > summary:before,
+[data-md-color-scheme="slate"] .success > .admonition-title:before,
+[data-md-color-scheme="slate"] .md-typeset .success > summary:before {
+  background-color: #72d697;
+}
+[data-md-color-scheme="slate"] .tip > .admonition-title:after,
+[data-md-color-scheme="slate"] .md-typeset .tip > summary:after,
+[data-md-color-scheme="slate"] .success > .admonition-title:after,
+[data-md-color-scheme="slate"] .md-typeset .success > summary:after {
+  color: #72d697;
+}
+[data-md-color-scheme="slate"] .admonition.tip:focus-within,
+[data-md-color-scheme="slate"] .md-typeset details.tip:focus-within,
+[data-md-color-scheme="slate"] .admonition.success:focus-within,
+[data-md-color-scheme="slate"] .md-typeset details.success:focus-within {
+  box-shadow: 0 0 0 0.2rem #72d6971a;
+}
+
+[data-md-color-scheme="slate"] .admonition.warning,
+[data-md-color-scheme="slate"] .md-typeset details.warning {
+  border-color: #f0b44c;
+}
+[data-md-color-scheme="slate"] .warning > .admonition-title,
+[data-md-color-scheme="slate"] .md-typeset .warning > summary {
+  background-color: #352a16;
+}
+[data-md-color-scheme="slate"] .warning > .admonition-title:before,
+[data-md-color-scheme="slate"] .md-typeset .warning > summary:before {
+  background-color: #f0b44c;
+}
+[data-md-color-scheme="slate"] .warning > .admonition-title:after,
+[data-md-color-scheme="slate"] .md-typeset .warning > summary:after {
+  color: #f0b44c;
+}
+[data-md-color-scheme="slate"] .admonition.warning:focus-within,
+[data-md-color-scheme="slate"] .md-typeset details.warning:focus-within {
+  box-shadow: 0 0 0 0.2rem #f0b44c1a;
+}
+
+[data-md-color-scheme="slate"] .admonition.danger,
+[data-md-color-scheme="slate"] .md-typeset details.danger,
+[data-md-color-scheme="slate"] .admonition.failure,
+[data-md-color-scheme="slate"] .md-typeset details.failure,
+[data-md-color-scheme="slate"] .admonition.bug,
+[data-md-color-scheme="slate"] .md-typeset details.bug {
+  border-color: #ff8f8f;
+}
+[data-md-color-scheme="slate"] .danger > .admonition-title,
+[data-md-color-scheme="slate"] .md-typeset .danger > summary,
+[data-md-color-scheme="slate"] .failure > .admonition-title,
+[data-md-color-scheme="slate"] .md-typeset .failure > summary,
+[data-md-color-scheme="slate"] .bug > .admonition-title,
+[data-md-color-scheme="slate"] .md-typeset .bug > summary {
+  background-color: #3a1d20;
+}
+[data-md-color-scheme="slate"] .danger > .admonition-title:before,
+[data-md-color-scheme="slate"] .md-typeset .danger > summary:before,
+[data-md-color-scheme="slate"] .failure > .admonition-title:before,
+[data-md-color-scheme="slate"] .md-typeset .failure > summary:before,
+[data-md-color-scheme="slate"] .bug > .admonition-title:before,
+[data-md-color-scheme="slate"] .md-typeset .bug > summary:before {
+  background-color: #ff8f8f;
+}
+[data-md-color-scheme="slate"] .danger > .admonition-title:after,
+[data-md-color-scheme="slate"] .md-typeset .danger > summary:after,
+[data-md-color-scheme="slate"] .failure > .admonition-title:after,
+[data-md-color-scheme="slate"] .md-typeset .failure > summary:after,
+[data-md-color-scheme="slate"] .bug > .admonition-title:after,
+[data-md-color-scheme="slate"] .md-typeset .bug > summary:after {
+  color: #ff8f8f;
+}
+[data-md-color-scheme="slate"] .admonition.danger:focus-within,
+[data-md-color-scheme="slate"] .md-typeset details.danger:focus-within,
+[data-md-color-scheme="slate"] .admonition.failure:focus-within,
+[data-md-color-scheme="slate"] .md-typeset details.failure:focus-within,
+[data-md-color-scheme="slate"] .admonition.bug:focus-within,
+[data-md-color-scheme="slate"] .md-typeset details.bug:focus-within {
+  box-shadow: 0 0 0 0.2rem #ff8f8f1a;
+}
+
+[data-md-color-scheme="slate"] .admonition.example,
+[data-md-color-scheme="slate"] .md-typeset details.example {
+  border-color: #c084fc;
+}
+[data-md-color-scheme="slate"] .example > .admonition-title,
+[data-md-color-scheme="slate"] .md-typeset .example > summary {
+  background-color: #2e1f3d;
+}
+[data-md-color-scheme="slate"] .example > .admonition-title:before,
+[data-md-color-scheme="slate"] .md-typeset .example > summary:before {
+  background-color: #c084fc;
+}
+[data-md-color-scheme="slate"] .example > .admonition-title:after,
+[data-md-color-scheme="slate"] .md-typeset .example > summary:after {
+  color: #c084fc;
+}
+[data-md-color-scheme="slate"] .admonition.example:focus-within,
+[data-md-color-scheme="slate"] .md-typeset details.example:focus-within {
+  box-shadow: 0 0 0 0.2rem #c084fc1a;
+}
+
+[data-md-color-scheme="slate"] .admonition.quote,
+[data-md-color-scheme="slate"] .md-typeset details.quote {
+  border-color: #787889;
+}
+[data-md-color-scheme="slate"] .quote > .admonition-title,
+[data-md-color-scheme="slate"] .md-typeset .quote > summary {
+  background-color: #78788914;
+}
+[data-md-color-scheme="slate"] .quote > .admonition-title:before,
+[data-md-color-scheme="slate"] .md-typeset .quote > summary:before {
+  background-color: #787889;
+}
+[data-md-color-scheme="slate"] .quote > .admonition-title:after,
+[data-md-color-scheme="slate"] .md-typeset .quote > summary:after {
+  color: #a6a6b4;
+}
+
+/* Mermaid diagrams: neutral nodes on the surface, B text. */
+[data-md-color-scheme="default"] .mermaid .node rect,
+[data-md-color-scheme="default"] .mermaid .node polygon,
+[data-md-color-scheme="default"] .mermaid .node circle {
+  fill: #f0f0f3;
+  stroke: #84848f;
+}
+[data-md-color-scheme="default"] .mermaid .edgePath .path,
+[data-md-color-scheme="default"] .mermaid .edgeLabel {
+  stroke: #84848f;
+}
+[data-md-color-scheme="default"] .mermaid .nodeLabel,
+[data-md-color-scheme="default"] .mermaid .edgeLabel {
+  color: #16161b;
+}
+[data-md-color-scheme="slate"] .mermaid .node rect,
+[data-md-color-scheme="slate"] .mermaid .node polygon,
+[data-md-color-scheme="slate"] .mermaid .node circle {
+  fill: #23232b;
+  stroke: #787889;
+}
+[data-md-color-scheme="slate"] .mermaid .edgePath .path,
+[data-md-color-scheme="slate"] .mermaid .edgeLabel {
+  stroke: #787889;
+}
+[data-md-color-scheme="slate"] .mermaid .nodeLabel,
+[data-md-color-scheme="slate"] .mermaid .edgeLabel {
+  color: #f2f2f5;
+}
+
+/* A visible focus ring in the focus colour. */
+a:focus-visible,
+button:focus-visible,
+label:focus-visible,
+input:focus-visible,
+.md-nav__link:focus-visible,
+.md-typeset a:focus-visible {
+  outline: 2px solid var(--md-accent-fg-color);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* Motion: colour-only hover transitions at 120ms. */
+.md-nav__link,
+.md-typeset a,
+.md-button,
+.md-header .md-nav__link {
+  transition: color 120ms ease, background-color 120ms ease;
+}
+.md-button {
+  border-radius: 8px;
+}
+.md-button:hover {
+  transform: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}
