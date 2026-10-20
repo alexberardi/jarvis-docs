@@ -346,6 +346,14 @@ docker logs <node-container> 2>&1 | grep -i "discovery"
     curl -s http://localhost:7707/health
     ```
 
+## Desktop Agent & Browser Issues
+
+### Macro recording only shows "Opened" steps, or Jarvis can't see the page
+
+**Cause:** the Jarvis Browser Control extension doesn't have access to websites. It can see tabs load, but can't read or act on pages, so a recording captures no clicks or typing.
+
+**Fix:** turn on website access (Firefox: `about:addons` → **Jarvis Browser Control** → **Permissions** → **Access your data for all websites**; Chrome-family browsers: **Details** → **Site access** → **On all sites**), then **reload the tab**. Private windows need the extension allowed in them too. Full steps: [Desktop Agent & Browser Control](../clients/desktop-agent.md#troubleshooting).
+
 ## Common Error Messages
 
 | Error | Cause | Fix |

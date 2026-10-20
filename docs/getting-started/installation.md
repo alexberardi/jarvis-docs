@@ -224,6 +224,10 @@ curl -s http://localhost:7703/health  # Command center
 curl -s http://localhost:7704/health  # LLM proxy
 ```
 
+### Desktop agent (optional)
+
+To let Jarvis work on your computer and in your browser, and to teach it macros, install the desktop agent and the Jarvis Browser Control extension on that computer. See [Desktop Agent & Browser Control](../clients/desktop-agent.md). Macros need the extension's **website access** turned on, a separate step after installing it.
+
 ## Option 2: npx (No Install)
 
 If you have Node.js 22+, run directly without installing anything:
