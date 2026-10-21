@@ -16,6 +16,8 @@ When a user speaks a voice command, the pipeline looks like this:
 
 Commands live as Python files in `jarvis-node-setup/commands/`. Drop in a new file, implement the interface, and run `install_command.py` -- that's it.
 
+A command runs on a Pi's Python node or on a computer's desktop agent, not on the server. [Where your code runs](../extending/where-code-runs.md) says which devices run what.
+
 ## Minimal Skeleton
 
 Every command follows this pattern:

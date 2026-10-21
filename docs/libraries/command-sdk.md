@@ -3,8 +3,8 @@
 The `jarvis-command-sdk` Python package is the foundation for building Jarvis voice commands. It defines the `IJarvisCommand` interface that all Pantry-distributed and built-in commands implement, along with supporting types such as `FieldSpec` and `JarvisStorage`.
 
 **Package:** `jarvis-command-sdk`  
-**Current version:** `0.5.0`  
-**Install:** `pip install jarvis-command-sdk`
+**Current version:** `0.13.0`  
+**Install:** `pip install git+https://github.com/alexberardi/jarvis-command-sdk.git` (it is not on PyPI)
 
 ## Core Interfaces
 

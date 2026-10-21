@@ -496,4 +496,4 @@ docker images --filter "reference=grafana/*" -q | xargs -r docker rmi
 ## Next Steps
 
 - [Register a node and send your first command](../../getting-started/first-command.md)
-- [Understand configuration and network modes](../../getting-started/configuration.md)
+- [Understand configuration and network modes](configuration.md)

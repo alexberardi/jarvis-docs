@@ -62,6 +62,7 @@ The config service returns URLs based on the network mode:
 - **Host**: `http://host.docker.internal:7701`
 
 See [Service Discovery](../legacy/architecture/service-discovery.md) for details.
+See [Service Discovery](../../architecture/service-discovery.md) for details.
 
 ## Runtime Settings
 
