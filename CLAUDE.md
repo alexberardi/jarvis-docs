@@ -37,3 +37,17 @@ An agent may squash-merge **its own** PR into `main` once CI has passed, then ch
 - is marked "needs review" by its author.
 
 Never merge someone else's PR, never force-push to `main`.
+
+## Page and theme work loads the design skills
+
+Any change to how the site looks or reads (theme CSS, `mkdocs.yml` theme settings, page layout, a new page or section, diagrams, copy structure) loads the three skills in `.claude/skills/` before the first edit: **impeccable** (system rules, commands, the audit checklist), **emil-design-eng** (every motion decision) and **design-taste-frontend** (layout, type and spacing feel). Where they disagree, `.claude/skills/DESIGN-SKILLS.md` decides: accessibility and contrast first, then Impeccable's system rules, Emil for motion, Taste for layout feel.
+
+They are copied unchanged from jarvis-server (`.claude/skills/`, at 1fd33737); change them there through DESIGN-SKILLS.md's process, then copy them here again. They were written for jarvis-server's `web/admin`; in this repo read them as:
+
+- **Design system:** direction B ("Quiet Violet", chosen in jarvis-server #331; source values in jarvis-server `docs/design/directions/tokens.py`), mapped onto MkDocs Material in `docs/assets/stylesheets/theme.css` and pinned by `tests/test_theme.py`. Where a skill says `web/admin/src/index.css`, `.dark` or `src/theme/`, read `theme.css` and its `[data-md-color-scheme]` blocks. Extend B; don't introduce new colours, fonts or a second style. System font stacks only; nothing is fetched.
+- **Mode:** Read (`impeccable/reference/mode-read.md`) for doc pages: content first, scannable headings, short paragraphs, tables for comparisons, admonitions sparingly. The home page's cards may use Persuade lightly.
+- **Taste's dials here:** variance 3, motion 2, density 4 (reading, slightly airier than the app's 5).
+- **No libraries:** no MkDocs plugins, JS, icon or font packages added for design work; Material's built-ins and inline SVG only.
+- **Rendered check:** there is no `scripts/sandbox` or `scripts/screenshots` here. Build the site (`.venv/bin/mkdocs build --strict`, or `./run.sh` on port 7730) and look at the changed pages at phone (390 px), tablet and desktop widths in both colour schemes with the headless browser the runner has; if none is available, say so and list the visual checks under "not verified".
+
+Before a PR that changes the theme or page structure: run Impeccable's audit (`.claude/skills/impeccable/reference/audit.md`) over the changed pages, fix what it finds, and put its findings report (and the screenshots, if any) in the PR body.
