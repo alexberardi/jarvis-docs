@@ -37,13 +37,17 @@ def discover(package, base_interface):
             try:
                 instance = attr()
 
-                # Validate secrets if applicable
+                # Validate secrets if applicable: validate_secrets()
+                # returns the keys that are missing (empty when all set)
                 if hasattr(instance, 'validate_secrets'):
-                    if not instance.validate_secrets():
-                        logger.warning(f"Skipping {instance.name}: missing secrets")
+                    missing = instance.validate_secrets()
+                    if missing:
+                        logger.warning(f"Skipping {attr_name}: missing secrets {missing}")
                         continue
 
-                plugins[instance.name] = instance
+                # keyed by the plugin's name property: command_name for
+                # commands, protocol_name for protocols, name otherwise
+                plugins[plugin_name(instance)] = instance
             except Exception as e:
                 logger.error(f"Failed to instantiate {attr_name}: {e}")
 
@@ -57,7 +61,27 @@ The key ingredients from the Python standard library:
 - **`issubclass()`** --- checks if a class implements the target interface
 - **`inspect.isclass()`** --- filters out non-class attributes
 
-This combination means you never need to register a plugin. Place a `.py` file containing a class that subclasses the right interface, and the system finds it.
+This combination means you never need to register a plugin: a class that subclasses the right interface, in a module the service scans, is found. Built-in plugins are single modules in the package directory (`commands/`, `agents/` and so on). Installed packages are scanned only in their own layout, below.
+
+## Where Installed Packages Land
+
+Pantry (through the mobile app) and `jdt deploy` install each component of a package into a `custom_*` directory on the node, one directory per component, and the discovery service looks only for the entry file there:
+
+| Component type | Installed to | Entry file the node loads |
+|----------------|--------------|---------------------------|
+| `command` | `commands/custom_commands/<name>/` | `command.py` |
+| `agent` | `agents/custom_agents/<name>/` | `agent.py` |
+| `device_protocol` | `device_families/custom_families/<name>/` | `protocol.py` |
+| `device_manager` | `device_managers/custom_managers/<name>/` | any `.py` file not starting with `_` |
+| `routine` | `routines/custom_routines/<name>/` | `routine.json` (read by `RoutineCommand`) |
+
+There is no install directory for providers or prompt providers: they cannot be installed as packages.
+
+Nothing watches these directories. A package goes live when the node scans again:
+
+- **Mobile app (Pantry) install:** the node restarts its own service after a successful install, and the new components load at boot.
+- **`jdt deploy`:** the install runs in a separate process and does not touch the running node. Restart the node afterwards (`sudo systemctl restart jarvis-node` on a Pi; stop and start it if you run it from a checkout).
+- **A file copied in by hand:** the same; restart the node.
 
 ## Discovery Services
 
@@ -65,11 +89,10 @@ Each extension point has its own discovery service. They all follow the universa
 
 | Service | Scans | Interface | Secret Validation | Background Refresh |
 |---------|-------|-----------|-------------------|--------------------|
-| `CommandDiscoveryService` | `commands/` | `IJarvisCommand` | At execution time | No — refreshed on demand (install/uninstall/config push call `refresh_now()`) |
+| `CommandDiscoveryService` | `commands/` | `IJarvisCommand` | At execution time | No — refreshed on demand (uninstall, test installs and config pushes call `refresh_now()`) |
 | `AgentDiscoveryService` | `agents/` | `IJarvisAgent` | At discovery (skip if missing) | No (once at startup) |
 | `DeviceManagerDiscoveryService` | `device_managers/` | `IJarvisDeviceManager` | At discovery (skip if missing) | No (once at startup) |
 | `DeviceFamilyDiscoveryService` | `device_families/` | `IJarvisDeviceProtocol` | At discovery (skip if missing) | No (once at startup) |
-| `PromptProviderFactory` | `app/core/prompt_providers/` | `IJarvisPromptProvider` | N/A | No (on-demand) |
 
 ## CommandDiscoveryService
 
@@ -77,7 +100,7 @@ Each extension point has its own discovery service. They all follow the universa
 
 ### On-Demand Refresh
 
-`CommandDiscoveryService` does **not** poll in the background. Discovery runs on demand: the command execution service forces an initial scan at startup, and every path that changes what's on disk — Pantry install/uninstall, test installs, config pushes, settings snapshots — calls `refresh_now()` explicitly. (An earlier 10-minute polling thread was removed: it re-imported every custom command module each cycle and leaked memory, and it was redundant with the install-driven refresh path.)
+`CommandDiscoveryService` does **not** poll in the background. Discovery runs on demand: the command execution service forces an initial scan at startup, and the in-process paths that change what's on disk or in settings — uninstall, test installs, config pushes, settings snapshots — call `refresh_now()` explicitly. A Pantry install restarts the node instead, and `jdt deploy` needs a manual restart (see [Where installed packages land](#where-installed-packages-land)). (An earlier 10-minute polling thread was removed: it re-imported every custom command module each cycle and leaked memory, and it was redundant with the install-driven refresh path.)
 
 ```python
 class CommandDiscoveryService:
@@ -114,10 +137,10 @@ Discovery happens once at startup. Secret validation occurs immediately --- agen
 ```python
 # Agent discovery validates secrets eagerly
 instance = agent_class()
-if not instance.validate_secrets():
+missing = instance.validate_secrets()   # list of missing keys
+if missing:
     logger.warning(
-        f"Agent '{instance.name}' skipped: "
-        f"missing secrets {instance.required_secrets}"
+        f"Agent '{instance.name}' skipped: missing secrets {missing}"
     )
     continue
 ```
@@ -126,67 +149,30 @@ There is no background refresh for agents. If you add a new agent file, restart 
 
 ## DeviceManagerDiscoveryService
 
-`DeviceManagerDiscoveryService` scans `device_managers/` for classes implementing `IJarvisDeviceManager`. Device managers are cloud API integrations for smart home devices (e.g., Govee, Nest).
+`DeviceManagerDiscoveryService` scans `device_managers/` for classes implementing `IJarvisDeviceManager`. Device managers are inventory backends: they decide where the list of devices comes from, such as Home Assistant (`home_assistant`) or Jarvis's own protocol adapters (`jarvis_direct`). Integrations for particular brands (Govee, Nest, LIFX) are device protocols, not managers. See [Devices](devices/index.md).
 
 Like agents, discovery runs once at startup with eager secret validation:
 
 ```python
 instance = manager_class()
-if not instance.validate_secrets():
+missing = instance.validate_secrets()   # list of missing keys
+if missing:
     logger.warning(
-        f"Device manager '{instance.name}' skipped: "
-        f"missing secrets {instance.required_secrets}"
+        f"Device manager '{instance.name}' skipped: missing secrets {missing}"
     )
     continue
 ```
 
 ## DeviceFamilyDiscoveryService
 
-`DeviceFamilyDiscoveryService` scans `device_families/` for classes implementing the `IJarvisDeviceProtocol`. Device families represent local protocol integrations (WiFi-direct, Bluetooth, etc.) as opposed to the cloud-based device managers.
+`DeviceFamilyDiscoveryService` scans `device_families/` for classes implementing the `IJarvisDeviceProtocol`. Device families are the protocol adapters that talk to devices of one kind, over the local network (LIFX, Kasa), a cloud API, or both (Govee). The `jarvis_direct` device manager aggregates them into one inventory.
 
 The pattern is identical to `DeviceManagerDiscoveryService` --- single scan at startup with eager secret validation and no background refresh.
 
-## PromptProviderFactory
+## Prompt Providers (legacy)
 
-`PromptProviderFactory` runs on the Command Center (not the node) and discovers prompt provider classes that control how LLM prompts are formatted for different models.
-
-### Recursive Scanning
-
-Unlike the node-side services that use `pkgutil.iter_modules` (single level), `PromptProviderFactory` uses `pkgutil.walk_packages` to scan recursively. This supports organizing prompt providers into subdirectories:
-
-```
-app/core/prompt_providers/
-    __init__.py
-    base.py                    # IJarvisPromptProvider ABC
-    qwen25_medium.py           # top-level provider
-    experimental/
-        __init__.py
-        qwen3_large.py         # nested provider, still discovered
-```
-
-### Name-Based Matching
-
-Prompt providers are selected by matching their `name` property (case-insensitive) against a database setting (`llm.interface`). The factory does not instantiate all providers up front --- it scans on demand when a provider is requested, checking the built-in `prompt_providers/` root first and then the `prompt_providers_custom/` volume:
-
-```python
-class PromptProviderFactory:
-    @classmethod
-    def create_provider(cls, provider_name: str | None = None) -> IJarvisPromptProvider | None:
-        """Find and instantiate the provider matching the given name.
-
-        Scans both provider roots (built-in prompt_providers/ first, then
-        prompt_providers_custom/); first match wins. Returns None if no
-        provider matches — the caller falls back to ModelFactory.
-        """
-        provider = cls._scan_prompt_providers(provider_name)
-        return provider  # None when not found
-```
-
-Matching is case-insensitive (names are compared upper-cased), and a provider class that fails to import or instantiate is skipped with a debug log rather than crashing the scan.
-
-### No Secret Validation
-
-Prompt providers do not have secrets --- they only format text. There is no `required_secrets` or `validate_secrets` step.
+!!! warning "Not supported on jarvisd"
+    The old Docker install's Command Center discovered Python prompt providers with a `PromptProviderFactory`. Jarvis Automation (jarvisd) loads no Python prompt providers: its prompt formats are built in, and an admin picks one with the `llm.prompt_provider` setting. The old factory is described under [Legacy](../legacy/extending/prompt-providers/index.md).
 
 ## Graceful Failure
 
@@ -257,16 +243,16 @@ The same pattern applies to `get_agent_discovery_service()`, `get_device_manager
 
 ## Forcing a Refresh
 
-To manually trigger a re-scan without waiting for the background timer:
+Inside the node's process, code can trigger a re-scan:
 
 ```python
 from utils.command_discovery_service import get_command_discovery_service
 
 service = get_command_discovery_service()
-service.refresh_now()   # synchronous re-scan
+service.refresh_now()   # synchronous re-scan of this process's registry
 ```
 
-This is useful during development when you are iterating on a plugin and want to pick up changes immediately.
+The registry is per process, so running this in a separate Python shell refreshes that shell's copy and does nothing to the running node. During development, restart the node to pick up changes to a plugin.
 
 ## Discovery Lifecycle Summary
 
@@ -297,8 +283,6 @@ sequenceDiagram
         end
     end
 
-    Note over DS: CommandDiscoveryService only
-    DS->>DS: Start background refresh thread (10 min)
 ```
 
 ## Adding a New Discovery Service
@@ -308,7 +292,7 @@ If you are creating a new extension point, follow this checklist:
 1. **Define the ABC** --- Create an abstract base class with the required interface methods
 2. **Create the package** --- Add a directory with an `__init__.py` that imports the ABC
 3. **Write the discovery service** --- Follow the universal algorithm pattern above
-4. **Add thread safety** --- Use `RLock` to protect the registry
+4. **Add thread safety** --- Use a lock (`RLock` if discovery re-enters it) to protect the registry
 5. **Add a singleton accessor** --- `get_*_discovery_service()` with double-checked locking
 6. **Handle failures gracefully** --- Catch `ImportError` and instantiation errors
-7. **Decide on refresh strategy** --- One-time at startup, or background refresh for hot-reloading
+7. **Decide on refresh strategy** --- Scan once at startup, and give the paths that change the disk inside the node's process a `refresh()` to call

@@ -68,7 +68,7 @@ Claude will:
 
 ### Adding a component to an existing package
 
-> "Add a background agent that checks for severe weather alerts every 5 minutes and pushes a notification if there's a warning for the user's city."
+> "Add a background agent that checks for severe weather alerts every 5 minutes and queues an alert for the node to announce if there's a warning for the user's city."
 
 Claude will:
 
@@ -139,7 +139,7 @@ Claude will scaffold all three components, implement each one, wire up shared st
 
 ## Forge Integration
 
-The Jarvis Forge (AI package builder in the Pantry web UI) uses the same SDK context and validation pipeline as `jdt`. Packages built in Forge and packages built with Claude Code + `jdt` are fully interchangeable --- they use the same manifest format, the same validation rules, and deploy the same way.
+The Jarvis Forge (AI package builder in the Pantry web UI) uses the same SDK context as `jdt`. Packages built in Forge and packages built with Claude Code + `jdt` are fully interchangeable --- they use the same manifest format and deploy the same way. Both go through the same Pantry submission: the structural checks `jdt test` runs locally, then an AI security review that `jdt test` does not run.
 
 The difference is workflow preference:
 

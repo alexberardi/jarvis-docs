@@ -5,8 +5,14 @@ This guide walks through the complete lifecycle of building a Jarvis package, fr
 ## Prerequisites
 
 - Python 3.10+
-- `jdt` installed (`pip install git+https://github.com/alexberardi/jarvis-developer-toolkit.git`)
-- A running Jarvis node (local, Docker, or SSH-accessible)
+- `jdt` installed. It depends on the SDK, which is not on PyPI, so install the SDK from git first:
+
+    ```bash
+    pip install git+https://github.com/alexberardi/jarvis-command-sdk.git
+    pip install git+https://github.com/alexberardi/jarvis-developer-toolkit.git
+    ```
+
+- A running Jarvis node (a Python node on this machine, or a Pi you can reach over SSH)
 
 ## Step 1: Scaffold
 
@@ -192,8 +198,11 @@ If your command uses `httpx` for HTTP calls, add it to the manifest's `packages`
 
 ```yaml
 packages:
-  - httpx
+  - name: httpx
+    version: ">=0.27"   # optional; a bare number such as "0.27.0" pins it with ==
 ```
+
+Each entry is an object with a `name` (and an optional `version`); a bare `- httpx` string fails the node's manifest validation.
 
 ## Step 4: Validate
 
@@ -226,19 +235,21 @@ Install to your local node:
 jdt deploy local .
 ```
 
-Or to a Docker node:
-
-```bash
-jdt deploy docker jarvis-node-kitchen .
-```
-
 Or to a Pi Zero:
 
 ```bash
 jdt deploy ssh pi@<dev-node>.local .
 ```
 
-The node's discovery system picks up the new command automatically. No restart needed.
+`jdt deploy` runs the node's installer in a separate process, so the running node does not see the new command yet (and jarvisd does not get its tool schema). Restart the node service after deploying:
+
+```bash
+sudo systemctl restart jarvis-node   # on the Pi; for a node run from a checkout, stop and start it
+```
+
+(`jdt` prints "Discovery caches will auto-refresh" after a deploy. That message is out of date: nothing refreshes until the node restarts. Installing from the mobile app restarts the node for you.)
+
+On the old Docker install, `jdt deploy docker <container> .` deploys into a node container; see [`jdt deploy`](deploy.md).
 
 ## Step 6: Test It
 
@@ -246,7 +257,7 @@ Issue a voice command (or use the web/mobile chat):
 
 > "What's the weather in Chicago?"
 
-The command center should route the request to your `my_weather` command, which runs `run()` and returns the response.
+jarvisd should route the request to your `my_weather` command, which runs `run()` and returns the response.
 
 ## Step 7: Iterate
 
@@ -259,17 +270,17 @@ vim commands/my_weather/command.py
 # Validate
 jdt test .
 
-# Deploy
+# Deploy, then restart the node
 jdt deploy local .
 
 # Test via voice or chat
 # ... repeat ...
 ```
 
-For rapid iteration, chain test and deploy:
+For rapid iteration, chain test, deploy and the restart:
 
 ```bash
-jdt test . && jdt deploy local .
+jdt test . && jdt deploy local . && sudo systemctl restart jarvis-node   # node run by systemd
 ```
 
 ## Step 8: Publish (Optional)
@@ -280,7 +291,7 @@ To share your package via the Jarvis Pantry:
 2. Push your code
 3. Submit to Pantry via the web UI or Forge
 
-The Pantry runs the same `jdt test` pipeline on submission. If it passes locally, it will pass review.
+The Pantry runs the same structural checks as `jdt test` on submission, then an AI security review of the code. A package that passes `jdt test` passes the structural checks, but the security review can still flag it.
 
 ## Multi-Component Packages
 

@@ -2,6 +2,9 @@
 
 Deploys a package to a Jarvis node. Supports three targets: local filesystem, Docker container (legacy install only), or remote Pi Zero over SSH.
 
+!!! warning "Restart the node after deploying"
+    `jdt deploy` installs the files but does not load them into the running node. Restart the node service afterwards (`sudo systemctl restart jarvis-node` on a Pi) so it discovers the new components and sends their tool schemas to jarvisd. jdt's own "Discovery caches will auto-refresh" message is out of date; see [below](#after-the-install-restart-the-node).
+
 ## Usage
 
 ```bash
@@ -84,7 +87,7 @@ jdt deploy ssh pi@<kitchen-node>.local . --node-dir /opt/jarvis-node
 **What it does:**
 
 1. `scp` the package to the remote host
-2. `ssh` in and runs `command_store.py install` with `sudo`
+2. `ssh` in, `cd` to the node directory and run `command_store.py install` as the SSH user (no `sudo`: the install writes to that user's `~/.jarvis/`; apt and post-install steps escalate through the node's own sudoers grants)
 3. Cleans up the temp files
 
 ## Examples
@@ -92,8 +95,8 @@ jdt deploy ssh pi@<kitchen-node>.local . --node-dir /opt/jarvis-node
 ### Development loop
 
 ```bash
-# Edit, test, deploy, repeat
-jdt test . && jdt deploy local .
+# Edit, test, deploy, restart, repeat
+jdt test . && jdt deploy local . && sudo systemctl restart jarvis-node
 ```
 
 ### Deploy to all nodes
@@ -107,7 +110,8 @@ jdt deploy ssh pi@<dev-node>.local .
 ### CI/CD deploy
 
 ```bash
-jdt test . && jdt deploy ssh pi@<kitchen-node>.local . --node-dir /opt/jarvis-node
+jdt test . && jdt deploy ssh pi@<kitchen-node>.local . --node-dir /opt/jarvis-node \
+  && ssh pi@<kitchen-node>.local sudo systemctl restart jarvis-node
 ```
 
 ## What Happens During Install
@@ -115,9 +119,17 @@ jdt test . && jdt deploy ssh pi@<kitchen-node>.local . --node-dir /opt/jarvis-no
 All three targets ultimately run the node's `command_store.py install` command, which:
 
 1. Reads `jarvis_package.yaml` from the package
-2. Copies components to their convention directories (`commands/`, `agents/`, etc.)
+2. Copies each component to its `custom_*` directory: `commands/custom_commands/<name>`, `agents/custom_agents/<name>`, `device_families/custom_families/<name>`, `device_managers/custom_managers/<name>` or `routines/custom_routines/<name>` (see [Where installed packages land](../discovery.md#where-installed-packages-land))
 3. Installs pip dependencies declared in the manifest
 4. Seeds secret placeholders (user fills values via the mobile app)
-5. The node's discovery services pick up the new components automatically
+5. On a Pi, runs the manifest's system steps (`apt_packages`, `apt_sources`, `post_install`)
 
-No restart is required --- the discovery system's background refresh detects new files.
+### After the install: restart the node
+
+The install runs as a separate process, and it does not refresh the running node: the node has no background refresh and nothing watches its directories. The new components load when the node restarts:
+
+```bash
+sudo systemctl restart jarvis-node
+```
+
+For a node you run from a checkout, stop and start it. jdt prints "Installed successfully. Discovery caches will auto-refresh." after a deploy; that message predates the current node and is wrong, so restart anyway. (An install from the mobile app restarts the node by itself.)
