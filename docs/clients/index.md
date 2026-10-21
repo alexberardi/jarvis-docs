@@ -1,50 +1,61 @@
 # Clients
 
-Jarvis clients are the end-user software that connects to the backend microservices. They capture voice input, display results, manage nodes, and handle provisioning.
+Clients are what you talk to Jarvis through: voice nodes, the mobile app and the desktop agent. Every client connects to one server, `jarvisd`, the Jarvis Automation server you installed on a Mac, a Windows PC or a Linux machine (see [Install](../install/index.md)).
 
-## Client Types
+Jarvis Automation is a **pre-release** (release candidate rc18). Builds are on the [releases page](https://github.com/alexberardi/jarvis-server/releases); each one is marked *Pre-release*, so open the newest and look under **Assets**.
 
 ```mermaid
-graph TD
-    Node["Pi Zero Node<br/>(jarvis-node-setup)"] -->|voice commands| CC["Command Center<br/>:7703"]
-    Mobile["Mobile App<br/>(jarvis-node-mobile)"] -->|provisioning,<br/>settings, inbox| CC
-    Mobile -->|auth| Auth["Auth<br/>:7701"]
-    Mobile -->|push tokens| Notify["Notifications<br/>:7712"]
-    Node -->|TTS playback| MQTT["MQTT Broker"]
+graph LR
+    Node["Voice node<br/>(Raspberry Pi)"] --> Server["jarvisd<br/>your server"]
+    Docker["Node in Docker"] --> Server
+    Mobile["Mobile app"] --> Server
+    Agent["Desktop agent"] --> Server
+    Mobile -.->|sets up| Node
 ```
 
-### [Pi Zero Node (jarvis-node-setup)](node-setup.md)
+## One server address
 
-The primary voice interface. Runs on Raspberry Pi Zero hardware with a microphone and speaker. Handles wake word detection, audio capture, and sends voice commands to the command center. Receives spoken responses via MQTT.
+A client needs only the server's address: `http://<server>:7700`, where `<server>` is the IP address or hostname of the machine running `jarvisd`. Everything else (sign-in, voice, spoken replies, notifications) is served by the same `jarvisd` and found from that address.
+
+| Port | What it serves | Who uses it |
+|------|----------------|-------------|
+| 7700 | The address clients start from: it tells them where everything else is | Nodes, the mobile app, the desktop agent |
+| 7710 | The web app, and the setup wizard at `http://<server>:7710/setup` | You, in a browser |
+
+Sign-in and the other services are served on 7700 too, each under its own path (see [One API port](../architecture/service-discovery.md#one-api-port)), and `jarvisd` runs its own MQTT broker for messages to nodes on 1884; clients find all of them through 7700, so you never type them. The rc18 release still serves sign-in on its own port, 7701; later releases serve it on 7700 under `/auth`, and clients find it either way. To check that nodes and phones can reach the server, run `jarvisd doctor` on it; if a firewall is in the way, `sudo jarvisd doctor --fix` opens the ports.
+
+`jarvisd` advertises itself on the local network over mDNS as `_jarvis-config._tcp`. The desktop agent's first-run setup lists the servers it finds that way. The mobile app asks for the address once, at **Set Server URL** on its first screen, and hands it to every voice node it sets up.
+
+## Client types
+
+### [Voice node on a Raspberry Pi](node-setup.md)
+
+The main voice interface: a Raspberry Pi with a microphone and speaker that listens for "Hey Jarvis", sends what you say to the server and plays the reply. The Python node (`jarvis-node-setup`) is the supported one. A Go node (`install-pi.sh` from each server release) is an experimental preview.
 
 ### [Node in Docker](node-docker.md)
 
-The same node codebase as a container — headless (text mode), driven over a REST API instead of a microphone. Runs anywhere Docker runs (a laptop on the LAN, a dev box, or alongside the server stack). Good for demos, development, and integration tests.
+The same Python node as a container: headless (text mode), driven over a REST API instead of a microphone. Good for demos, development and integration tests.
 
-### [Mobile App (jarvis-node-mobile)](node-mobile.md)
+### [Mobile app](node-mobile.md)
 
-iOS and Android app built with React Native/Expo. Used for node provisioning (QR code scanning, WiFi setup), settings management, push notifications, and the deep research inbox.
+The Jarvis Automation app for iOS and Android. Chat with Jarvis, set up voice nodes (QR code and Wi-Fi), manage devices, routines and settings, and get notifications and the inbox.
 
-### [Provisioning System](provisioning.md)
+### [Provisioning](provisioning.md)
 
-Headless provisioning for Pi Zero nodes. When a fresh node boots, it creates a WiFi access point (`jarvis-XXXX`) and waits for the mobile app to configure it with WiFi credentials, encryption keys, and command center registration.
+How a fresh Pi node is set up headless: it opens a Wi-Fi hotspot (`jarvis-XXXX`) and waits for the mobile app to give it your Wi-Fi, its keys and the server's address.
 
 ### [Desktop agent](desktop-agent.md)
 
 Jarvis Automation Agent runs on your own Mac, Windows or Linux computer: installers, pairing with a code, the macOS permissions, dictation, and the Jarvis Browser Control extension (which needs its website access turned on).
 
-## How Clients Authenticate
+## How clients authenticate
 
-| Client | Auth Method | Header |
+| Client | Auth method | Header |
 |--------|-------------|--------|
-| Pi Zero Node | Node API key | `X-API-Key: {node_id}:{api_key}` |
-| Mobile App | JWT bearer token | `Authorization: Bearer <token>` |
+| Voice node | Node API key | `X-API-Key: {node_id}:{api_key}` |
+| Mobile app | JWT bearer token | `Authorization: Bearer <token>` |
 | Provisioning | Provisioning token (one-time) | Via registration payload |
 
-## Client Dependencies
+## Coming from the old install
 
-| Client | Required Services | Optional Services |
-|--------|-------------------|-------------------|
-| Pi Zero Node | Command Center (7703) | TTS (7707), Config Service (7700) |
-| Mobile App | Auth (7701), Config Service (7700) | Command Center (7703), Notifications (7712) |
-| Provisioning | Command Center (7703), Auth (7701) | — |
+Before `jarvisd`, each part of the server was its own service on its own port (config service, auth, command center, TTS, notifications) and clients reached them one by one. That install is retired for new users; its pages are frozen under [Legacy](../legacy/index.md). An upgraded install keeps the old per-service ports until the `server.legacy_ports` setting is turned off (see [One API port](../architecture/service-discovery.md#one-api-port)), so existing nodes and the app keep working once they point at it; see [Migrating from the old install](../install/migrate.md).
