@@ -11,7 +11,7 @@ The Pantry Store is the server-side API for the Jarvis Pantry — the package re
 | **Framework** | FastAPI + SQLAlchemy |
 | **Database** | PostgreSQL (Fly managed) |
 | **Health endpoint** | `GET /health` |
-| **Self-hosting** | `docker-compose.local.yaml` (see [Running Your Own Pantry](../pantry/self-hosting.md)) |
+| **Self-hosting** | `docker-compose.local.yaml` (see [Running Your Own Pantry](../../pantry/self-hosting.md)) |
 
 ## Submission Pipeline
 
@@ -45,7 +45,7 @@ When `PANTRY_CONTAINER_RUNNER=github_actions`, Pantry refuses to start if `PANTR
 
 ### Key Rotation
 
-See the [Callback Signing Key Rotation](../ops/callback-signing-key-rotation.md) runbook.
+See the [Callback Signing Key Rotation](../../ops/callback-signing-key-rotation.md) runbook.
 
 ## Database Notes
 
@@ -93,7 +93,7 @@ Requests over the cap receive `429 Too Many Requests`. The limit check runs befo
 ## Self-Hosting Features
 
 Three opt-in features support a Pantry run on your own network. They are documented as a guide in
-[Running Your Own Pantry](../pantry/self-hosting.md); this section lists what the service exposes.
+[Running Your Own Pantry](../../pantry/self-hosting.md); this section lists what the service exposes.
 
 | Variable | Default | Description |
 |----------|---------|-------------|

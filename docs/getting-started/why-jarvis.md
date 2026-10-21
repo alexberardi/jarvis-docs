@@ -49,7 +49,7 @@ Out of the box:
 
 **It's extensible.** If you can write a few lines of Python, you can teach Jarvis anything. There's a single interface to implement, and the community [Pantry](../architecture/cloud.md#pantry-command-store) has a growing library of ready-made packages you can install with one click.
 
-**Use it however you want.** Talk to a Pi Zero node on your counter. Text from the [mobile app](../mobile/index.md) on your phone. Chat from a [web browser](../services/admin.md) on your laptop. They all connect to the same backend -- same commands, same memories, same smart home controls.
+**Use it however you want.** Talk to a Pi Zero node on your counter. Text from the [mobile app](../mobile/index.md) on your phone. Chat from a [web browser](../legacy/services/admin.md) on your laptop. They all connect to the same backend -- same commands, same memories, same smart home controls.
 
 **It runs on modest hardware.** The Pi Zero nodes cost about $50 each (board + mic + speaker). The server can be any computer with a decent GPU. Jarvis was developed and tested on a machine with a 3080 Ti and gets responsive voice interactions -- you don't need cutting-edge hardware.
 
@@ -57,7 +57,7 @@ Out of the box:
 
 ### Do I Need to Be Technical?
 
-**To install it?** No. The [setup wizard](installation.md) walks you through everything in a browser. Pick your services, download a model, create an account -- it handles Docker, databases, and networking for you.
+**To install it?** No. The [setup wizard](../legacy/getting-started/installation.md) walks you through everything in a browser. Pick your services, download a model, create an account -- it handles Docker, databases, and networking for you.
 
 **To use it day-to-day?** Absolutely not. It's a voice assistant. You talk to it.
 
@@ -85,7 +85,7 @@ No subscriptions. No cloud fees. No one selling your data.
 
 ### I'm Convinced. How Do I Start?
 
-Head to the [Installation guide](installation.md). The one-liner gets you up and running in about 10 minutes:
+Head to the [Installation guide](../legacy/getting-started/installation.md). The one-liner gets you up and running in about 10 minutes:
 
 <!-- jarvis:install-cmd:start -->
 ```bash

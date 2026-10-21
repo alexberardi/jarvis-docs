@@ -2,7 +2,7 @@
 
 Without the extension's website access, a macro recording captures only page loads and
 browser control can't act on pages. These tests pin the page that says so: it builds,
-it carries the exact permission steps for Firefox and Chrome, and the install, clients
+it carries the exact permission steps for Firefox and Chrome, and the install overview, clients
 and troubleshooting pages link to it.
 """
 
@@ -64,7 +64,7 @@ def _article(html):
 
 def test_page_is_linked_from_install_clients_and_troubleshooting(built_site):
     for parts, link in (
-        (("getting-started", "installation", "index.html"), "clients/desktop-agent/"),
+        (("install", "index.html"), "clients/desktop-agent/"),
         (("clients", "index.html"), 'href="desktop-agent/"'),
         (("troubleshooting", "index.html"), "clients/desktop-agent/#troubleshooting"),
     ):

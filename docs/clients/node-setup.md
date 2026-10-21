@@ -208,7 +208,7 @@ The gate advances only if the new deadline is further out than the current one. 
 
 ### Update Consent Gate (`allow_updates`)
 
-Nodes carry an `allow_updates` consent flag governing whether an update task is applied. Refusing an update now reports back to the command center via `POST /api/v0/nodes/tasks/{id}/status` (see [Command Center: Node Task Status Reporting](../services/command-center.md#node-task-status-reporting)) with an actionable reason — previously a refusal was silent, and the task instead died ~15 minutes later as a misleading sweeper "no heartbeat" timeout.
+Nodes carry an `allow_updates` consent flag governing whether an update task is applied. Refusing an update now reports back to the command center via `POST /api/v0/nodes/tasks/{id}/status` (see [Command Center: Node Task Status Reporting](../legacy/services/command-center.md#node-task-status-reporting)) with an actionable reason — previously a refusal was silent, and the task instead died ~15 minutes later as a misleading sweeper "no heartbeat" timeout.
 
 `allow_updates`, `wake_word_model_autodownload_enabled`, and `release_track` are surfaced read-only in the node's settings snapshot so the mobile app can render consent controls, and are hidden entirely for nodes that predate this gate (key absence is the capability signal).
 

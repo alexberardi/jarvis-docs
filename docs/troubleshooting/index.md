@@ -13,7 +13,7 @@ Quick fixes for common Jarvis issues. If your problem is not listed here, check 
 
 **Symptom:** `docker: command not found` when running the installer.
 
-**Fix:** Install Docker for your platform. See the [Prerequisites](../getting-started/installation.md#prerequisites) section of the installation guide for full commands.
+**Fix:** Install Docker for your platform. See the [Prerequisites](../legacy/getting-started/installation.md#prerequisites) section of the installation guide for full commands.
 
 ```bash
 # Verify Docker is installed

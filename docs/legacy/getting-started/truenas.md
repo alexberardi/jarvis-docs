@@ -224,4 +224,4 @@ ls -la ~/.jarvis/compose/docker-compose.yml
 
 If the file is missing, the initial setup may not have completed. Re-run the installer (see [Step 2](#step-2-install-jarvis)).
 
-For more issues, see the [Troubleshooting](../troubleshooting/index.md) guide.
+For more issues, see the [Troubleshooting](../../troubleshooting/index.md) guide.

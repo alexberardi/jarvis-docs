@@ -1,19 +1,15 @@
-# Jarvis
+# Jarvis Automation
 
-**A voice assistant you own completely.** Runs on your network, keeps your data private, and does what you tell it -- not what a corporation decides.
+**A voice assistant you own completely.** Jarvis runs on your network, keeps your data private, and does what you tell it -- not what a corporation decides.
 
-[:fontawesome-brands-discord: **Join the Discord**](https://discord.gg/9SuQFVexxJ){ .md-button } &nbsp; [:fontawesome-brands-github: GitHub](https://github.com/alexberardi/jarvis){ .md-button }
+[:fontawesome-brands-discord: **Join the Discord**](https://discord.gg/9SuQFVexxJ){ .md-button } &nbsp; [:fontawesome-brands-github: GitHub](https://github.com/alexberardi/jarvis-server){ .md-button }
 
-!!! tip "TLDR"
-    Jarvis is a self-hosted, open-source voice assistant. Cheap Pi Zero nodes in each room connect to a server you control. An on-device AI understands your commands, controls your smart home, and remembers your preferences. No cloud. No subscriptions. No one listening. Install in 10 minutes with one command:
+!!! note "Pre-release"
+    Jarvis Automation is a **pre-release** (release candidate rc18): one server you install on a Mac, a Windows PC or a Linux machine, then finish in a setup wizard. Builds are on the [releases page](https://github.com/alexberardi/jarvis-server/releases). Start at **[Install](install/index.md)**.
 
-    <!-- jarvis:install-cmd:start -->
-    ```bash
-    curl -fsSL https://raw.githubusercontent.com/alexberardi/jarvis-admin/main/install.sh | sh
-    ```
-    <!-- jarvis:install-cmd:end -->
+    The old Docker/microservice install is retired for new users: it no longer installs out of the box (MinIO is gone). Its pages are kept, frozen, under [Legacy](legacy/index.md).
 
-    New to this? Read **[Why Jarvis?](getting-started/why-jarvis.md)** for the full picture.
+New to this? Read **[Why Jarvis?](getting-started/why-jarvis.md)** for the full picture.
 
 ## At a Glance
 
@@ -44,11 +40,11 @@ graph LR
 
 | | |
 |---|---|
-| **[Getting Started](getting-started/index.md)** | Install Jarvis, start services, and send your first voice command. |
-| **[Extending Jarvis](extending/index.md)** | The plugin system — commands, agents, device adapters, prompt providers, and more. |
+| **[Install](install/index.md)** | Install the server, finish the setup wizard, and add the desktop agent, a voice node and the mobile app. |
+| **[Build](extending/index.md)** | The plugin system — commands, agents, device adapters, prompt providers, and more. |
 | **[Architecture](architecture/index.md)** | Understand the voice pipeline, service discovery, and authentication patterns. |
 | **[Cloud Services](architecture/cloud.md)** | Pantry (command store), Notifications Relay, and the Command SDK. |
-| **[Services](services/index.md)** | Reference for every microservice — APIs, configuration, and dependencies. |
+| **[Legacy](legacy/index.md)** | The old Docker/microservice install, kept frozen for existing installs. |
 
 ## Built-in Commands
 

@@ -181,11 +181,11 @@ def test_rejections_page_renders(built_site):
     assert re.search(r'<h2 id="[^"]+"', html), "no anchored h2 sections present"
 
 
-def test_nav_contains_top_level_pantry(built_site):
-    """mkdocs.yml nav has a top-level Pantry section with Overview + Rejections."""
+def test_nav_contains_pantry_section(built_site):
+    """mkdocs.yml nav has a Pantry section (under Build) with Overview + Rejections."""
     nav = _mkdocs_config()["nav"]
-    children = _top_level_section(nav, "Pantry")
-    assert children is not None, "no top-level 'Pantry' nav section"
+    children = _top_level_section(_top_level_section(nav, "Build") or [], "Pantry")
+    assert children is not None, "no 'Pantry' nav section under Build"
     leaves = _nav_leaves(children)
     assert leaves.get("Overview") == "pantry/index.md"
     assert leaves.get("Rejections") == "pantry/rejections.md"
@@ -283,9 +283,9 @@ def test_attr_list_extension_enabled():
 
 
 def test_no_pantry_directory_conflict(built_site):
-    """The new top-level Pantry section doesn't shadow the existing mobile one."""
+    """The Build > Pantry section doesn't shadow the mobile app's Pantry page."""
     _, site_dir = built_site
     assert (REPO_ROOT / "docs" / "mobile" / "pantry.md").exists()
-    mobile = _top_level_section(_mkdocs_config()["nav"], "Mobile App")
+    mobile = _top_level_section(_top_level_section(_mkdocs_config()["nav"], "Use") or [], "Mobile App")
     assert _nav_leaves(mobile).get("Pantry") == "mobile/pantry.md"
     assert (site_dir / "mobile" / "pantry" / "index.html").exists()

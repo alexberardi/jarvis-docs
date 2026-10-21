@@ -41,7 +41,7 @@ The UI reads both with a `?? []` fallback so a missing field never causes a runt
 ## Self-Hosting Pages
 
 `/settings` and `/private` exist for a Pantry run on your own network (see
-[Running Your Own Pantry](../pantry/self-hosting.md)). On load the header calls `GET /v1/forge/features`, which returns
+[Running Your Own Pantry](../../pantry/self-hosting.md)). On load the header calls `GET /v1/forge/features`, which returns
 `{local_llm, private_packages, upstream_mirror}`, and shows the **Settings** and **Private** links accordingly. A backend
 without the route simply reads as "everything off", so nothing extra appears and nothing breaks. Each page also checks
 the flag itself, so opening its URL directly on a Pantry without the feature says it is unavailable.

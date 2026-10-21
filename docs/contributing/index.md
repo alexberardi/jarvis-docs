@@ -21,7 +21,7 @@ Jarvis is open source and welcomes contributions. This section covers the develo
 ./jarvis health        # Verify everything is running
 ```
 
-See [Installation](../getting-started/installation.md) for detailed setup instructions.
+See [Installation](../legacy/getting-started/installation.md) for detailed setup instructions.
 
 ## Key Principles
 

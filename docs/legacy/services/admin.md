@@ -69,7 +69,7 @@ Since jarvis-admin#54, the **Updates** page has a switch to turn update checks o
 
 - `GET /api/update/settings` reads the current `allowUpdates` state; `POST /api/update/settings` (superuser only) persists it to `~/.jarvis/admin.json` and applies it to the live config immediately, with no restart required.
 - Both `/check` routes return `updatesEnabled`, so the UI can tell "off, never checked" apart from "checked, you're current" — previously, checks being off silently rendered as "You're running the latest version."
-- The `JARVIS_ALLOW_UPDATES` environment variable still works as a fallback (and remains the right knob for containerized installs); it is simply no longer the only way in. Default stays **off**: no outbound calls to GitHub unless you opt in. See [Network Egress & Offline Mode: Admin auto-update](../security/offline-mode.md#enabling-updates).
+- The `JARVIS_ALLOW_UPDATES` environment variable still works as a fallback (and remains the right knob for containerized installs); it is simply no longer the only way in. Default stays **off**: no outbound calls to GitHub unless you opt in. See [Network Egress & Offline Mode: Admin auto-update](../../security/offline-mode.md#enabling-updates).
 
 ### Native Update Resume (Standalone Installs)
 
