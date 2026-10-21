@@ -1,38 +1,43 @@
 # Providers
 
-Jarvis has pluggable providers for speech-to-text, text-to-speech, and wake responses. These are simpler than commands or agents --- typically one or two methods to implement.
+The Python node has pluggable providers for speech-to-text, text-to-speech and wake responses. Each is a small class: one or two methods.
 
-Unlike commands and agents, providers are **not auto-discovered**. You specify which provider to use in your node's config file (`config.json`). But the implementation pattern is the same: subclass the ABC, implement the required methods, done.
+!!! warning "Providers are not package components"
+    Providers are built into the node. A package can't ship one: Pantry and `jdt` install commands, agents, device protocols and device managers, never providers. To add a provider you edit the node's source (`jarvis-node-setup`) on that Pi, and a node update replaces your edit. Providers exist only on the Python node; the desktop agent and the Go voice node don't load them.
 
-## Provider Types
+## Provider types
 
-| Provider Type | Interface | Directory | Built-in Implementations |
-|--------------|-----------|-----------|--------------------------|
-| Speech-to-Text | `IJarvisSpeechToTextProvider` | `stt_providers/` | `JarvisWhisperClient`, `KeyboardProvider` |
-| Text-to-Speech | `IJarvisTextToSpeechProvider` | `tts_providers/` | `JarvisTTS`, `EspeakTTS` |
-| Wake Responses | `IJarvisWakeResponseProvider` | `wake_response_providers/` | `JarvisTTSWakeResponseProvider`, `StaticWakeResponseProvider` |
+| Provider type | Interface (`core/`) | Directory | Built in |
+|---------------|---------------------|-----------|----------|
+| Speech-to-text | `ijarvis_speech_to_text_provider.IJarvisSpeechToTextProvider` | `stt_providers/` | `jarvis-whisper-api`, `keyboard` |
+| Text-to-speech | `ijarvis_text_to_speech_provider.IJarvisTextToSpeechProvider` | `tts_providers/` | `jarvis-tts-api`, `espeak` |
+| Wake responses | `ijarvis_wake_response_provider.IJarvisWakeResponseProvider` | `wake_response_providers/` | `jarvis-tts-api`, `static` |
+
+The names in the last column are each provider's `provider_name`.
 
 ## Configuration
 
-Providers are selected in the node config file:
+The node's config file (`config.json`) picks one provider of each type by name:
 
 ```json
 {
-    "stt_provider": "jarvis_whisper",
-    "tts_provider": "jarvis_tts",
-    "wake_response_provider": "jarvis_tts_wake"
+    "stt_provider": "jarvis-whisper-api",
+    "tts_provider": "jarvis-tts-api",
+    "wake_response_provider": "jarvis-tts-api"
 }
 ```
 
-The node's initialization code instantiates the matching provider class. There is no discovery service scanning --- the mapping is explicit.
+At startup the node imports every module in the provider's directory, instantiates each subclass of the interface and keeps the one whose `provider_name` matches the config. A name that matches nothing raises `ValueError` ("STT provider '…' not found.") when the node first asks for that provider. `wake_response_provider` is optional; without it the node uses its bundled acknowledgments.
 
-## When to Write a Provider
+The `jarvis-*` providers send the work to your Jarvis Automation server (jarvisd), which transcribes and synthesises in-process.
 
-**STT provider** --- You want to use a different speech-to-text backend. Examples: local Whisper (without the Jarvis Whisper API), Google Cloud STT, Azure Speech, or a custom model.
+## When to write a provider
 
-**TTS provider** --- You want to use a different voice synthesis engine. Examples: Coqui TTS, Bark, a cloud TTS API, or system voices (macOS `say`, Windows SAPI).
+**Speech-to-text:** a different transcription backend, such as a cloud speech API or a local model on the Pi.
 
-**Wake response provider** --- You want to change what Jarvis says after hearing the wake word. Examples: time-aware greetings ("Good morning"), random responses from a custom list, or silence (no acknowledgment).
+**Text-to-speech:** a different voice engine, such as a cloud TTS API or system voices.
+
+**Wake response:** a different acknowledgment after the wake word, such as time-of-day greetings or your own list of phrases.
 
 ## Guides
 

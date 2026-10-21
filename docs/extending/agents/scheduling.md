@@ -1,10 +1,10 @@
 # Agent Scheduling
 
-The `AgentSchedulerService` is responsible for running [agents](index.md) on their configured schedules, caching their context data, and forwarding their [alerts](alerts.md) to the alert queue. It runs in a dedicated daemon thread with its own asyncio event loop, keeping agent execution off the main thread.
+The Python node's `AgentSchedulerService` (`jarvis-node-setup/services/agent_scheduler_service.py`) runs [agents](index.md) on their configured schedules, caches their context data and forwards their [alerts](alerts.md) to the alert queue. It runs in a dedicated daemon thread with its own asyncio event loop, keeping agent execution off the main thread. The scheduler is node-internal; a package only declares its `schedule`.
 
 ## AgentSchedule Dataclass
 
-Every agent declares its schedule via the `schedule` property, which returns an `AgentSchedule`:
+Every agent declares its schedule via the `schedule` property, which returns an `AgentSchedule` (`from jarvis_command_sdk import AgentSchedule`):
 
 ```python
 from dataclasses import dataclass
@@ -91,10 +91,10 @@ class AgentSchedule:
 
 When `initialize_agent_scheduler()` is called during `main.py` startup:
 
-1. **Agent discovery:** `AgentDiscoveryService.get_all_agents()` scans the `agents/` directory for `IJarvisAgent` implementations
-2. **Secret validation:** Each agent's `validate_secrets()` is called; agents with missing secrets are logged and skipped
+1. **Agent discovery:** `AgentDiscoveryService.get_all_agents()` returns the agents it loaded from `agents/` (built in) and `agents/custom_agents/<package>/agent.py` (packages). The discovery service, not the scheduler, checks secrets: an agent with a `validate_secrets()` method (the node's built-in agents) that reports missing keys is skipped. SDK agents have no such method and are always loaded.
+2. **Registry:** every discovered agent gets a row in the node's agent registry, enabled by default. The mobile app's Agents tab toggles that flag, and the scheduler skips disabled agents.
 3. **Thread creation:** A daemon thread is created with a new asyncio event loop
-4. **Startup agents:** All agents with `schedule.run_on_startup = True` run concurrently via `asyncio.gather()`
+4. **Startup agents:** All enabled agents with `schedule.run_on_startup = True` run concurrently via `asyncio.gather()`
 5. **Periodic loop:** The scheduler enters its 10-second check loop
 
 ```python
@@ -102,9 +102,11 @@ When `initialize_agent_scheduler()` is called during `main.py` startup:
 from services.agent_scheduler_service import initialize_agent_scheduler
 from services.alert_queue_service import get_alert_queue_service
 
-scheduler = initialize_agent_scheduler()
+scheduler = initialize_agent_scheduler()  # discovers agents and starts the thread
 scheduler.set_alert_queue(get_alert_queue_service())
 ```
+
+The queue is wired after `start()`. That is fine: the scheduler reads it on every run, so alerts are collected from the first run that finishes after it is set.
 
 ## Context Aggregation
 
@@ -135,15 +137,15 @@ This returns a dict mapping agent names to their context data:
         "device_controls": {...},
         "floors": {...},
     },
-    "system_monitor": {
-        "cpu_percent": 23.5,
-        "memory_percent": 67.2,
-        ...
+    "disk_monitor": {
+        "free_gb": 12.4,
+        "free_percent": 41.3,
+        # ...
     },
 }
 ```
 
-The voice thread places this into `node_context["agents"]` before sending to the Command Center.
+The node places this into `node_context["agents"]` when it starts a conversation with your Jarvis Automation server. jarvisd reads only the Home Assistant / device inventory entry (`home_assistant` or `device_agent`) from it; other agents' context never reaches the LLM (see [Agents](index.md#what-the-server-does-with-agent-data)).
 
 ## Error Handling
 
@@ -160,7 +162,9 @@ The scheduler is designed to never crash from a single agent failure:
 
 - **Alert collection is wrapped:** If `get_alerts()` raises, the error is logged but does not affect the context cache or other agents.
 
-- **The loop continues:** After an error, the scheduler continues checking and running other agents on their normal schedules. The failed agent will be retried on its next interval.
+- **The loop continues:** After an error, the scheduler continues checking and running other agents on their normal schedules. The failed agent is retried on its next interval.
+
+- **Auto-disable after 3 failures:** after `AUTO_DISABLE_AFTER_FAILURES = 3` failed runs in a row, the scheduler turns the agent off in the registry, and the mobile app shows it as auto-disabled. Turning it back on in the Agents tab restarts the count from zero; a successful run also resets it.
 
 ## Public API
 
@@ -212,7 +216,7 @@ Get a thread-safe snapshot of all cached agent context data. This is the primary
 
 ### `set_alert_queue(queue: AlertQueueService) -> None`
 
-Wire the alert queue so agent alerts are collected after each run. Must be called before `start()` if you want alert forwarding.
+Wire the alert queue so agent alerts are collected after each run. It can be called before or after `start()`; `main.py` calls it after.
 
 ## Singleton Access
 
@@ -232,6 +236,7 @@ from services.agent_scheduler_service import (
 | File | Description |
 |------|-------------|
 | `jarvis-node-setup/services/agent_scheduler_service.py` | `AgentSchedulerService` implementation |
-| `jarvis-node-setup/core/ijarvis_agent.py` | `AgentSchedule` dataclass, `IJarvisAgent` ABC |
+| `jarvis-command-sdk/jarvis_command_sdk/agent.py` | `AgentSchedule` dataclass, `IJarvisAgent` ABC (what packages import) |
+| `jarvis-node-setup/core/ijarvis_agent.py` | The node's own copy, for its built-in agents |
 | `jarvis-node-setup/services/alert_queue_service.py` | `AlertQueueService` (wired via `set_alert_queue`) |
 | `jarvis-node-setup/utils/agent_discovery_service.py` | Agent discovery (used by scheduler at startup) |

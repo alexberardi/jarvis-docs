@@ -121,6 +121,6 @@ Marks a field as settable at record creation but immutable on edit (e.g. record 
 
 | Version | What changed |
 |---------|-------------|
-| 0.5.0 | `IJarvisDeviceProtocol.get_stream_source` optional async camera-streaming hook — see [Device Protocols](../extending/devices/protocols.md#get_stream_source--camera-streaming-hook-sdk-v050) |
+| 0.5.0 | `IJarvisDeviceProtocol.get_stream_source` optional async camera-streaming hook — see [Device Protocols](../extending/devices/protocols.md#get_stream_source-camera-streaming-hook-sdk-v050) |
 | 0.4.1 | `data_browser_supports_create`, `data_browser_create`, `FieldSpec.create_only` |
 | ≤ 0.3.x | `FieldSpec`, `JarvisStorage`, `data_browser_mode`, `display_summary` |
