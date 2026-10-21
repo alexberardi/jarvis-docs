@@ -5,36 +5,39 @@
 [:fontawesome-brands-discord: **Join the Discord**](https://discord.gg/9SuQFVexxJ){ .md-button } &nbsp; [:fontawesome-brands-github: GitHub](https://github.com/alexberardi/jarvis-server){ .md-button }
 
 !!! note "Pre-release"
-    Jarvis Automation is a **pre-release** (release candidate rc18): one server you install on a Mac, a Windows PC or a Linux machine, then finish in a setup wizard. Builds are on the [releases page](https://github.com/alexberardi/jarvis-server/releases). Start at **[Install](install/index.md)**.
+    Jarvis Automation is a **pre-release** (release candidate rc18). Builds are on the [releases page](https://github.com/alexberardi/jarvis-server/releases).
 
     The old Docker/microservice install is retired for new users: it no longer installs out of the box (MinIO is gone). Its pages are kept, frozen, under [Legacy](legacy/index.md).
+
+## Get started
+
+<div class="grid cards start-cards" markdown>
+
+-   **[Install the server](install/index.md)**
+
+    One program on a Mac, a Windows PC or a Linux machine that stays on. Open the installer, then finish in the setup wizard.
+
+-   **[Add a computer](clients/desktop-agent.md)**
+
+    The desktop agent lets Jarvis listen, open apps and work with your browser on each computer. Each person installs their own.
+
+-   **[Add a voice node](install/voice-node.md)**
+
+    A small microphone and speaker for a room, usually a Raspberry Pi, that listens for "Hey Jarvis".
+
+</div>
 
 New to this? Read **[Why Jarvis?](getting-started/why-jarvis.md)** for the full picture.
 
 ## At a Glance
 
 - **Fully private** — No cloud dependencies. All data stays on your network.
-- **Self-hostable** — Same open-source codebase for local and cloud deployments.
+- **One server** — One program, `jarvisd`, on a Mac, a Windows PC or a Linux machine runs all of Jarvis; installers and a setup wizard, no containers.
 - **Extensible** — Add capabilities by implementing a single Python interface.
 - **Voice-first** — Wake word detection, speech-to-text, LLM routing, text-to-speech.
 - **Speaker-aware** — Identifies who's speaking and remembers per-person preferences.
 - **Multi-household by default** — Self-host once and share with anyone; friends and family add your server URL in the mobile app and create an account. Each household gets isolated voice profiles, devices, and routines.
 - **Use anywhere** — Voice nodes, mobile app, web chat -- all connected to one backend.
-
-## Architecture at a Glance
-
-```mermaid
-graph LR
-    Node["Pi Zero Node<br/>(mic + speaker)"] -->|voice audio| CC["Command Center"]
-    CC -->|audio| Whisper["Whisper API<br/>(speech-to-text)"]
-    Whisper -->|text| CC
-    CC -->|intent| LLM["LLM Proxy<br/>(tool routing)"]
-    LLM -->|tool call| CC
-    CC -->|execute| CMD["Your Command<br/>(IJarvisCommand)"]
-    CMD -->|result| CC
-    CC -->|text| TTS["TTS<br/>(text-to-speech)"]
-    TTS -->|audio| Node
-```
 
 ## Quick Links
 
@@ -68,4 +71,4 @@ Jarvis ships with these commands out of the box:
 | `get_current_time` | Current time in any timezone |
 | ... and more | See the full [command list](commands/index.md) |
 
-Many commands that were previously built-in have been extracted to installable **[Pantry](architecture/cloud.md#pantry-command-store)** packages, including: `get_weather`, `get_news`, `get_sports_scores`, `search_web`, `tell_a_story`, `bluetooth`, `music`, `email`, `get_calendar_events`, and device families (Kasa, LIFX, Govee, Apple, Nest). Install them from the Pantry with a single CLI command.
+Many commands that were previously built-in have been extracted to installable **[Pantry](architecture/cloud.md#pantry-command-store)** packages, including: `get_weather`, `get_news`, `get_sports_scores`, `search_web`, `tell_a_story`, `bluetooth`, `music`, `email`, `get_calendar_events`, and device families (Kasa, LIFX, Govee, Apple, Nest). Install them from the Pantry tab in the [mobile app](mobile/pantry.md).
