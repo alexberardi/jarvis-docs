@@ -90,6 +90,10 @@ def test_container_import_is_a_one_off_run_never_an_exec():
     assert "--apply" in text
     for line in text.splitlines():
         assert not ("docker exec" in line and "import-legacy" in line), line
+    # The one-off run and the recipes step must run as the Jarvis container's own user: the
+    # entrypoint re-owns /data to PUID:PGID (default 99:100) on every start.
+    section = text.split("### On Unraid or in Docker", 1)[1].split("\n## ", 1)[0]
+    assert "PUID" in section and "--user" in section
 
 
 def test_container_pages_link_each_other(built_site):

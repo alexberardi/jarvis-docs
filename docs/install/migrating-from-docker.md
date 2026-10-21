@@ -245,12 +245,14 @@ docker stop Jarvis
 
 The import runs in a container of its own, from the same image, on your data folder. It can't run inside the Jarvis container: it refuses while Jarvis is running.
 
-The old database's password is `POSTGRES_PASSWORD` in the old install's `.env`. Its role (the URL's `jarvis`) is `DB_USER` there, else `POSTGRES_USER`, else `jarvis`; its port (`5432`) is `POSTGRES_PORT`, else `5432`. Set the data folder (`/srv/jarvis` in the Docker guide), type the password once, then run the import as a dry run:
+The old database's password is `POSTGRES_PASSWORD` in the old install's `.env`. Its role (the URL's `jarvis`) is `DB_USER` there, else `POSTGRES_USER`, else `jarvis`; its port (`5432`) is `POSTGRES_PORT`, else `5432`. Set the data folder (`/srv/jarvis` in the Docker guide) and Jarvis's user and group, type the password once, then run the import as a dry run:
 
 ```sh
 D=/mnt/user/appdata/jarvis
+U=99 G=100
 read -rsp 'Password: ' PGPASSWORD; echo; export PGPASSWORD
 docker run --rm --network host \
+  -e PUID=$U -e PGID=$G \
   -e PGPASSWORD -v "$D":/data \
   ghcr.io/alexberardi/jarvisd:<tag> \
   import-legacy --from postgres://jarvis@127.0.0.1:5432
@@ -259,8 +261,9 @@ docker run --rm --network host \
 Read its report as in [step 3](#3-import-your-data). If it ends with **dry run passed**, run the same command again with `--apply` added at the end.
 
 - Use the same `<tag>` as the Jarvis container.
+- `U` and `G` are the user and group the Jarvis container runs as: 99 and 100 unless you set `PUID` and `PGID` for it (see [The data folder and its owner](docker.md#the-data-folder-and-its-owner)). On start the container gives the data folder to that user, so if these don't match, Jarvis can no longer write its data afterwards. If you run Jarvis with `--user`, set `U` and `G` to that user and group, and use `--user "$U:$G"` here instead of the two `-e` options.
 - `--network host` lets the import reach the old database, which listens on the server's own address only (`127.0.0.1`). It also lets the import see whether Jarvis still answers on port 7700; if it does, the import refuses.
-- To read the password from the old `.env` instead, mount the compose folder (`-v ~/.jarvis/compose:/legacy:ro`) and use `--compose /legacy`. The import runs as user 99, so the folder and its `.env` must be readable by that user; usually they aren't, so `--from` is simpler.
+- To read the password from the old `.env` instead, mount the compose folder (`-v ~/.jarvis/compose:/legacy:ro`) and use `--compose /legacy`. The import runs as user `$U`, so the folder and its `.env` must be readable by that user; usually they aren't, so `--from` is simpler.
 
 The log of the import, `import-legacy-<time>.log`, is in the data folder.
 
@@ -277,13 +280,13 @@ Open the WebUI and sign in with your old admin account; see [Finish in the setup
 
 #### Recipes, in the container
 
-With Jarvis running, put the export in the data folder, readable by Jarvis's user (99), and import it inside the container as that user:
+With Jarvis running, put the export in the data folder, readable by Jarvis's user (`U` and `G` from the import above), and import it inside the container as that user:
 
 ```sh
-install -m 0600 -o 99 -g 100 ~/recipes-export.tar.gz "$D"/
+install -m 0600 -o $U -g $G ~/recipes-export.tar.gz "$D"/
 B=/data/recipes-export.tar.gz
-docker exec -u 99:100 Jarvis jarvisd import-recipes $B   # dry run
-docker exec -u 99:100 Jarvis jarvisd import-recipes $B --apply
+docker exec -u $U:$G Jarvis jarvisd import-recipes $B   # dry run
+docker exec -u $U:$G Jarvis jarvisd import-recipes $B --apply
 ```
 
 The report reads as in [Import your recipes](#import-your-recipes). Delete the export afterwards.
