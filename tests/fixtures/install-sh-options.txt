@@ -1,0 +1,11 @@
+# Options (after `sh install.sh`, or after `sh -s --` when piped):
+#   --version vX.Y.Z  install that release (default: the release this script came from, or
+#                     the latest for a copy from the repository)
+#   --user            Linux: a systemd --user service for your account (~/.local/bin, ~/.jarvisd)
+#   --yes             answer yes: apply the firewall fix without asking
+#   --stop-legacy     stop the legacy stack: Docker containers (restart policy off), macOS
+#                     LaunchAgents and its admin (off at login); data kept, nothing removed
+#   --force           reinstall even when this version is installed
+#   --uninstall       remove the service, firewall rules and binary (data is kept)
+#   --purge           with --uninstall: also delete the data, after a typed confirmation
+#   --base-url URL    fetch the release files from URL instead of GitHub (also JARVISD_RELEASE_BASE)

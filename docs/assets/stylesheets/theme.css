@@ -292,6 +292,15 @@ greys do the rest. Every text pair is WCAG AA in both themes.
   border-radius: 8px;
 }
 
+/* Grid cards: B's card (surface, hairline border, 12px radius). Material's hover and
+   focus-within shadow stay as they are. */
+.md-typeset .grid.cards > ul > li,
+.md-typeset .grid > .card {
+  background-color: var(--jb-surface);
+  border-color: var(--jb-border);
+  border-radius: 12px;
+}
+
 /* Admonitions: card radius 12px, B's status + soft pairs. */
 .admonition,
 .md-typeset details {

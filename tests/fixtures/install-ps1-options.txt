@@ -1,0 +1,11 @@
+# With options, run the downloaded file (Windows PowerShell 5.1 or later):
+#   powershell -ExecutionPolicy Bypass -File install.ps1 [-Version vX.Y.Z] [-Yes] [-StopLegacy]
+#       [-Force] [-Uninstall [-Purge]] [-BaseUrl URL]
+# Under `irm | iex` the options come from JARVISD_VERSION, JARVISD_RELEASE_BASE and JARVISD_YES=1.
+#
+#   -Yes          apply the firewall fix without asking
+#   -StopLegacy   stop the legacy Docker stack (docker stop + restart policy off; data is kept)
+#   -Force        reinstall even when this version is installed
+#   -Uninstall    remove the service, firewall rule, binary and PATH entry (data is kept)
+#   -Purge        with -Uninstall: also delete %ProgramData%\jarvisd, after confirmation
+#   -BaseUrl      fetch the release files from this URL instead of GitHub

@@ -29,3 +29,11 @@
   margin-top: 0;
   margin-bottom: 40px;
 }
+
+/* Home page "Get started" cards: three across once the column has room for them (Material's
+   grid would leave the third card alone on a second row), one per row on phones. */
+@media screen and (min-width: 45em) {
+  .md-typeset .grid.cards.start-cards {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
