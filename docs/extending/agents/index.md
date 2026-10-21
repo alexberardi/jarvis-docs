@@ -65,13 +65,13 @@ class IJarvisAgent(ABC):
 
     @abstractmethod
     def get_context_data(self) -> Dict[str, Any]:
-        """Return cached data (must be fast: just return the cache)."""
+        """Return cached data (must be fast: just return the cache). The node flattens it into facts."""
 
     # --- Optional (with defaults) ---
 
     @property
     def include_in_context(self) -> bool:
-        """Whether the node includes this agent's data in its voice context. Default: True."""
+        """Whether the node sends this agent's data to jarvisd as facts. Default: True."""
         return True
 
     def get_alerts(self) -> List[Alert]:
@@ -91,10 +91,40 @@ Import it with `from jarvis_command_sdk import IJarvisAgent, AgentSchedule, Aler
 
 ## What the server does with agent data
 
-!!! note "On jarvisd, custom agent context does not reach the LLM"
-    The node sends every agent's `get_context_data()` to the server with each conversation (`node_context["agents"]`), but jarvisd reads only the **Home Assistant / device inventory** from it (the `home_assistant` or `device_agent` entry), for the device summary in the prompt and its device lookups. Any other agent's context is ignored: the LLM never sees it.
+On the **Python node**, after each successful `run()` of an agent with `include_in_context`, the node flattens the dict from `get_context_data()` into short facts and sends them to jarvisd (`/memories/inject`). On each turn, jarvisd adds the facts that match what the user said to their message, so the model can answer from them. They never go in the system prompt.
 
-    To make an agent's data useful in conversation, save it with `JarvisStorage` and read it from a command in the same package, or raise an alert.
+**How the dict becomes facts.** One fact per leaf value, `<agent>: <path>: <value>`:
+
+```python
+# get_context_data() of a "weather" agent
+{"forecast": [{"high": 70, "summary": "Sunny"}], "sunset": "7:42 PM"}
+# becomes
+# weather: forecast: 1: high: 70
+# weather: forecast: 1: summary: Sunny
+# weather: sunset: 7:42 PM
+```
+
+- Keys are sorted. A list of plain values becomes one comma-joined fact; a list of dicts is numbered from 1.
+- Empty and `None` values are skipped, and so are the top-level `last_error` and `error_time` keys (the scheduler's error state).
+- Caps: 50 facts per agent, 10 items per list, 300 characters per value, nesting depth 6. Anything past them is dropped.
+
+**How they are stored and retrieved.**
+
+- The facts are household memories, keyed per agent and path, so the next run replaces the old value. They expire after twice the agent's interval (at least 1 hour, at most 30 days), so an agent that stops running stops being quoted.
+- Each turn, jarvisd adds at most 5 matching facts (about 500 characters), and nothing when none match.
+- This is on by default through the household setting `model.advanced_context`. A household that saved it as `false` gets no agent facts.
+- The `home_assistant` and `device_agent` entries keep their own path: jarvisd reads them from `node_context["agents"]` for the device summary in the prompt and its device lookups, and the node doesn't send them as facts.
+
+!!! note "Python node only"
+    The Go node and the desktop agent's sidecar load commands only; they never schedule agents, so an agent's facts come only from a Python node.
+
+**Tips for agent authors.** The model reads each fact on its own, so:
+
+- Use flat, descriptive keys: `{"next_event_title": "Dentist", "next_event_start": "Tue 3:00 PM"}`, not `{"e1": {"t": "Dentist", "s": 1729530000}}`.
+- Use readable values: words and units (`"12.4 GB free"`, `"Tue 3:00 PM"`), not codes or epoch numbers.
+- Keep the dict shallow and small; the caps above cut the rest.
+- Don't return secrets, tokens or raw blobs: every value is stored as a household memory.
+- Return `False` from `include_in_context` when the data isn't worth saying (an alert-only agent, or one whose commands read [`JarvisStorage`](../infrastructure/datastore.md#jarvisstorage-sdk-persistence-facade) instead).
 
 ## Agent patterns
 
@@ -102,7 +132,7 @@ There are three common patterns, distinguished by what they produce. The node's 
 
 ### 1. Context agents
 
-Context agents keep data warm for other code: the prompt (Home Assistant only, see above) or the package's own commands.
+Context agents keep data warm for other code: the model, as facts retrieved when relevant (see above), or the package's own commands.
 
 **Example: Home Assistant** (the `home_assistant` agent in the [`jarvis-home-assistant-integration`](https://github.com/alexberardi/jarvis-home-assistant-integration) package)
 
@@ -133,6 +163,7 @@ sequenceDiagram
     participant ASS as AgentSchedulerService
     participant Agent as IJarvisAgent
     participant AQS as AlertQueueService
+    participant Server as jarvisd
 
     Main->>ASS: initialize_agent_scheduler()
     ASS->>ADS: get_all_agents()
@@ -146,6 +177,7 @@ sequenceDiagram
         ASS->>Agent: run() [if enabled and due, or run_on_startup]
         ASS->>Agent: get_context_data()
         ASS->>ASS: Cache in _context_cache
+        ASS->>Server: /memories/inject (flattened facts)
         ASS->>Agent: get_alerts()
         ASS->>AQS: add each alert
     end
@@ -153,8 +185,8 @@ sequenceDiagram
 
 1. **Discovery:** at startup the node loads the built-in agents in `agents/` and every package agent in `agents/custom_agents/<package>/agent.py`.
 2. **Registry:** each agent gets a row in the node's agent registry, enabled by default. The mobile app's **Agents** tab turns agents on and off.
-3. **Runs:** every 10 seconds the scheduler runs each enabled agent whose interval has passed, then caches its context and collects its alerts.
-4. **Voice request:** the node sends the cached context to the server with the conversation (see the note above for what jarvisd uses).
+3. **Runs:** every 10 seconds the scheduler runs each enabled agent whose interval has passed, then caches its context, sends it to jarvisd as facts and collects its alerts.
+4. **Voice request:** jarvisd adds the facts that match what was said to the user's message; the node also sends the cached context with the conversation, of which jarvisd reads only the device inventory (see [above](#what-the-server-does-with-agent-data)).
 
 ### When `run()` fails
 
@@ -209,7 +241,7 @@ class DiskMonitorAgent(IJarvisAgent):
 
     @property
     def include_in_context(self) -> bool:
-        return False  # jarvisd wouldn't use it; the command reads the saved stats instead
+        return False  # the command reads the saved stats; no need to send them as facts too
 
     async def run(self) -> None:
         usage = shutil.disk_usage("/")

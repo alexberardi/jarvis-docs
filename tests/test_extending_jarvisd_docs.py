@@ -166,9 +166,19 @@ def test_secrets_page_documents_integration_and_user_scopes():
 
 def test_agent_context_note_and_auto_disable():
     text = _text("agents/index.md")
-    assert "custom agent context does not reach the LLM" in text
+    # Custom agents' context reaches the model as flattened facts, retrieved per turn (#405, #409).
+    assert "does not reach the LLM" not in text
+    assert "facts" in text and "flatten" in text
+    assert "model.advanced_context" in text
+    assert "Python node" in text
     assert "3 consecutive failures" in text
     assert "Agents" in text and "tab" in text
+
+
+def test_scheduling_page_describes_context_facts():
+    text = _text("agents/scheduling.md")
+    assert "never reaches the LLM" not in text
+    assert "/memories/inject" in text
 
 
 def test_camera_streaming_marked_not_on_jarvisd():

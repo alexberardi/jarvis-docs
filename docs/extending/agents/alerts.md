@@ -129,7 +129,7 @@ class AlertQueueService:
 
 ## Building an alert-only agent
 
-An alert-only agent sets `include_in_context = False`, returns an empty dict from `get_context_data()`, and builds its alerts in `run()`:
+An alert-only agent sets `include_in_context = False` (so nothing is sent as facts), returns an empty dict from `get_context_data()`, and builds its alerts in `run()`:
 
 ```python
 from datetime import datetime, timedelta, timezone
