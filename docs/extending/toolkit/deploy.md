@@ -1,6 +1,6 @@
 # `jdt deploy` --- Install to a Node
 
-Deploys a package to a Jarvis node. Supports three targets: local filesystem, Docker container, or remote Pi Zero over SSH.
+Deploys a package to a Jarvis node. Supports three targets: local filesystem, Docker container (legacy install only), or remote Pi Zero over SSH.
 
 ## Usage
 
@@ -38,6 +38,9 @@ jdt deploy local . --node-dir ~/jarvis/jarvis-node-setup  # Explicit path
 #### `jdt deploy docker`
 
 Installs into a Docker node container.
+
+!!! note "Legacy Docker install only"
+    This target is for nodes of the [legacy Docker install](../../legacy/index.md). Jarvis Automation (jarvisd) runs no node containers: use `local` or `ssh` for a Pi's Python node, and the mobile app for a computer's desktop agent ([Where your code runs](../where-code-runs.md)).
 
 ```bash
 jdt deploy docker <container> [path]
@@ -97,7 +100,7 @@ jdt test . && jdt deploy local .
 
 ```bash
 jdt deploy local .
-jdt deploy docker jarvis-node-kitchen .
+jdt deploy docker jarvis-node-kitchen .  # legacy Docker install only
 jdt deploy ssh pi@<dev-node>.local .
 ```
 
