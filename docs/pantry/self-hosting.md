@@ -11,8 +11,8 @@ network. Three opt-in features make that useful:
 
 Each is **off until its variable is set**. A Pantry that sets none of them behaves exactly like the public one. The
 implementation lives in [`jarvis-pantry`](https://github.com/alexberardi/jarvis-pantry) (see
-[Pantry Store](../services/pantry-store.md)) and the interface in
-[`jarvis-pantry-web`](https://github.com/alexberardi/jarvis-pantry-web) (see [Pantry Web](../services/pantry-web.md)).
+[Pantry Store](../legacy/services/pantry-store.md)) and the interface in
+[`jarvis-pantry-web`](https://github.com/alexberardi/jarvis-pantry-web) (see [Pantry Web](../legacy/services/pantry-web.md)).
 
 ## How it fits together
 

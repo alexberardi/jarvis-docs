@@ -83,7 +83,7 @@ Push notifications are forwarded to `jarvis-relay`, a stateless Expo Push API pr
 <div class="screenshot-grid" markdown>
 
 <figure markdown>
-  ![Inbox](../assets/images/screenshots/inbox.png){ width="280" loading=lazy }
+  ![Inbox](../../assets/images/screenshots/inbox.png){ width="280" loading=lazy }
   <figcaption>Inbox — deep research results with category chips and swipe-to-delete</figcaption>
 </figure>
 

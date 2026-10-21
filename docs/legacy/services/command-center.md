@@ -105,7 +105,7 @@ The schema endpoint (and the inline schema in the get-record response) now inclu
 
 The mobile app gates its **+** button on `supports_create`. Commands that do not override `data_browser_supports_create` return `false` and the button is hidden.
 
-See [Data Browser Protocol](../extending/infrastructure/datastore.md#data-browser-protocol) for the command-authoring side (how to opt a command into create support).
+See [Data Browser Protocol](../../extending/infrastructure/datastore.md#data-browser-protocol) for the command-authoring side (how to opt a command into create support).
 
 ## Mobile Household Settings API
 
@@ -164,7 +164,7 @@ This lets the node call the protocol's `on_removed` hook to release any external
 | Payload fields | `entity_id`, `protocol`, `domain`, `cloud_id`, `local_ip`, `mac_address`, `name` |
 | Failure policy | Warning logged; delete proceeds regardless |
 
-See [`on_removed` — Device Deletion Hook](../extending/devices/protocols.md#on_removed-device-deletion-hook-sdk-v042) for the protocol authoring side.
+See [`on_removed` — Device Deletion Hook](../../extending/devices/protocols.md#on_removed-device-deletion-hook-sdk-v042) for the protocol authoring side.
 
 ### Camera Streaming
 
@@ -174,7 +174,7 @@ Reworked in jarvis-command-center#38 (the last of a 4-repo change: jarvis-comman
 
 1. Mobile calls `POST /api/v0/households/{household_id}/cameras/{device_id}/stream` with an **empty body** — no credentials are ever sent by the client.
 2. CC publishes `{request_id, protocol, cloud_id, entity_id, domain}` to `jarvis/nodes/{node_id}/camera-credentials` over MQTT (full, unstripped `cloud_id`).
-3. The node resolves the device-protocol plugin for `protocol` and awaits its `get_stream_source(device)` hook — see [`get_stream_source` — Camera Streaming Hook](../extending/devices/protocols.md#get_stream_source-camera-streaming-hook-sdk-v050).
+3. The node resolves the device-protocol plugin for `protocol` and awaits its `get_stream_source(device)` hook — see [`get_stream_source` — Camera Streaming Hook](../../extending/devices/protocols.md#get_stream_source-camera-streaming-hook-sdk-v050).
 4. The node POSTs `{"stream_source": "..."}` (or `{"error": "..."}`) back to `POST /api/v0/camera-credentials/{request_id}` (node `X-API-Key` auth).
 5. CC registers `stream_source` with go2rtc verbatim and returns a proxied HLS URL.
 
@@ -298,7 +298,7 @@ Added in jarvis-command-center#22. When a node update is triggered, the command 
 
 ## Node Task Status Reporting
 
-Added in jarvis-command-center#35. Nodes can self-report a terminal status for their own tasks via `POST /api/v0/nodes/tasks/{task_id}/status` (node `X-API-Key` auth) — introduced so a node's `allow_updates` consent-gate refusal (see [node-setup: Update Policy](../clients/node-setup.md#update-policy)) surfaces immediately instead of dying ~15 minutes later as a misleading sweeper "no heartbeat" timeout.
+Added in jarvis-command-center#35. Nodes can self-report a terminal status for their own tasks via `POST /api/v0/nodes/tasks/{task_id}/status` (node `X-API-Key` auth) — introduced so a node's `allow_updates` consent-gate refusal (see [node-setup: Update Policy](../../clients/node-setup.md#update-policy)) surfaces immediately instead of dying ~15 minutes later as a misleading sweeper "no heartbeat" timeout.
 
 **Behaviour:**
 
@@ -346,7 +346,7 @@ The node's pre-wake VAD window (~5 s) generates a `[direction hint:]` line inclu
 
 ### Paired Node Behavior
 
-When the command center responds with `<not_for_me/>`, the node holds its wake gate closed for a configurable cool-down (default 20 s, controlled by `not_for_me_quiet_seconds` in the node's `config.json`). This prevents the next sentence of the same side conversation from re-triggering wake. See the [node-setup Wake Behavior](../clients/node-setup.md#wake-behavior) section for details.
+When the command center responds with `<not_for_me/>`, the node holds its wake gate closed for a configurable cool-down (default 20 s, controlled by `not_for_me_quiet_seconds` in the node's `config.json`). This prevents the next sentence of the same side conversation from re-triggering wake. See the [node-setup Wake Behavior](../../clients/node-setup.md#wake-behavior) section for details.
 
 ## Key Settings (DB-driven)
 

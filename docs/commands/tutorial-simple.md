@@ -2,7 +2,7 @@
 
 This tutorial walks you through building a complete command from scratch. By the end, you will have a working `roll_dice` command that responds to voice input like "Roll two dice" or "Roll a d20".
 
-**Prerequisites:** A working jarvis-node-setup installation. See the [Getting Started](../getting-started/index.md) guide.
+**Prerequisites:** A working jarvis-node-setup installation. See the [Getting Started](../legacy/getting-started/index.md) guide.
 
 ## Step 1: Create the File
 

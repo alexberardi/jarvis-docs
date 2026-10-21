@@ -90,7 +90,7 @@ Updates are off by default so a local-only box never phones home. Turn them on p
 
 === "Admin dashboard self-update"
 
-    Since jarvis-admin#54, the **Updates** page in the admin dashboard has a switch for this — flipping it calls `POST /api/update/settings` (superuser only), which persists `allowUpdates` to `~/.jarvis/admin.json` and applies it to the live config immediately, no restart needed. See [Admin: Update Opt-In Toggle](../services/admin.md#update-opt-in-toggle).
+    Since jarvis-admin#54, the **Updates** page in the admin dashboard has a switch for this — flipping it calls `POST /api/update/settings` (superuser only), which persists `allowUpdates` to `~/.jarvis/admin.json` and applies it to the live config immediately, no restart needed. See [Admin: Update Opt-In Toggle](../legacy/services/admin.md#update-opt-in-toggle).
 
     Without dashboard access, the same box-level flag still works:
 

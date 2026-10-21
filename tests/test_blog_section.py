@@ -96,9 +96,9 @@ def test_blog_in_top_nav(built_site):
     home = _read(site_dir, "index.html")
     assert 'href="blog/"' in home, "no top-nav link to the blog section"
     assert "Blog" in home
-    # Insertion between Troubleshooting and Reference left both siblings intact.
-    assert "Troubleshooting" in home
-    assert "Reference" in home
+    # Its top-level siblings on either side (site structure, #377) are intact.
+    assert 'href="contributing/"' in home
+    assert 'href="legacy/"' in home
 
 
 # --- Edge cases -----------------------------------------------------------

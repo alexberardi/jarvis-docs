@@ -17,4 +17,23 @@
       document.head.appendChild(s);
     }
   </script>
+  {% if page and page.file and page.file.src_uri.startswith("legacy/") %}
+  <meta name="robots" content="noindex">
+  {% endif %}
+{% endblock %}
+
+{#
+  Pages under docs/legacy/ (the path decides, so no page can miss it) describe the
+  old Docker/microservice install. They stay frozen for existing installs: search engines
+  are asked not to index them, and every one opens with the same banner.
+#}
+{% block content %}
+  {% if page and page.file and page.file.src_uri.startswith("legacy/") %}
+  <div class="admonition warning legacy-banner" role="note">
+    <p class="admonition-title">Legacy: the old Docker install</p>
+    <p>This page is about the old Docker/microservice install. It is retired for new users and no longer installs out of the box: MinIO, which it depends on, is gone. The page is kept as it was for existing installs and is no longer updated.</p>
+    <p>New install: <a href="{{ base_url }}/install/">Install Jarvis Automation</a>. Already running the old one: <a href="{{ base_url }}/install/migrate/">Migrating from the old install</a>.</p>
+  </div>
+  {% endif %}
+  {{ super() }}
 {% endblock %}

@@ -22,3 +22,10 @@
   margin-top: 0.5rem;
   max-width: 280px;
 }
+
+/* Legacy banner (docs/overrides/main.html): it opens the page above the title, so it
+   takes the title's place at the top and leaves the title more room above than below. */
+.md-typeset .legacy-banner {
+  margin-top: 0;
+  margin-bottom: 40px;
+}

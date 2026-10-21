@@ -119,7 +119,7 @@ async def on_removed(self, device: Any, **kwargs: Any) -> None:
 - **Default:** no-op — existing protocols require no changes to compile or run.
 - **Node dispatch:** the node's MQTT listener receives the `device_removed` command from command-center and dispatches it off-thread to `direct_device_service.remove_device()`, which calls `on_removed` via a `hasattr` guard. The tool cache is always invalidated afterward, even if `on_removed` raises.
 
-See [Protocol Cleanup on Delete](../../services/command-center.md#protocol-cleanup-on-delete) for the command-center side of this flow.
+See [Protocol Cleanup on Delete](../../legacy/services/command-center.md#protocol-cleanup-on-delete) for the command-center side of this flow.
 
 ### `get_stream_source` — Camera Streaming Hook (SDK v0.5.0+)
 

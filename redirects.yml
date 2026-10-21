@@ -1,0 +1,30 @@
+# Old page -> new page, both relative to docs/. hooks/redirects.py writes a redirect page
+# at each old URL when the site builds. Add an entry whenever a page moves; never remove one
+# (other repos, store listings and search results link the old URLs).
+getting-started/index.md: legacy/getting-started/index.md
+getting-started/installation.md: legacy/getting-started/installation.md
+getting-started/truenas.md: legacy/getting-started/truenas.md
+libraries/auth-client.md: legacy/libraries/auth-client.md
+libraries/config-client.md: legacy/libraries/config-client.md
+libraries/log-client.md: legacy/libraries/log-client.md
+libraries/settings-client.md: legacy/libraries/settings-client.md
+libraries/web-scraper.md: legacy/libraries/web-scraper.md
+reference/cli.md: legacy/reference/cli.md
+services/admin.md: legacy/services/admin.md
+services/auth.md: legacy/services/auth.md
+services/command-center.md: legacy/services/command-center.md
+services/config-service.md: legacy/services/config-service.md
+services/index.md: legacy/services/index.md
+services/installer.md: legacy/services/installer.md
+services/llm-proxy.md: legacy/services/llm-proxy.md
+services/logs.md: legacy/services/logs.md
+services/mcp.md: legacy/services/mcp.md
+services/notifications.md: legacy/services/notifications.md
+services/ocr-service.md: legacy/services/ocr-service.md
+services/pantry-runner.md: legacy/services/pantry-runner.md
+services/pantry-store.md: legacy/services/pantry-store.md
+services/pantry-web.md: legacy/services/pantry-web.md
+services/recipes-server.md: legacy/services/recipes-server.md
+services/settings-server.md: legacy/services/settings-server.md
+services/tts.md: legacy/services/tts.md
+services/whisper-api.md: legacy/services/whisper-api.md
