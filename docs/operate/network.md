@@ -1,6 +1,6 @@
 # Ports, firewall and mDNS
 
-Your voice nodes, phones and desktop agents reach the Jarvis Automation server over your local network. This page lists what they connect to, how to let them through the server's firewall, and how they find the server on their own.
+Your voice nodes, phones and desktop agents reach the Jarvis Automation server over your local network. This page lists what they connect to, how to let them through the server's firewall, and how desktop agents find the server on their own (phones and voice nodes are given its address).
 
 ## Ports
 
@@ -11,7 +11,7 @@ On rc18 the server listens on these ports, plus the [legacy ports](#legacy-ports
 | **7700** TCP | The API (HTTP): nodes, the mobile app and the desktop agent. Every part of the server answers here under its own path (`/cc`, `/auth`, `/stt`, `/tts`, ...), and `/health` reports whether the server is up. |
 | **7710** TCP | The admin web app and the setup wizard (`http://<host>:7710/setup`). |
 | **1884** TCP | The MQTT message broker that nodes stay connected to. It asks every client for credentials. |
-| **5353** UDP | The server's mDNS announcement, so the mobile app finds it without typing an address. |
+| **5353** UDP | The server's mDNS announcement, so the desktop agent finds it without typing an address. |
 
 ### Legacy ports
 
@@ -39,7 +39,7 @@ Before jarvisd, each part of Jarvis was a separate service with its own port, an
 
 ### Change a port
 
-Set the port in `jarvisd.env` and restart (`jarvisd service restart`):
+Set the port in `jarvisd.env` and restart (`sudo jarvisd service restart`):
 
 | Variable | Meaning |
 |---|---|
@@ -79,14 +79,16 @@ Don't forward these ports on your router. Jarvis is built for your local network
 
 ## mDNS discovery
 
-The server announces itself on the local network as a `_jarvis-config._tcp` service named `Jarvis (<hostname>)`, pointing at the API port (7700). The mobile app looks for that announcement, so on the same Wi-Fi it finds the server without an address. The announcement uses UDP port 5353, which `doctor --fix` opens with the others.
+The server announces itself on the local network as a `_jarvis-config._tcp` service named `Jarvis (<hostname>)`, pointing at the API port (7700). The [desktop agent](../clients/desktop-agent.md)'s first-run page looks for that announcement, so on the same network it lists the server without an address. The announcement uses UDP port 5353, which `doctor --fix` opens with the others.
+
+The mobile app doesn't look for it: you type the server's address (`http://<server-ip>:7700`) into the app once, at **Set Server URL**, and the app hands it to every voice node it sets up. See [Mobile app](../install/mobile-app.md).
 
 | Variable | Meaning |
 |---|---|
-| `JARVIS_MDNS=0` | Don't announce the server. Phones then need the address typed in. |
+| `JARVIS_MDNS=0` | Don't announce the server. Desktop agents then need the address typed in. |
 | `JARVIS_MDNS_INTERFACES` | The network interfaces to announce on, comma-separated (for example `eth0` or `en0`), when the server has several and picks the wrong one. The setup link uses the same interface's address. |
 
-mDNS doesn't cross between networks: a phone on a guest Wi-Fi or another VLAN won't see the server. Type the address in the app instead (`http://<server-ip>:7700`).
+mDNS doesn't cross between networks: a computer on a guest Wi-Fi or another VLAN won't see the server. Type the server's address in the desktop agent instead (its IP, such as `192.168.1.10`); see [Set it up](../agent/index.md#set-it-up).
 
 ## What the server connects to
 

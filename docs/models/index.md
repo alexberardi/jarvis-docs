@@ -16,7 +16,7 @@ The language model is the choice that matters: it decides how often Jarvis picks
 | PC or Linux box with a GPU | The largest model whose badge says **Fits** | **Qwen 3.8 27B** needs a 24 GB card. |
 | No usable GPU (CPU only) | **Qwen 3 4B (Q4_K_M)** | The smallest; still slow on a CPU. |
 
-The 16 GB figures were measured by the project's author on a Mac mini M4 (16 GB) on 2026-10-21: 98.8 % on the 80-utterance benchmark, about 1.2 s per warm turn and about 15 s for the first turn after a restart. On a CPU even the 4B is slow, so a language model on another machine may be worth it. [Benchmarks](../reference/benchmarks.md) has all the numbers and how they were measured.
+The 16 GB figures come from an informal run by the project's author on a Mac mini M4 (16 GB) on 2026-10-21, not yet written up in jarvis-server: 98.8 % on the 80-utterance benchmark, about 1.2 s per warm turn and about 15 s for the first turn after a restart. On a CPU even the 4B is slow, so a language model on another machine may be worth it. [Benchmarks](../reference/benchmarks.md) has all the numbers and how they were measured.
 
 ### What the setup wizard suggests
 
@@ -31,7 +31,12 @@ The setup wizard (`http://<host>:7710/setup`) and the **Models** page of the adm
 | Too big | Does not fit the card, or the RAM on the CPU, or the machine has less memory than the model asks for. |
 | Built in | Runs inside the server itself (the voice and speaker recognition). |
 
-The suggestion is the largest model that fits, which is not always the fastest. On a 16 GB Mac, pick Qwen 3 4B even if a larger model fits. You can change the model on the **Models** page at any time.
+The suggestion is the largest model that fits, which is not always the fastest, and it can differ from the table above:
+
+- **On a Mac** (Apple silicon), the wizard looks at the MLX models first and suggests the largest one that fits; only if none fits does it suggest a llama.cpp (GGUF) model. The MLX 9B is never suggested, and the 27B and 35B-A3B MLX models need 32 GB, so on a Mac with 32 GB or more the suggestion is usually **Qwen 3.5 35B-A3B (MLX 4-bit)**, which is not benchmarked yet.
+- **On a Mac with less than 32 GB**, it suggests the largest GGUF model that fits, which may be larger than the 9B the table recommends.
+
+So on a Mac, pick by hand: Qwen 3 4B on 16 GB, Qwen 3.5 9B (Q4_K_M) on 24 GB or more, even if the wizard suggests a larger model. You can change the model on the **Models** page at any time.
 
 ## The catalog
 

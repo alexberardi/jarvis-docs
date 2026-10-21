@@ -8,7 +8,7 @@ Jarvis Automation is a **pre-release** (release candidate rc18). Builds are on t
 |---|---|
 | [The jarvisd command](cli.md) | Look up a command: the service, `doctor`, `setup-link`, `upgrade`, the imports. |
 | [Data and backups](data-and-backups.md) | Find the data directory on your system, back it up and restore it. |
-| [Ports, firewall and mDNS](network.md) | See which ports to open, let your network through the firewall, and how phones find the server. |
+| [Ports, firewall and mDNS](network.md) | See which ports to open, let your network through the firewall, and how desktop agents find the server (phones are given its address). |
 | [Network egress and offline mode](../security/offline-mode.md) | See everything that can reach the internet, and keep the server offline. |
 | [Troubleshooting](../troubleshooting/index.md) | Fix a server that doesn't start or that phones and nodes can't reach. |
 | [Security](../security/index.md) | Read how Jarvis handles accounts, keys and your data. |
@@ -20,7 +20,7 @@ jarvisd service status     # is it running, and does it answer?
 jarvisd doctor             # can nodes and phones reach it?
 sudo jarvisd doctor --fix  # open the firewall to your local network
 sudo jarvisd setup-link    # the setup wizard's link again
-jarvisd service restart    # after editing jarvisd.env
+sudo jarvisd service restart  # after editing jarvisd.env
 ```
 
 On Windows, run them in an Administrator PowerShell instead of with `sudo`.

@@ -85,7 +85,7 @@ Under `irm | iex` there is no file to pass options to; set them as environment v
 
 ## Check a download
 
-Each release carries `SHA256SUMS`, the checksums of its installers and archives, and `SHA256SUMS.minisig`, the project's signature of that file. The install scripts themselves are not in `SHA256SUMS`: they come over HTTPS from the release, so read them before you run them.
+Each release carries `SHA256SUMS`, the checksums of its installers and archives, and `SHA256SUMS.minisig`, the project's signature of that file. `install.sh`, `install.ps1` and `install-agent.sh` are not in `SHA256SUMS`: they come over HTTPS from the release, so read them before you run them. `install-pi.sh`, the voice node installer, is listed, so you can check it first.
 
 To check a file by hand, download it with `SHA256SUMS` and `SHA256SUMS.minisig` into one folder, then check the signature with [minisign](https://jedisct1.github.io/minisign/) and the file against the list:
 

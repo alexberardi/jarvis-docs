@@ -12,7 +12,7 @@ Jarvis Automation is a **pre-release** (release candidate rc18). Builds are on t
 | **The old install** | Deleted, with all of its data. | Stopped, not deleted, so you can [go back](#roll-back) to it. |
 | **Time** | About 10 minutes, plus the model download. | About 30 minutes, plus the model download. |
 
-Either way, the new server takes the old one's ports, so phones and voice nodes find it at the same address.
+Either way, the new server answers on port 7700, the address phones and voice nodes already use, so they find it at the same address. Older nodes may also call the old per-service ports (7701–7712); which of those the new server opens is in [Voice nodes](#voice-nodes) below.
 
 ## Start fresh
 
@@ -299,7 +299,7 @@ Once Jarvis has run for a while and you're happy with it, remove the old install
 
 ## Finish in the setup wizard
 
-Open `http://<host>:7710/` and sign in with your **old admin account and its old password**. The wizard skips the Check and Account steps and resumes at **Hardware**, then Models and Privacy; see [Setup wizard](setup-wizard.md). If the old account was set to change its password at next sign-in, you set a new one first.
+Open `http://<host>:7710/` and sign in with your **old admin account and its old password**. The wizard skips the Check and Account steps and resumes at **Hardware**, then the five model steps (**Language model** to **Memory & search**) and **Privacy**; see [Setup wizard](setup-wizard.md). If the old account was set to change its password at next sign-in, you set a new one first.
 
 ### Import your recipes
 
@@ -343,6 +343,13 @@ Run the same `--apply` again whenever more people have signed in; it adds only w
 ### Voice nodes
 
 There is nothing to do for most nodes. The import kept each node's registration and key, and the new server answers on the old ports, so a node reconnects by itself within a minute or two and shows in the app's node list. Inactive nodes stay inactive.
+
+!!! note "The old ports, by release"
+    rc18 always opens the old per-service ports (7701–7712, 7030, 7031 and 9883; see [Legacy ports](../operate/network.md#legacy-ports)).
+
+    From the next release, the server decides once, the first time it starts on a database, whether to open them, and stores the answer as the `server.legacy_ports` setting: on for a server upgraded from an earlier jarvisd, off for a new database. [Step 2](#2-install-with-the-old-install-stopped) (in a container, its first start) starts the new server once on an empty database, so it stores *off*; `jarvisd import-legacy --apply` then turns the setting back on, for the nodes and apps that still call the old ports. Turn it off in the admin's **Settings** (then restart) once every node is on 0.3.4 or later. `JARVIS_LEGACY_PORTS=1` (or `0`) in `jarvisd.env` overrides the setting.
+
+    In a container, the server can only answer on the ports you map. The Unraid template and the Docker guide map 7700, 7710 and 1884; to keep older nodes working, map the old ports too (see [Unraid](unraid.md)).
 
 Every version connects and shows in the app, and a node on 0.3.4 or later needs nothing more. For older ones, what the app can do depends on the version:
 

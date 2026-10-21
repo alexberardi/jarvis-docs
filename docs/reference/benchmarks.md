@@ -10,7 +10,7 @@ Accuracy is the share of utterances where the model's first tool call is the rig
 
 ### On a 16 GB Mac
 
-Qwen 3 4B (Q4_K_M), measured by the project's author on 2026-10-21 on a Mac mini M4 with 16 GB, with the 80-utterance corpus. A cold turn is the first one after a restart, before the prompt is cached.
+Qwen 3 4B (Q4_K_M), measured by the project's author on 2026-10-21 on a Mac mini M4 with 16 GB, with the 80-utterance corpus. This was an informal run: unlike the experiments below, it has no written record in jarvis-server yet. A cold turn is the first one after a restart, before the prompt is cached.
 
 | Accuracy | Warm turn | Cold turn |
 |---|---|---|

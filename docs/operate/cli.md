@@ -33,7 +33,7 @@ Every command works on one **data directory** (the server's home). jarvisd picks
 
 So on a machine with the service installed, plain `jarvisd doctor` checks the service's data. Where that is on each system: [Data and backups](data-and-backups.md#where-the-data-lives).
 
-At start, jarvisd reads `jarvisd.env` in the data directory: one `KEY=value` per line, for settings it needs before it can open its database. A variable already set in the environment wins over the file. The Linux system service also reads `/etc/jarvisd/jarvisd.env`. A fresh install writes the file with comments only, because it needs none of them: everyday settings live in the admin web app. After you edit the file, restart: `jarvisd service restart`.
+At start, jarvisd reads `jarvisd.env` in the data directory: one `KEY=value` per line, for settings it needs before it can open its database. A variable already set in the environment wins over the file. The Linux system service also reads `/etc/jarvisd/jarvisd.env`. A fresh install writes the file with comments only, because it needs none of them: everyday settings live in the admin web app. After you edit the file, restart: `sudo jarvisd service restart` (on Windows, in an Administrator PowerShell without `sudo`).
 
 ## serve
 
@@ -106,6 +106,7 @@ It checks:
 - **sleep** (macOS): the Mac doesn't go to sleep;
 - **data directory** (Linux, macOS): only the server's account can read the data directory and database;
 - **legacy stack**: the old Docker install isn't running and holding ports or GPU memory;
+- **gpu memory** (Linux with an NVIDIA GPU): which other programs, the old stack included, hold GPU memory that jarvisd's models then can't use;
 - **MQTT**: the message broker asks clients for credentials.
 
 | Option | Meaning |

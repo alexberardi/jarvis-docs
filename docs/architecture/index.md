@@ -74,7 +74,7 @@ The models run on your hardware. Model weights and GPU engines are not in the bi
 
 ### Discovery
 
-`jarvisd` advertises itself on the local network over mDNS (`_jarvis-config._tcp`), so the mobile app can find the server without typing an address. Set `JARVIS_MDNS=0` to turn it off.
+`jarvisd` advertises itself on the local network over mDNS (`_jarvis-config._tcp`), so the desktop agent's first-run page can find the server without typing an address. The mobile app doesn't look for it: it asks for the address and hands it to the voice nodes it sets up. Set `JARVIS_MDNS=0` to turn it off.
 
 ## Modules
 
@@ -96,7 +96,7 @@ Each module is a Go package in [`internal/modules/`](https://github.com/alexbera
 
 ### Service registry (`config`)
 
-The first thing every client talks to. The mobile app finds the server over mDNS, checks `GET /info`, then reads `GET /services` for the URL of every other module.
+The first thing every client talks to. The mobile app takes the server's address from the user, checks `GET /info`, then reads `GET /services` for the URL of every other module.
 
 - At startup `jarvisd` registers its own modules in the registry.
 - Entries for things outside the process (a remote GPU machine, for example) can be added and edited.
