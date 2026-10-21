@@ -280,7 +280,7 @@ Open the WebUI and sign in with your old admin account; see [Finish in the setup
 
 #### Recipes, in the container
 
-With Jarvis running, put the export in the data folder, readable by Jarvis's user (`U` and `G` from the import above), and import it inside the container as that user:
+With Jarvis running, put the export in the data folder, readable by Jarvis's user (`D`, `U` and `G` from the import above; set them again in a new shell), and import it inside the container as that user:
 
 ```sh
 install -m 0600 -o $U -g $G ~/recipes-export.tar.gz "$D"/

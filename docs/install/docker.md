@@ -71,7 +71,7 @@ Phones and voice nodes don't discover a server in a container on their own. Give
 | 7710 | The admin and the setup wizard |
 | 1884 | MQTT, for voice nodes |
 
-Every service lives on 7700 under its own path, so these three ports are all a new install needs; see [One API port](../architecture/service-discovery.md#one-api-port). To use another port on the host, change the left side of a mapping (`8700:7700`) and use that port in the addresses you give phones and nodes.
+Every service lives on 7700 under its own path, so these three ports are all a new install needs; see [Ports](../architecture/index.md#ports). To use another port on the host, change the left side of a mapping (`8700:7700`) and use that port in the addresses you give phones and nodes.
 
 ## The data folder and its owner
 
