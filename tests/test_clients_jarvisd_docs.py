@@ -66,8 +66,14 @@ def test_client_pages_point_at_one_jarvisd_server():
         assert "7703" not in page, rel
         assert "7700" in page, rel
     index = _read("clients/index.md")
-    for needle in ("_jarvis-config._tcp", "7701", "7710"):
+    for needle in ("_jarvis-config._tcp", "7710", "service-discovery.md#one-api-port", "legacy_ports"):
         assert needle in index, needle
+    assert index.count("desktop-agent.md") == 1
+    # One API port: sign-in is found from 7700, not a port clients need.
+    for rel in ("clients/index.md", "clients/node-docker.md", "clients/node-mobile.md"):
+        for line in _read(rel).splitlines():
+            if line.startswith("|"):
+                assert "7701" not in line, (rel, line)
 
 
 def test_entry_pages_are_written():

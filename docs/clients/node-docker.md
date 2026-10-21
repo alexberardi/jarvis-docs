@@ -114,7 +114,7 @@ Everything is on the one `jarvisd` server. The node needs only its address; the 
 | What | Port | Needed for |
 |---|---|---|
 | The server address | 7700 | **Bootstrap** — everything else is discovered from it |
-| Sign-in | 7701 | Login/registration during setup |
+| Sign-in, discovered | from 7700 | Login/registration during setup |
 | Voice and text, discovered | from 7700 | **All** voice/text traffic; node registration |
 | MQTT broker, discovered | 1884 | Server→node messages — TTS, settings push, package installs, reminders |
 

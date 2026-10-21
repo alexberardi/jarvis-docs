@@ -205,5 +205,5 @@ Everything is on the one `jarvisd` server. The app starts from the address you p
 | Port | Required | Purpose |
 |------|----------|---------|
 | 7700 | Yes | The server address you enter; it lists the other services |
-| 7701 | Yes | Login, token management |
+| Sign-in, from 7700 | Yes | Login, token management |
 | Others, from 7700 | No | Node registration and settings sync, push notifications and the inbox |
