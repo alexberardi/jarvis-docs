@@ -46,8 +46,9 @@ The Jarvis Automation app for iOS and Android. Chat with Jarvis, set up voice no
 How a fresh Pi node is set up headless: it opens a Wi-Fi hotspot (`jarvis-XXXX`) and waits for the mobile app to give it your Wi-Fi, its keys and the server's address.
 
 ### [Desktop agent & browser control](desktop-agent.md)
+### [Desktop agent](desktop-agent.md)
 
-The desktop agent (`jarvis-agent`) runs on your own computer, and the Jarvis Browser Control extension lets Jarvis work with your browser tabs and record macros (Teach Jarvis). Macros need the extension's website access turned on.
+Jarvis Automation Agent runs on your own Mac, Windows or Linux computer: installers, pairing with a code, the macOS permissions, dictation, and the Jarvis Browser Control extension (which needs its website access turned on).
 
 ## How clients authenticate
 
