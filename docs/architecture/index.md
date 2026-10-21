@@ -29,9 +29,23 @@ A fresh install listens on three ports:
 | 7710 | The web admin, including the setup wizard at `http://<host>:7710/setup`. |
 | 1884 | The MQTT broker that nodes connect to. |
 
-The path prefix is stripped before a module sees the request, so every route keeps the path it had in the old install. Clients do not hard-code these paths: they ask the config module's `/services` endpoint, which answers with URLs such as `http://<host>:7700/cc`.
+The path prefix is stripped before a module sees the request, so every route keeps the path it had in the old install. The config module's own routes (`/info`, `/health`, `/services`, `/settings`) stay at the root.
 
-An install upgraded from the old Docker stack can also listen on the old per-service ports, so clients that were set up against them keep working. The setting is `server.legacy_ports` (or the environment variable `JARVIS_LEGACY_PORTS=1`). It is on for an upgraded install and off for a fresh one.
+Clients do not hard-code these paths: they ask the config module's `/services` endpoint. Each entry has a `path` (null for a service on its own port), and its `url` already includes the path, with no trailing slash:
+
+```json
+{
+  "name": "jarvis-command-center",
+  "host": "localhost",
+  "port": 7700,
+  "path": "/cc",
+  "url": "http://localhost:7700/cc"
+}
+```
+
+Clients use the entry's `url` as the base and append their routes, for example `http://<host>:7700/cc/health`.
+
+An install upgraded from the old Docker stack also keeps the old per-service ports (7701-7712, 7030, 7031, and the MQTT WebSocket on 9883), and `/services` keeps answering with them, so clients that were set up against them keep working. The setting is `server.legacy_ports`: on for an upgraded install, off for a fresh one. It applies after jarvisd restarts. The environment variable `JARVIS_LEGACY_PORTS` (`1` or `0`) overrides it.
 
 ### Storage
 

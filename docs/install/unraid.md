@@ -35,7 +35,7 @@ Jarvis runs on Unraid as one container, installed from a Community Applications 
 | 7710 | The admin and the setup wizard (the WebUI) |
 | 1884 | MQTT, for voice nodes |
 
-Every service lives on 7700 under its own path (`/cc`, `/auth`, `/stt` and so on), so these three ports are all a new install needs. Clients find the paths through `/services`; see [One API port](../architecture/service-discovery.md#one-api-port).
+Every service lives on 7700 under its own path (`/cc`, `/auth`, `/stt` and so on), so these three ports are all a new install needs. Clients find the paths through `/services`; see [Ports](../architecture/index.md#ports).
 
 Older clients that expect the old per-service ports (7701–7712, 7030, 7031) need `server.legacy_ports` turned on in the admin's Settings, or `JARVIS_LEGACY_PORTS=1` in the template. jarvisd then also listens on those ports, and you must map each one you need in the template yourself.
 
