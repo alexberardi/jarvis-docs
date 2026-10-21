@@ -1,14 +1,22 @@
 # Rejection codes
 
-When a package is submitted to the Pantry it runs through a validation pipeline, and any blocking failure (plus some non-blocking warnings) is reported as a structured finding rather than a free-form message. Each finding carries a stable snake_case `reason_code`, a severity (`error` blocks publication; `warning` does not), and a link to the matching section below. A reason code identifies exactly why a rejection or warning was raised, so you can map it directly to a fix. Reason codes are append-only: they are never renamed or repurposed once published, because submitters and tooling rely on them as stable wire identifiers.
+When a package is submitted to the Pantry it runs through a validation pipeline, and any blocking failure (plus some non-blocking warnings) is reported as a structured finding rather than a free-form message. Each finding carries a stable snake_case `reason_code`, a severity (`error` blocks publication; `warning` does not, with one exception: the calls listed under [Disallowed primitive in source](#static_analysis_disallowed_primitive) reject the submission although their finding is labelled `warning`), and a link to the matching section below. A reason code identifies exactly why a rejection or warning was raised, so you can map it directly to a fix. Reason codes are append-only: they are never renamed or repurposed once published, because submitters and tooling rely on them as stable wire identifiers.
 
 ## Disallowed primitive in source {#static_analysis_disallowed_primitive}
 
-**Reason code:** `static_analysis_disallowed_primitive` · **Severity:** error
+**Reason code:** `static_analysis_disallowed_primitive` · **Severity:** warning
 
 ### What this means
 
-A command's Python source uses a dynamic-execution primitive such as `eval`, `exec`, `compile`, `__import__`, or `getattr`-style dynamic dispatch. These let code do things the analyzer cannot verify ahead of time.
+A command's Python source calls a dynamic-execution or process primitive, or imports a module that provides them. These let code do things the analyzer cannot verify ahead of time.
+
+The finding is always labelled `warning`, but some of these calls reject the submission outright:
+
+| Rejects the submission | Only warns |
+|---|---|
+| `eval`, `exec` | `compile`, `__import__` |
+| `os.system`, `os.popen`, `os.exec`, `os.execl`, `os.execle`, `os.execlp`, `os.execv`, `os.execve`, `os.execvp`, `os.execvpe`, `os.spawn`, `os.spawnl`, `os.spawnle` | Importing `os`, `subprocess`, `shutil`, `ctypes` or `importlib` |
+| `subprocess.run`, `subprocess.call`, `subprocess.Popen`, `subprocess.check_call`, `subprocess.check_output` | |
 
 ### Why we flag it
 
@@ -16,11 +24,11 @@ Dynamic execution can sidestep every other static check and run arbitrary code a
 
 ### How to fix
 
-Remove the dynamic primitive and call the target directly. Replace `eval`/`exec` with explicit logic, replace `getattr(obj, name)()` with a normal attribute access or an explicit dispatch table, and import modules with ordinary `import` statements.
+Remove the rejected calls: replace `eval`/`exec` with explicit logic, and don't start processes from a command. For a warning, check that the import or call is really needed and import modules with ordinary `import` statements instead of `__import__`.
 
 ## Raw database import {#static_analysis_raw_db_import}
 
-**Reason code:** `static_analysis_raw_db_import` · **Severity:** error
+**Reason code:** `static_analysis_raw_db_import` · **Severity:** warning
 
 ### What this means
 
@@ -36,7 +44,7 @@ Remove the direct import and use the command data-store API provided to your com
 
 ## Direct SQL mutation {#static_analysis_sql_mutation}
 
-**Reason code:** `static_analysis_sql_mutation` · **Severity:** error
+**Reason code:** `static_analysis_sql_mutation` · **Severity:** warning
 
 ### What this means
 
@@ -52,7 +60,7 @@ Remove raw SQL writes and perform all data changes through the command data-stor
 
 ## Cross-command access {#static_analysis_cross_command_access}
 
-**Reason code:** `static_analysis_cross_command_access` · **Severity:** error
+**Reason code:** `static_analysis_cross_command_access` · **Severity:** warning
 
 ### What this means
 
@@ -68,7 +76,7 @@ Remove imports of, and references to, other commands' modules and data. If you n
 
 ## Shadows a built-in directory {#static_analysis_shadows_builtin_dir}
 
-**Reason code:** `static_analysis_shadows_builtin_dir` · **Severity:** error
+**Reason code:** `static_analysis_shadows_builtin_dir` · **Severity:** warning
 
 ### What this means
 
@@ -116,7 +124,7 @@ Make your command class inherit directly from the required command base class an
 
 ## Transitive base-class inheritance {#static_analysis_transitive_inheritance}
 
-**Reason code:** `static_analysis_transitive_inheritance` · **Severity:** error
+**Reason code:** `static_analysis_transitive_inheritance` · **Severity:** warning
 
 ### What this means
 
@@ -124,7 +132,7 @@ Your command class only reaches the required base class transitively, through on
 
 ### Why we flag it
 
-The static analyzer cannot safely verify an indirect inheritance chain, so it cannot confirm the command implements the required contract.
+The static analyzer cannot verify an indirect inheritance chain on its own, so it flags it and leaves the check to the container tests, which confirm the command implements the required contract.
 
 ### How to fix
 
@@ -136,7 +144,7 @@ Have your command class inherit directly from the required base class rather tha
 
 ### What this means
 
-The `version` value in your manifest is not a valid semantic version.
+The `version` value in your manifest, or `min_sdk_version` when you declare it, is not a valid semantic version.
 
 ### Why we flag it
 
@@ -144,7 +152,7 @@ The store relies on valid, ordered semantic versions to compare releases and res
 
 ### How to fix
 
-Use a valid `MAJOR.MINOR.PATCH` version like `1.2.0` in your manifest's `version` field.
+Use a valid `MAJOR.MINOR.PATCH` version like `1.2.0` in your manifest's `version` field, and in `min_sdk_version` if you set it.
 
 ## Missing required manifest field {#manifest_missing_required_field}
 
@@ -180,7 +188,7 @@ Correct the field to the expected type as named in the finding (for example, use
 
 ## Unknown manifest category {#manifest_unknown_category}
 
-**Reason code:** `manifest_unknown_category` · **Severity:** error
+**Reason code:** `manifest_unknown_category` · **Severity:** warning
 
 ### What this means
 
@@ -192,11 +200,11 @@ Categories drive discovery and grouping in the store; an unrecognized category c
 
 ### How to fix
 
-Set the `category` field to one of the supported category values. Check for typos against the documented category list.
+Set each entry of the `categories` list to one of the supported category values. Check for typos against the documented category list.
 
 ## Unknown parameter type {#manifest_unknown_param_type}
 
-**Reason code:** `manifest_unknown_param_type` · **Severity:** error
+**Reason code:** `manifest_unknown_param_type` · **Severity:** warning
 
 ### What this means
 
@@ -208,7 +216,7 @@ The runtime validates and coerces inputs by parameter type, so an unknown type c
 
 ### How to fix
 
-Change the parameter's `type` to a supported parameter type, correcting any typos against the documented parameter types.
+Change the parameter's `param_type` to a supported parameter type, correcting any typos against the documented parameter types.
 
 ## Unknown secret scope {#manifest_unknown_secret_scope}
 
@@ -252,15 +260,15 @@ The repository does not contain a README file.
 
 ### Why we flag it
 
-A README helps other users understand what the package does and how to use it; its absence does not block publication but lowers quality.
+A README helps other users understand what the package does and how to use it. The finding itself is a warning, but a public submission whose repository has no file named exactly `README.md` at its root is refused earlier, by the repository structure check (`422`, `Missing required file: README.md`), before static analysis runs.
 
 ### How to fix
 
-Add a `README` (for example `README.md`) at the repository root describing the package and how to use it.
+Add a `README.md` at the repository root describing the package and how to use it.
 
 ## Missing LICENSE {#repo_missing_license}
 
-**Reason code:** `repo_missing_license` · **Severity:** error
+**Reason code:** `repo_missing_license` · **Severity:** warning
 
 ### What this means
 
@@ -268,7 +276,7 @@ The repository does not contain a LICENSE file.
 
 ### Why we flag it
 
-Without a license, others have no legal terms under which to use or redistribute the package, so it cannot be published to the store.
+Without a license, others have no legal terms under which to use or redistribute the package. The finding itself is a warning, but a public submission whose repository has no file named exactly `LICENSE` at its root is refused earlier, by the repository structure check (`422`, `Missing required file: LICENSE`), before static analysis runs.
 
 ### How to fix
 
@@ -308,7 +316,7 @@ Add the missing file at the path the manifest references, or correct the path in
 
 ## Unknown component type {#repo_unknown_component_type}
 
-**Reason code:** `repo_unknown_component_type` · **Severity:** error
+**Reason code:** `repo_unknown_component_type` · **Severity:** warning
 
 ### What this means
 
@@ -340,7 +348,7 @@ Add a non-empty `steps` list to the routine, with at least one step that the rou
 
 ## Routine missing trigger phrases {#routine_missing_trigger_phrases}
 
-**Reason code:** `routine_missing_trigger_phrases` · **Severity:** error
+**Reason code:** `routine_missing_trigger_phrases` · **Severity:** warning
 
 ### What this means
 
@@ -356,7 +364,7 @@ Add one or more trigger phrases to the routine so it can be matched and invoked.
 
 ## Routine missing response instruction {#routine_missing_response_instruction}
 
-**Reason code:** `routine_missing_response_instruction` · **Severity:** error
+**Reason code:** `routine_missing_response_instruction` · **Severity:** warning
 
 ### What this means
 

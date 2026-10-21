@@ -1,7 +1,9 @@
 # Running Your Own Pantry
 
-The public Pantry is the default store every node reads from. You can also run a Pantry of your own on a home or office
-network. Three opt-in features make that useful:
+A Jarvis Automation server uses the public Pantry by default, but only once a household admin turns the Pantry on:
+`pantry.enabled` is off for every household until then, and package installs and Forge test installs answer `403`
+(`pantry_disabled`) while it is off (see [Network Egress & Offline Mode](../security/offline-mode.md)). You can also run
+a Pantry of your own on a home or office network. Three opt-in features make that useful:
 
 | Feature | Switch | What it gives you |
 |---|---|---|
@@ -9,15 +11,15 @@ network. Three opt-in features make that useful:
 | [Upstream mirror](#upstream-mirror) | `PANTRY_UPSTREAM_URL=<public Pantry API>` | One catalogue that lists the public packages and yours together |
 | [Private packages](#private-packages) | `ADMIN_API_KEY` set | Publish an integration from a Git repository without making it public |
 
-Each is **off until its variable is set**. A Pantry that sets none of them behaves exactly like the public one. The
-implementation lives in [`jarvis-pantry`](https://github.com/alexberardi/jarvis-pantry) (see
-[Pantry Store](../legacy/services/pantry-store.md)) and the interface in
-[`jarvis-pantry-web`](https://github.com/alexberardi/jarvis-pantry-web) (see [Pantry Web](../legacy/services/pantry-web.md)).
+Each is **off in the app's own defaults**; the local compose file below turns all three on. A Pantry with none of them
+set behaves exactly like the public one. The implementation lives in
+[`jarvis-pantry`](https://github.com/alexberardi/jarvis-pantry) and the interface in
+[`jarvis-pantry-web`](https://github.com/alexberardi/jarvis-pantry-web).
 
 ## How it fits together
 
 ```
- Jarvis node ──(command_store_url)──┐
+ Jarvis node, mobile app ───────────┐   (the address jarvisd gives them: pantry.base_url)
                                     ▼
  browser ──▶ jarvis-pantry-web ──▶ jarvis-pantry (:7721) ──▶ PostgreSQL
               (:7720)                │   │  │
@@ -37,7 +39,7 @@ repository URL and pinned commit); it never hosts package contents.
 git clone https://github.com/alexberardi/jarvis-pantry
 git clone https://github.com/alexberardi/jarvis-pantry-web      # sibling directory; built by the compose file
 cd jarvis-pantry
-cp .env.local.example .env.local         # set PANTRY_DB_PASSWORD (and PANTRY_PUBLIC_API_URL on a server)
+cp .env.local.example .env.local         # set PANTRY_DB_PASSWORD and PANTRY_ADMIN_API_KEY (and PANTRY_PUBLIC_API_URL on a server)
 docker compose -f docker-compose.local.yaml --env-file .env.local up -d --build
 ```
 
@@ -56,7 +58,7 @@ Variables in `.env.local`:
 | `FORGE_LOCAL_LLM_ENABLED` | `true` | Master switch for the local LLM features |
 | `PANTRY_UPSTREAM_URL` | public Pantry API | Catalogue to mirror; blank for your own packages only |
 | `PANTRY_GITHUB_TOKEN` | blank | Clone token for private GitHub repositories |
-| `PANTRY_ADMIN_API_KEY` | blank | Becomes `ADMIN_API_KEY` in the container |
+| `PANTRY_ADMIN_API_KEY` | required | Becomes `ADMIN_API_KEY` in the container. The example file ships it blank, and the compose file refuses to start until it is set: use a long random value such as the output of `openssl rand -hex 32`. |
 | `FORGE_LOCAL_BASE_URL` / `_API_KEY` / `_MODEL` | blank | First-run defaults; normally set from Settings |
 
 The compose file mounts no Docker socket, so the sandboxed container tests that run when a package is **submitted
@@ -102,8 +104,11 @@ as one store, so a node needs only one address.
   and answers `502`.
 - The mirror is read-only: nothing is written upstream.
 
-Point a node at your Pantry by setting `command_store_url` in its configuration to the Pantry's address, for example
-`http://pantry.lan:7721`. Its default is the public Pantry's API.
+Point your Jarvis Automation server at your Pantry by setting `pantry.base_url` to the Pantry's address, for example
+`http://pantry.lan:7721`: in the admin web app (**Settings**; a household can override it), or with `JARVIS_PANTRY_URL`
+in `jarvisd.env`, then restart jarvisd. Its default is the public Pantry's API (`https://pantry-api.jarvisautomation.io`).
+The server hands the address to nodes and the mobile app, so they must be able to reach it too, not only the server. The
+household also needs `pantry.enabled` on.
 
 ## Private packages
 
@@ -117,7 +122,7 @@ curl -s -X POST http://pantry.lan:7721/v1/admin/commands/from-repo \
 ```
 
 The Pantry clones the repository at `ref` (a tag or branch; the default branch when omitted), validates the manifest with
-the same structure check the public flow uses, and publishes it as a local package under a reserved `local` author. The
+the same structure check the public flow uses, and publishes it as a local package under a reserved local author. The
 response reports the package name, version, whether it is a `command` or a `bundle`, and the commit it pinned. Run the
 request again with a new `ref` to publish a new version.
 
