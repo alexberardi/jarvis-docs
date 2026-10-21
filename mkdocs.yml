@@ -95,6 +95,7 @@ nav:
     - Server on Windows: install/windows.md
     - Server on Linux: install/linux.md
     - Server on Unraid: install/unraid.md
+    - Server in Docker: install/docker.md
     - Advanced one-liners: install/one-liners.md
     - Setup wizard: install/setup-wizard.md
     - Desktop agent: clients/desktop-agent.md

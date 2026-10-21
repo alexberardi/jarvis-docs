@@ -76,6 +76,8 @@ The import copies the old install's data into the new server and keeps every id,
 
 The order matters: install, import, **then** the setup wizard. The wizard's account step makes the new database non-empty, and the import only writes into an empty one.
 
+Moving into a container, on Unraid or in Docker? Do step 1, then follow [On Unraid or in Docker](#on-unraid-or-in-docker) instead of steps 2 to 4.
+
 ### 1. Before you start
 
 Write down how each container restarts, so that a [roll back](#roll-back) can put it back exactly. In a terminal (PowerShell on Windows):
@@ -213,6 +215,84 @@ It only reads the old install. The file holds email addresses and household name
     ```
 
 `setup-link` now says to sign in rather than printing a token: the imported admin account closed the account step.
+
+### On Unraid or in Docker
+
+The same import, for the [Unraid](unraid.md) or [Docker](docker.md) container. Run these in a terminal on the server (on Unraid, the **>_** terminal at the top of the web interface), after [step 1](#1-before-you-start). The container is called `Jarvis` on Unraid and `jarvis` in the Docker guide; use yours.
+
+#### Stop the old install, but not its database
+
+In the old install's compose folder (`~/.jarvis/compose` for the installer's layout), turn the restart policies off, stop everything, then start the database again on its own:
+
+```sh
+cd ~/.jarvis/compose
+docker compose ps -aq | xargs docker update --restart=no
+docker compose stop
+docker start jarvis-postgres
+```
+
+Nothing is deleted. The old install's ports are free now, so the new container can take them.
+
+#### Install the container, then stop it
+
+Install as in the [Unraid](unraid.md#install) or [Docker](docker.md#run-it) guide, but don't open the WebUI or the setup wizard. The container starts once, which is fine: it has made its keys but no account yet. Then stop it (on Unraid, from the **Docker** tab, or):
+
+```sh
+docker stop Jarvis
+```
+
+#### Run the import in a one-off container
+
+The import runs in a container of its own, from the same image, on your data folder. It can't run inside the Jarvis container: it refuses while Jarvis is running.
+
+The old database's password is `POSTGRES_PASSWORD` in the old install's `.env`. Its role (the URL's `jarvis`) is `DB_USER` there, else `POSTGRES_USER`, else `jarvis`; its port (`5432`) is `POSTGRES_PORT`, else `5432`. Set the data folder (`/srv/jarvis` in the Docker guide), type the password once, then run the import as a dry run:
+
+```sh
+D=/mnt/user/appdata/jarvis
+read -rsp 'Password: ' PGPASSWORD; echo; export PGPASSWORD
+docker run --rm --network host \
+  -e PGPASSWORD -v "$D":/data \
+  ghcr.io/alexberardi/jarvisd:<tag> \
+  import-legacy --from postgres://jarvis@127.0.0.1:5432
+```
+
+Read its report as in [step 3](#3-import-your-data). If it ends with **dry run passed**, run the same command again with `--apply` added at the end.
+
+- Use the same `<tag>` as the Jarvis container.
+- `--network host` lets the import reach the old database, which listens on the server's own address only (`127.0.0.1`). It also lets the import see whether Jarvis still answers on port 7700; if it does, the import refuses.
+- To read the password from the old `.env` instead, mount the compose folder (`-v ~/.jarvis/compose:/legacy:ro`) and use `--compose /legacy`. The import runs as user 99, so the folder and its `.env` must be readable by that user; usually they aren't, so `--from` is simpler.
+
+The log of the import, `import-legacy-<time>.log`, is in the data folder.
+
+#### Export your recipes and start Jarvis
+
+Export the recipes as in [step 4](#4-export-your-recipes-and-start-the-server), while the old database is still running. Then stop the old database and start Jarvis:
+
+```sh
+docker stop jarvis-postgres
+docker start Jarvis
+```
+
+Open the WebUI and sign in with your old admin account; see [Finish in the setup wizard](#finish-in-the-setup-wizard). No setup token is needed.
+
+#### Recipes, in the container
+
+With Jarvis running, put the export in the data folder, readable by Jarvis's user (99), and import it inside the container as that user:
+
+```sh
+install -m 0600 -o 99 -g 100 ~/recipes-export.tar.gz "$D"/
+B=/data/recipes-export.tar.gz
+docker exec -u 99:100 Jarvis jarvisd import-recipes $B   # dry run
+docker exec -u 99:100 Jarvis jarvisd import-recipes $B --apply
+```
+
+The report reads as in [Import your recipes](#import-your-recipes). Delete the export afterwards.
+
+#### Roll back or clean up
+
+To go back to the old install, stop the Jarvis container and keep it from starting (on Unraid, turn its autostart off on the **Docker** tab), then run the two `docker` lines of the [Linux roll back](#roll-back). The new data stays in the data folder.
+
+Once Jarvis has run for a while and you're happy with it, remove the old install from its compose folder: `docker compose down -v --rmi all`, then delete the compose folder and any folder the old install kept under `/mnt/user/appdata`. That deletes the old data for good, so keep the database copy from [step 1](#1-before-you-start) if you want one.
 
 ## Finish in the setup wizard
 
