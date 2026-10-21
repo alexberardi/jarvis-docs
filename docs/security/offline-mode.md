@@ -2,7 +2,7 @@
 
 Jarvis is **local-first**. A Jarvis Automation server with its default settings makes **no connections to the internet on its own**: voice commands, transcription, speech, memory and device control all run on your own hardware, and the server talks only to your own nodes, phones and devices.
 
-Everything that reaches the internet is either something you start (downloading a model, running `jarvisd upgrade`) or a setting that **defaults to off**.
+Everything that reaches the internet is either something you start (downloading a model, running `jarvisd upgrade`) or a setting that **defaults to off**. One client setting is on by default: the desktop agent updates itself from GitHub releases (see [On nodes and phones](#on-nodes-and-phones)).
 
 !!! success "Default posture"
     A fresh install with default settings is effectively **offline** once its models are downloaded. To reach the internet, you turn on a specific capability below.
@@ -39,29 +39,34 @@ With `updates.enabled` off, the server makes no update request at all. With `rel
 | Action | Reaches |
 |---|---|
 | Installing a model in the setup wizard or on the **Models** page | `huggingface.co` for the model; GitHub releases for the runtime that runs it (llama.cpp, whisper.cpp) |
+| Installing a Hugging Face directory model (MLX, vLLM or Transformers) | Also GitHub releases for uv and a Python build, and PyPI (`pypi.org`, `files.pythonhosted.org`) for the engine's packages |
 | `jarvisd upgrade` | `api.github.com` and the release's files on GitHub |
 | Adding a cloud model provider (an OpenAI-compatible endpoint or `api.anthropic.com`) | That provider, with the conversations sent to it |
 | Setting up phone calls (Twilio) | `api.twilio.com` |
 | Installing a command package or a vendor-cloud device family | Whatever that integration needs |
 
-Runtimes are checked against checksums built into jarvisd before they run. The download addresses are settings too: point the Hugging Face endpoint (`HF_ENDPOINT`) and the runtime download base at a mirror on your network to install models without the internet.
+Runtimes are checked against checksums built into jarvisd before they run. The download addresses are settings too: point `llm.hf_endpoint` (env `HF_ENDPOINT`), `llm.engine_base_url` (llama.cpp) and `stt.engine_base_url` (whisper.cpp) at a mirror on your network to install models without the internet. uv and the Python engines have no mirror setting: they always download from their pinned defaults.
 
 ### On nodes and phones
 
-| Capability | Reaches | Setting (all off by default) |
-|---|---|---|
-| **Node self-update** | GitHub releases | `allow_updates` in the node's `config.json` (or `JARVIS_ALLOW_UPDATES`) |
-| **Wake-word model download** | GitHub (openWakeWord) | `wake_word_model_autodownload_enabled` in the node's `config.json` |
-| **Mobile push notifications** | Expo (`exp.host`) → APNs/FCM | Mobile app → **Settings** |
+| Capability | Reaches | Setting | Default |
+|---|---|---|---|
+| **Desktop agent self-update** (also the experimental Go Pi node, which is the same program) | `api.github.com`, GitHub releases | `auto_update` in the agent's `agent.json`, or `--no-auto-update` | **On** |
+| **Python node self-update** | GitHub releases | `allow_updates` in the node's `config.json` (or `JARVIS_ALLOW_UPDATES`) | Off |
+| **Wake-word model download** (Python node) | GitHub (openWakeWord) | `wake_word_model_autodownload_enabled` in the node's `config.json` | Off |
+| **Mobile push notifications** | Expo (`exp.host`) → APNs/FCM | Mobile app → **Settings** | Off |
+
+The desktop agent checks the server's version daily and, when it differs, downloads that release from GitHub and installs it. It also accepts an update sent to it from the server. See [Updates and settings](../agent/updates-settings.md).
 
 ## Fully offline checklist
 
 1. Install the server and download your models while connected, or from a mirror on your network.
-2. Leave every setting in the tables above **off** (the default).
-3. Leave `relay.url` empty and mobile push off: no push payloads leave the phone or the server.
-4. Don't add a cloud model provider.
-5. Upgrade by hand: download a release on another machine and run `jarvisd upgrade` with `JARVISD_RELEASE_BASE` pointing at the folder ([CLI](../operate/cli.md#upgrade)).
-6. Remember that a command package or a vendor-cloud device family (Nest, Ecobee, Govee cloud) adds outbound traffic for that feature by design. Installing it is the opt-in.
+2. Leave every server and Python-node setting in the tables above **off** (the default).
+3. Run desktop agents with `--no-auto-update`, or set `"auto_update": false` in `agent.json`: their self-update is **on** by default. Update them by hand instead.
+4. Leave `relay.url` empty and mobile push off: no push payloads leave the phone or the server.
+5. Don't add a cloud model provider.
+6. Upgrade by hand: download a release on another machine and run `jarvisd upgrade` with `JARVISD_RELEASE_BASE` pointing at the folder ([CLI](../operate/cli.md#upgrade)).
+7. Remember that a command package or a vendor-cloud device family (Nest, Ecobee, Govee cloud) adds outbound traffic for that feature by design. Installing it is the opt-in.
 
 !!! tip "Verifying"
     On the server, list open connections with `sudo lsof -i -nP | grep ESTABLISHED` (Linux, macOS) or `Get-NetTCPConnection -State Established` (Windows), or check your router's logs. With everything above off, you should see only connections inside your network, not to `github.com`, `huggingface.co`, `exp.host` or `r.jina.ai`.
