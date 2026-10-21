@@ -69,7 +69,7 @@ INSTALL_STUBS = [
     "install/mobile-app.md",
     "install/upgrade.md",
     "install/uninstall.md",
-    "install/migrate.md",
+    "install/migrating-from-docker.md",
 ]
 
 

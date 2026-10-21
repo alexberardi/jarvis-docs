@@ -8,6 +8,7 @@ getting-started/index.md: legacy/getting-started/index.md
 getting-started/installation.md: legacy/getting-started/installation.md
 getting-started/truenas.md: legacy/getting-started/truenas.md
 getting-started/configuration.md: legacy/getting-started/configuration.md
+install/migrate.md: install/migrating-from-docker.md
 libraries/auth-client.md: legacy/libraries/auth-client.md
 libraries/config-client.md: legacy/libraries/config-client.md
 libraries/log-client.md: legacy/libraries/log-client.md

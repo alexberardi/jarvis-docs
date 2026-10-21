@@ -102,7 +102,7 @@ nav:
     - Mobile app: install/mobile-app.md
     - Upgrade: install/upgrade.md
     - Uninstall: install/uninstall.md
-    - Migrating from the old install: install/migrate.md
+    - Migrating from the old install: install/migrating-from-docker.md
   - Use:
     - use/index.md
     - Why Jarvis?: getting-started/why-jarvis.md
