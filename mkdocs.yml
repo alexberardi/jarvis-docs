@@ -126,10 +126,11 @@ nav:
     - Benchmarks: reference/benchmarks.md
   - Operate:
     - operate/index.md
-    - Your First Command: getting-started/first-command.md
-    - Configuration: getting-started/configuration.md
-    - Environment Variables: reference/env-vars.md
+    - The jarvisd command: operate/cli.md
+    - Data and backups: operate/data-and-backups.md
+    - Ports, firewall and mDNS: operate/network.md
     - Troubleshooting: troubleshooting/index.md
+    - Your First Command: getting-started/first-command.md
     - Security:
       - security/index.md
       - Network Egress & Offline Mode: security/offline-mode.md
@@ -213,6 +214,8 @@ nav:
     - Getting Started: legacy/getting-started/index.md
     - Installation: legacy/getting-started/installation.md
     - TrueNAS Setup: legacy/getting-started/truenas.md
+    - Configuration: legacy/getting-started/configuration.md
+    - Troubleshooting: legacy/troubleshooting.md
     - Services:
       - legacy/services/index.md
       - Config Service: legacy/services/config-service.md
@@ -239,3 +242,4 @@ nav:
       - Auth Client: legacy/libraries/auth-client.md
       - Web Scraper: legacy/libraries/web-scraper.md
     - CLI: legacy/reference/cli.md
+    - Environment Variables: legacy/reference/env-vars.md

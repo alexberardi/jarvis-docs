@@ -1,350 +1,123 @@
-
 # Troubleshooting
 
-Quick fixes for common Jarvis issues. If your problem is not listed here, check the [Getting Help](#getting-help) section at the bottom.
+Most problems with a Jarvis Automation server show up in two places: `jarvisd doctor`, which checks what nodes and phones need, and the server's log. Start with those, then look for your symptom below.
+
+Running the old Docker install? See [Troubleshooting the old Docker install](../legacy/troubleshooting.md).
 
 !!! tip "Having trouble?"
 
-    Reach out here: [:fontawesome-brands-discord: **Ask in the Jarvis help channel**](https://discord.gg/9SuQFVexxJ) -- we're happy to help.
+    Reach out here: [:fontawesome-brands-discord: **Ask in the Jarvis help channel**](https://discord.gg/9SuQFVexxJ). We're happy to help.
 
-## Installation Issues
+## Start with jarvisd doctor
 
-### Docker not found
-
-**Symptom:** `docker: command not found` when running the installer.
-
-**Fix:** Install Docker for your platform. See the [Prerequisites](../legacy/getting-started/installation.md#prerequisites) section of the installation guide for full commands.
+On the server, run:
 
 ```bash
-# Verify Docker is installed
-docker --version
+jarvisd doctor
 ```
 
-### Docker Compose missing
+It prints one line per check, `OK`, `WARN` or `FAIL`, and under a problem the command that fixes it. On a Linux server with ufw blocking the ports, for example:
 
-**Symptom:** `docker compose` returns `docker: 'compose' is not a docker command`.
+```text
+OK    listening: jarvisd answers on all 3 TCP ports
+FAIL  firewall 192.168.1.0/24: ufw drops 7700/tcp, 7710/tcp, 1884/tcp, 5353/udp from 192.168.1.0/24: nodes and phones can't reach jarvisd, though it works from this machine
+      fix:
+        sudo ufw allow from 192.168.1.0/24 to any port 7700,7710,1884 proto tcp comment jarvisd
+        ...
+OK    data directory: /var/lib/jarvisd and its database are owner-only
+OK    legacy stack: no legacy Jarvis Docker stack running
+OK    mqtt anonymous: the MQTT broker requires credentials
+```
 
-Docker Compose v2 ships as a Docker CLI plugin. If it is missing, install it manually:
+If a check can't read what it needs (a firewall's rules, a data directory that belongs to the service), it says so: run `sudo jarvisd doctor` for the full answer. `jarvisd doctor --json` prints the same as JSON.
 
-=== "Ubuntu / Debian"
+| Check | When it fails or warns | What to do |
+|---|---|---|
+| **listening** | Nothing answers on one of the server's ports. | The server isn't running, or stopped while starting. Run `jarvisd service status`, then [read the log](#read-the-log). |
+| **ports** | Another program holds a port the server needs, so it can't start. | The `fix:` line shows which program. If it is the old Docker install, stop it first. |
+| **firewall** | The host firewall drops the server's ports from your local network. | `sudo jarvisd doctor --fix` (an Administrator PowerShell on Windows). See [Firewall](../operate/network.md#firewall). |
+| **network profile** (Windows) | Windows treats your network as Public; the server's firewall rule covers Private networks only. | Settings → Network & internet → your network → **Private network**. |
+| **sleep** (macOS) | The Mac sleeps when idle, and a sleeping server doesn't answer. | `sudo pmset -a sleep 0`, or prevent sleep in System Settings. |
+| **data directory** (Linux, macOS) | Other accounts on the machine can read the data directory, or some of its files belong to another account. | Follow the `fix:` line. See [Data and backups](../operate/data-and-backups.md#where-the-data-lives). |
+| **legacy stack** | The old Docker install is running and uses the server's ports or the GPU. | The `fix:` line stops it and keeps it from starting at boot; its data is kept. To bring its data over: [Migrating from the old install](../install/migrate.md). |
+| **mqtt anonymous** | `JARVIS_MQTT_ALLOW_ANONYMOUS=1` lets anyone on your network read every message. | Remove it from `jarvisd.env` and restart. |
+| **env file** | `jarvisd.env` can't be read, so the checks used the default ports. | Run `sudo jarvisd doctor`. |
+
+## Read the log
+
+Where the server writes its log depends on the system:
+
+=== "Linux"
+
+    The service logs to the system journal:
 
     ```bash
-    sudo apt-get update
-    sudo apt-get install -y docker-compose-plugin
+    journalctl -u jarvisd -n 200          # the last 200 lines
+    journalctl -u jarvisd -f              # follow it live
     ```
 
-=== "TrueNAS SCALE"
-
-    TrueNAS locks `apt`, so install the binary directly:
-
-    ```bash
-    DOCKER_CONFIG=${DOCKER_CONFIG:-$HOME/.docker}
-    mkdir -p "$DOCKER_CONFIG/cli-plugins"
-    curl -SL https://github.com/docker/compose/releases/latest/download/docker-compose-linux-x86_64 \
-      -o "$DOCKER_CONFIG/cli-plugins/docker-compose"
-    chmod +x "$DOCKER_CONFIG/cli-plugins/docker-compose"
-    ```
+    For a user service (`--user`): `journalctl --user -u jarvisd`.
 
 === "macOS"
 
-    Install [Docker Desktop](https://www.docker.com/products/docker-desktop/), which bundles Compose v2.
-
-Verify after installing:
-
-```bash
-docker compose version
-```
-
-### Port already in use
-
-**Symptom:** Container exits immediately with `Bind for 0.0.0.0:<port> failed: port is already allocated`.
-
-Find what is using the port and stop it:
-
-=== "macOS / Linux"
-
     ```bash
-    # Check what is using port 7703, for example
-    lsof -i :7703
+    tail -n 200 ~/.jarvisd/logs/jarvisd.log
+    tail -f ~/.jarvisd/logs/jarvisd.log
     ```
 
-=== "Linux (alternative)"
+    Run it as the account the server runs as.
 
-    ```bash
-    ss -tlnp | grep 7703
+=== "Windows"
+
+    In an Administrator PowerShell:
+
+    ```powershell
+    Get-Content "$env:ProgramData\jarvisd\logs\jarvisd.log" -Tail 200
+    Get-Content "$env:ProgramData\jarvisd\logs\jarvisd.log" -Wait
     ```
 
-Common conflicts:
+    The file is rotated at 10 MB; the last three are kept as `jarvisd.log.1` to `.3`.
 
-| Port | Jarvis Service | Common Conflict |
-|------|---------------|-----------------|
-| 5432 | PostgreSQL | Existing PostgreSQL install |
-| 6379 | Redis | Existing Redis install |
-| 9000 | MinIO | MinIO or other S3-compatible tools |
+Once the server is running, the admin web app's **Logs** page shows the same messages and lets you filter them. The log file matters most when the server doesn't start, because that page can't open then.
 
-**Fix:** Stop the conflicting process, or change the Jarvis port in `~/.jarvis/compose/.env`.
+For more detail, add `JARVIS_LOG_LEVEL=debug` to `jarvisd.env` and restart (`jarvisd service restart`). Remove it when you're done.
 
-### Docker socket permission denied
+## The server doesn't start
 
-**Symptom:** `Got permission denied while trying to connect to the Docker daemon socket`.
+1. `jarvisd service status` shows whether the service manager started it and whether it answers its health check.
+2. `jarvisd doctor` names a port another program holds, or the old Docker install.
+3. [The log](#read-the-log) shows why it stopped. Look at the last lines.
 
-**Fix:** Add your user to the `docker` group:
+If the log says the database was changed by a newer jarvisd, you are running an older version than the one that last ran on this data, for example after copying an older program over a newer one. Install the newer release again, or go back with `sudo jarvisd upgrade --rollback`, or restore a [backup](../operate/data-and-backups.md#restore) from that version. `jarvisd serve --allow-downgrade` exists for experts and can damage data.
 
-```bash
-sudo usermod -aG docker $USER
-newgrp docker
-```
+## The setup wizard doesn't open
 
-Log out and back in for the group change to take full effect.
+- Print the link again: `sudo jarvisd setup-link` (or `jarvisd setup-link --qr` for a phone). Once the first admin account exists, it prints the admin web app's address instead.
+- From another device, use the server's address, not `localhost`: `http://<server-ip>:7710/setup`.
+- If it works on the server but not from another device, see the next section.
 
-!!! note
-    On macOS with Docker Desktop, this error usually means Docker Desktop is not running. Open it from Applications.
+## Phones and nodes can't connect, but it works on the server
 
-### Image pull failures
+This is almost always the firewall.
 
-**Symptom:** `Error response from daemon: pull access denied` or timeout errors during install.
+1. Run `jarvisd doctor` and look at the **firewall** lines.
+2. Run `sudo jarvisd doctor --fix` (an Administrator PowerShell on Windows), which opens the ports to your local network only.
+3. On Windows, make sure the network is **Private**. On macOS, turn off **Block all incoming connections**.
+4. Check the device is on the same network: guest Wi-Fi and Wi-Fi with "client isolation" keep devices apart.
 
-Possible causes:
+If the mobile app doesn't find the server by itself, type the address (`http://<server-ip>:7700`): mDNS doesn't cross networks or VLANs. See [mDNS discovery](../operate/network.md#mdns-discovery).
 
-1. **No internet access** -- Check your network connection.
-2. **GHCR rate limit** -- GitHub Container Registry has rate limits for unauthenticated pulls. Authenticate:
-    ```bash
-    echo $GITHUB_TOKEN | docker login ghcr.io -u USERNAME --password-stdin
-    ```
-3. **Proxy settings** -- If you are behind a corporate proxy, configure Docker:
-    ```bash
-    # Create or edit ~/.docker/config.json
-    {
-      "proxies": {
-        "default": {
-          "httpProxy": "http://proxy:8080",
-          "httpsProxy": "http://proxy:8080"
-        }
-      }
-    }
-    ```
+## An older node or app can't reach a service
 
-### Slow service startup
+Older nodes and apps may still use the per-service ports (7703 for the command center, and so on). A new install from the release after rc18 doesn't open them. Turn on `server.legacy_ports` in the admin web app's **Settings** and restart, or set `JARVIS_LEGACY_PORTS=1` in `jarvisd.env`. See [Legacy ports](../operate/network.md#legacy-ports).
 
-Some services take longer to start than others. Expected startup times:
+## The server stops answering after a while (macOS)
 
-| Service | Typical Startup |
-|---------|----------------|
-| PostgreSQL, Redis | 2-5 seconds |
-| Config Service, Auth, Logs | 3-10 seconds |
-| Command Center | 10-30 seconds (runs Alembic migrations) |
-| LLM Proxy | 30-120 seconds (loads model into memory) |
+The Mac went to sleep. `jarvisd doctor` warns about this; `sudo pmset -a sleep 0` keeps it awake.
 
-If a service seems stuck, check its logs:
+## An upgrade failed
 
-```bash
-cd ~/.jarvis/compose && docker compose logs <service-name> --tail 50
-```
-
-!!! tip
-    The LLM Proxy has a 120-second health check start period. The admin dashboard may show it as "starting" for up to two minutes while the model loads.
-
-## Service Health Issues
-
-### "Connection refused" errors
-
-**Symptom:** `ECONNREFUSED` or `Connection refused` when a service tries to reach another.
-
-**Checklist:**
-
-1. Is the target service running?
-    ```bash
-    cd ~/.jarvis/compose && docker compose ps
-    ```
-2. Is it on the right port? Check `~/.jarvis/compose/.env` for port assignments.
-3. Are both services on the same Docker network?
-    ```bash
-    docker network inspect jarvis
-    ```
-
-### Service shows unhealthy in admin dashboard
-
-Check the service logs for the specific error:
-
-```bash
-cd ~/.jarvis/compose && docker compose logs <service-name> --tail 100
-```
-
-Common causes by service:
-
-| Service | Common Cause | Fix |
-|---------|-------------|-----|
-| Config Service | PostgreSQL not ready | Wait for PostgreSQL to start, check `DATABASE_URL` |
-| Auth | Database migration failed | Check PostgreSQL logs, verify connection string |
-| Command Center | LLM Proxy unreachable | Start LLM Proxy first, check `LLM_PROXY_URL` |
-| LLM Proxy | No model loaded | Download a model via the admin dashboard Models page |
-| TTS | Piper model missing | Download a Piper voice model to `app/models/` |
-| TTS | Kokoro weights slow to download | Mount `jarvis-tts-hf-cache` volume so weights persist across restarts |
-| TTS | Selected provider failed to load | Service falls back to Piper and logs a warning; check `tts.provider` and provider extras are installed |
-
-### Database migration failures
-
-**Symptom:** Service logs show `alembic` errors or `relation does not exist`.
-
-**Causes:**
-
-1. PostgreSQL not ready yet -- the service started before PostgreSQL accepted connections.
-2. Wrong `DATABASE_URL` -- check the connection string in the service's environment.
-
-**Fix:** Restart the failing service. Docker Compose health checks should handle startup ordering, but a manual restart resolves most timing issues:
-
-```bash
-cd ~/.jarvis/compose && docker compose restart <service-name>
-```
-
-If the issue persists, check that the database exists:
-
-```bash
-docker exec jarvis-postgres psql -U postgres -l
-```
-
-### Authentication failures
-
-**Symptom:** `401 Unauthorized` from service-to-service calls.
-
-**Possible causes:**
-
-- **App-to-app keys missing:** The service is not registered in config-service, or its `JARVIS_APP_ID` and `JARVIS_APP_KEY` environment variables are wrong.
-- **JWT expired:** User tokens expire. Log in again to get a fresh token.
-- **Admin token mismatch:** The `ADMIN_API_KEY` in the command center does not match what you are sending.
-
-**Fix:** Re-run the installer's registration step, or check `~/.jarvis/compose/.env` for the correct credentials.
-
-### Config service unreachable
-
-All services depend on config-service for discovery. If config-service is down, other services will fail to start or lose the ability to find each other.
-
-**Check config-service first:**
-
-```bash
-curl -s http://localhost:7700/health
-```
-
-If it is not responding:
-
-```bash
-cd ~/.jarvis/compose && docker compose logs jarvis-config-service --tail 50
-```
-
-The most common cause is PostgreSQL not being ready. Check PostgreSQL:
-
-```bash
-docker exec jarvis-postgres pg_isready -U postgres
-```
-
-## Node Issues
-
-### Node cannot connect to command center
-
-**Symptom:** Node logs show connection errors to port 7703.
-
-**Checklist:**
-
-1. Is the command center running?
-    ```bash
-    curl -s http://localhost:7703/health
-    ```
-2. Is the node's API key correct? Compare `node_id` and `api_key` in the node's config file against what is registered in the command center. Before jarvis-node-setup#58, re-provisioning a node could register a fresh identity with command-center while the device silently kept its old (now-deactivated) credentials, causing persistent `401`s and MQTT `rc=5` ("not authorised"). This is now fixed -- a completed provisioning handshake always overwrites stale credentials with the new ones. If a node is still stranded on an old identity, re-run provisioning to pick up the fix.
-3. Is the command center reachable from the node's network? If the node is on a different machine, use the server's IP address, not `localhost`.
-4. Check firewall rules -- port 7703 must be open for inbound TCP.
-
-### MQTT connection lost
-
-**Symptom:** Node logs show `MQTT broker not reachable` or repeated reconnection attempts.
-
-**Check the Mosquitto container:**
-
-```bash
-docker ps | grep mosquitto
-```
-
-If it is not running, restart it:
-
-```bash
-cd ~/.jarvis/compose && docker compose up -d mosquitto
-```
-
-The default MQTT broker port is **1883** (internal) / **1884** (external). Verify the node's MQTT config points to the correct host and port.
-
-### MQTT stuck disconnected after a stale broker password (`rc=5`)
-
-**Symptom:** A node's MQTT connection never recovers -- no TTS playback and no MQTT-published data arrive -- even though HTTP voice commands still work and the logs never show an obvious error, just repeated silent reconnects.
-
-**Cause:** A broker CONNACK refusal (`rc=4` bad username/password, `rc=5` not authorized) means the node's cached broker credential is stale, typically after a reprovision to a different install. Before jarvis-node-setup#78, `on_connect` logged `MQTT connected` and subscribed on **every** CONNACK, including refusals -- so the failure was invisible in the logs -- and nothing ever refetched the credential, leaving the node flapping on the same rejected password roughly once a minute, forever.
-
-**Fix:** Since jarvis-node-setup#78, `on_connect` treats any `rc != 0` as a refusal (logs a warning, does not subscribe), and `rc` 4 or 5 triggers an automatic credential refresh from the command center over the still-working HTTP channel, applied via `username_pw_set()` so paho's next auto-reconnect uses the fresh password. A 5-minute cooldown keeps the refresh from hammering command-center during the flap. No manual action is needed -- the node self-heals within one reconnect cycle once the cooldown-throttled refresh completes. If a node still will not reconnect after several minutes, confirm it is running jarvis-node-setup#78 or later and that command-center's `/api/v0/node/mqtt-credentials` endpoint is reachable from the node.
-
-### Node shows offline while actively serving commands
-
-**Symptom:** A node's status badge shows **Offline** in the admin dashboard, but it is responding to voice commands or MQTT requests, or SSH is reachable on the LAN.
-
-**How node online status works:** A node is considered online when its `last_seen` timestamp is within the past 15 minutes. Since jarvis-command-center#17, `last_seen` is refreshed by **any** authenticated interaction — voice commands, `/continue`, `conversation/start`, and MQTT round-trips — not just the dedicated HTTP heartbeat. A node that is actively talking to the command center on any channel will stay marked online.
-
-**If the badge is still showing offline after this fix**, the node is genuinely unreachable on all channels. Work through this checklist:
-
-1. **Can you SSH into the node?** If not, the node itself may be down or the LAN path is broken.
-2. **Is MQTT working?** Check the Mosquitto container and confirm the node is subscribed:
-    ```bash
-    docker ps | grep mosquitto
-    docker logs <node-container> 2>&1 | grep -i mqtt | tail -20
-    ```
-3. **Is the command center reachable from the node?** The node's heartbeat posts to `POST /admin/nodes/heartbeat`. A persistent `ReadTimeout` on that path (e.g. a flaky Cloudflare tunnel) used to be enough to mark a node offline even while MQTT worked — that is no longer the case. If you see repeated heartbeat timeouts in the logs, investigate the WAN/tunnel path.
-4. **Force a re-check:** Restart the node container to trigger an immediate heartbeat and re-authentication:
-    ```bash
-    docker restart <node-container>
-    ```
-
-### Chat shows "0 tools loaded" or the settings/secrets screen never loads
-
-**Symptom:** A node is provisioned and otherwise reachable, but chat reports no tools registered, and the mobile app's secrets/settings screen never populates.
-
-**Cause:** Command-center is resolving to `host.docker.internal` instead of the node's real network path. Before jarvis-node-setup v0.1.141, the systemd unit template (`setup/jarvis-node.service`) hardcoded the retired `remote` `JARVIS_CONFIG_URL_STYLE`, which can't resolve container-name URLs off-box -- a reinstalled or freshly-templated Pi kept forcing it even after the fallback path was fixed.
-
-**Fix:** Since jarvis-node-setup#57, a stale `remote` value is treated as unset: `scripts.main` and `scripts.entrypoint` recompute the correct style from the config-service host on every start, so the node self-heals **without needing its systemd unit regenerated**. Restart the node to trigger the recomputation:
-```bash
-docker restart <node-container>
-```
-For a bare-metal Pi, restart the `jarvis-node` service instead. If the node is still stuck afterward, confirm it is running jarvis-node-setup v0.1.141 or later.
-
-### Commands not available after install
-
-**Symptom:** You installed a Pantry package, but the command does not work.
-
-The command center caches available tools. After installing a package on a node:
-
-1. Wait up to 10 minutes for the discovery refresh cycle.
-2. Or restart the node container to force an immediate refresh:
-    ```bash
-    docker restart <node-container>
-    ```
-
-Check that the node reports the new command:
-
-```bash
-docker logs <node-container> 2>&1 | grep -i "discovery"
-```
-
-### Voice not responding
-
-**Symptom:** Wake word detected but no response, or no wake word detection at all.
-
-**Checklist:**
-
-1. **Microphone:** Check that the correct audio input device is configured. Look for PyAudio errors in node logs.
-2. **Wake word:** Verify the Porcupine wake word model is loaded (check node config for `wake_word` settings).
-3. **Whisper API:** If the node sends audio to Whisper for transcription, verify Whisper is running:
-    ```bash
-    curl -s http://localhost:7706/health
-    ```
-4. **TTS:** If voice responses are expected, check that TTS is running:
-    ```bash
-    curl -s http://localhost:7707/health
-    ```
+`jarvisd upgrade` rolls itself back when the new version doesn't come up healthy, and says so. To go back by hand: `sudo jarvisd upgrade --rollback`. The database snapshot it took is in the data directory's `backups/` folder. See [Upgrade](../install/upgrade.md).
 
 ## Desktop Agent & Browser Issues
 
@@ -354,34 +127,13 @@ docker logs <node-container> 2>&1 | grep -i "discovery"
 
 **Fix:** turn on website access (Firefox: `about:addons` → **Jarvis Browser Control** → **Permissions** → **Access your data for all websites**; Chrome-family browsers: **Details** → **Site access** → **On all sites**), then **reload the tab**. Private windows need the extension allowed in them too. Full steps: [Desktop Agent & Browser Control](../clients/desktop-agent.md#troubleshooting).
 
-## Common Error Messages
-
-| Error | Cause | Fix |
-|-------|-------|-----|
-| `ECONNREFUSED 127.0.0.1:7700` | Config service not running | Start config-service first |
-| `401 Unauthorized` | Invalid API key or expired token | Re-register node or refresh token |
-| `pg_isready: connection refused` | PostgreSQL still starting | Wait 10-15 seconds, then retry |
-| `MQTT broker not reachable` | Mosquitto container down | `cd ~/.jarvis/compose && docker compose up -d mosquitto` |
-| `No model loaded` | LLM Proxy has no model | Download a model via admin dashboard Models page |
-| `Bind for 0.0.0.0:PORT failed` | Port already in use | Find and stop the conflicting process (see [Port already in use](#port-already-in-use)) |
-| `permission denied` on Docker socket | User not in docker group | `sudo usermod -aG docker $USER && newgrp docker` |
-| `relation "..." does not exist` | Database migration not run | Restart the service to re-run Alembic migrations |
-
 ## Getting Help
 
-If your issue is not listed here:
+If your problem isn't listed here, collect:
 
-1. **Check service logs:**
-    ```bash
-    cd ~/.jarvis/compose && docker compose logs <service-name> --tail 100
-    ```
-2. **Check the admin dashboard** at [http://localhost:7711](http://localhost:7711) -- the Dashboard page shows container status and service health.
-3. **Use the CLI health check** (source installs):
-    ```bash
-    ./jarvis health
-    ```
-4. **Open an issue** on [GitHub](https://github.com/alexberardi/jarvis/issues) with:
-    - Your platform (macOS/Linux/TrueNAS)
-    - The output of `docker compose ps`
-    - Relevant service logs
-5. **Ask in the help channel** on Discord -- often the fastest way to get unstuck: [:fontawesome-brands-discord: Jarvis help channel](https://discord.gg/9SuQFVexxJ)
+- `jarvisd version`
+- `jarvisd service status`
+- `jarvisd doctor` (or `jarvisd doctor --json`)
+- the last 200 lines of [the log](#read-the-log)
+
+Then [open an issue on GitHub](https://github.com/alexberardi/jarvis-server/issues) with them and your system (Linux distribution, macOS or Windows version), or [:fontawesome-brands-discord: ask in the Jarvis help channel](https://discord.gg/9SuQFVexxJ), often the fastest way to get unstuck. Check the log for passwords or tokens before you post it.

@@ -180,6 +180,6 @@ Secrets can also be managed through the mobile app's Settings screen.
 
 ## Next Steps
 
-- [Configure network modes and service discovery](configuration.md)
+- [Configure the server: the jarvisd command and its env file](../operate/cli.md#the-data-directory-and-the-env-file)
 - [Build your own command](../commands/tutorial-simple.md)
 - [Browse the Pantry for community commands](../mobile/pantry.md)

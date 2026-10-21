@@ -18,4 +18,4 @@ For GPU-accelerated LLM inference:
 
 1. **[Installation](installation.md)** — Multiple install options: one-liner, npx, Docker, or from source
 2. **[Your First Command](../../getting-started/first-command.md)** — Register a node and send a test voice command
-3. **[Configuration](../../getting-started/configuration.md)** — Network modes, environment variables, and service discovery
+3. **[Configuration](configuration.md)** — Network modes, environment variables, and service discovery
