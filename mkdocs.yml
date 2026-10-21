@@ -98,12 +98,23 @@ nav:
     - Server in Docker: install/docker.md
     - Advanced one-liners: install/one-liners.md
     - Setup wizard: install/setup-wizard.md
-    - Desktop agent: clients/desktop-agent.md
+    - Add a computer: clients/desktop-agent.md
     - Voice node: install/voice-node.md
     - Mobile app: install/mobile-app.md
     - Upgrade: install/upgrade.md
     - Uninstall: install/uninstall.md
     - Migrating from the old install: install/migrating-from-docker.md
+  - Agent:
+    - agent/index.md
+    - Pairing: agent/pairing.md
+    - macOS permissions: agent/macos-permissions.md
+    - Browser control: agent/browser.md
+    - Voice and the island: agent/voice.md
+    - Dictation: agent/dictation.md
+    - What it can do: agent/tools.md
+    - Updates and settings: agent/updates-settings.md
+    - Status and troubleshooting: agent/troubleshooting.md
+    - Raspberry Pi node (preview): agent/pi-node.md
   - Use:
     - use/index.md
     - Why Jarvis?: getting-started/why-jarvis.md
@@ -120,7 +131,6 @@ nav:
     - Clients:
       - clients/index.md
       - Node Setup: clients/node-setup.md
-      - Node in Docker: clients/node-docker.md
       - Node Mobile: clients/node-mobile.md
       - Provisioning: clients/provisioning.md
   - Models and hardware:
@@ -132,7 +142,6 @@ nav:
     - Data and backups: operate/data-and-backups.md
     - Ports, firewall and mDNS: operate/network.md
     - Troubleshooting: troubleshooting/index.md
-    - Your First Command: getting-started/first-command.md
     - Security:
       - security/index.md
       - Network Egress & Offline Mode: security/offline-mode.md
@@ -141,6 +150,7 @@ nav:
   - Build:
     - extending/index.md
     - Where Your Code Runs: extending/where-code-runs.md
+    - Your First Command: getting-started/first-command.md
     - Developer Toolkit:
       - extending/toolkit/index.md
       - Development Workflow: extending/toolkit/workflow.md
@@ -166,9 +176,6 @@ nav:
       - extending/agents/index.md
       - Alerts: extending/agents/alerts.md
       - Scheduling: extending/agents/scheduling.md
-    - Prompt Providers:
-      - extending/prompt-providers/index.md
-      - Reference: extending/prompt-providers/reference.md
     - Device Control:
       - extending/devices/index.md
       - Device Managers: extending/devices/managers.md
@@ -201,7 +208,6 @@ nav:
     - contributing/index.md
     - Coding Standards: contributing/coding-standards.md
     - Testing: contributing/testing.md
-    - Integration Tests: contributing/integration-tests.md
   - Blog:
     - blog/index.md
     - "Jarvis starts paying attention": blog/jarvis-starts-paying-attention.md
@@ -245,6 +251,7 @@ nav:
       - Deployment: legacy/architecture/deployment.md
     - Security: legacy/security/index.md
     - Libraries:
+      - legacy/libraries/index.md
       - Log Client: legacy/libraries/log-client.md
       - Config Client: legacy/libraries/config-client.md
       - Settings Client: legacy/libraries/settings-client.md
@@ -252,3 +259,8 @@ nav:
       - Web Scraper: legacy/libraries/web-scraper.md
     - CLI: legacy/reference/cli.md
     - Environment Variables: legacy/reference/env-vars.md
+    - Node in Docker: legacy/clients/node-docker.md
+    - Prompt Providers:
+      - legacy/extending/prompt-providers/index.md
+      - Reference: legacy/extending/prompt-providers/reference.md
+    - Integration Tests: legacy/contributing/integration-tests.md

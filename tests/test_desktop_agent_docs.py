@@ -1,9 +1,10 @@
-"""Tests for the desktop agent / browser control page (loop item #290).
+"""Tests for the desktop agent / browser control pages (loop items #290, #379, #393).
 
 Without the extension's website access, a macro recording captures only page loads and
-browser control can't act on pages. These tests pin the page that says so: it builds,
-it carries the exact permission steps for Firefox and Chrome, and the install overview, clients
-and troubleshooting pages link to it.
+browser control can't act on pages. These tests pin the pages that say so: they build,
+they carry the exact permission steps for Firefox and Chrome, and the install overview, clients
+and troubleshooting pages link to them. Since #393 the guide is the Agent tab (docs/agent/);
+clients/desktop-agent/ stays as the Install section's short "Add a computer" page.
 """
 
 import html as htmllib
@@ -16,6 +17,19 @@ import pytest
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 PAGE = ("clients", "desktop-agent", "index.html")
+# The Agent tab's pages, in nav order.
+AGENT_PAGES = (
+    ("agent", "index.html"),
+    ("agent", "pairing", "index.html"),
+    ("agent", "macos-permissions", "index.html"),
+    ("agent", "browser", "index.html"),
+    ("agent", "voice", "index.html"),
+    ("agent", "dictation", "index.html"),
+    ("agent", "tools", "index.html"),
+    ("agent", "updates-settings", "index.html"),
+    ("agent", "troubleshooting", "index.html"),
+    ("agent", "pi-node", "index.html"),
+)
 
 
 @pytest.fixture(scope="session")
@@ -37,11 +51,20 @@ def _read(site_dir, *parts):
 
 def test_page_is_built_and_in_nav(built_site):
     assert built_site.joinpath(*PAGE).exists()
-    assert "clients/desktop-agent.md" in (REPO_ROOT / "mkdocs.yml").read_text(encoding="utf-8")
+    nav = (REPO_ROOT / "mkdocs.yml").read_text(encoding="utf-8")
+    assert "clients/desktop-agent.md" in nav
+    for parts in AGENT_PAGES:
+        assert built_site.joinpath(*parts).exists(), "/".join(parts)
+        rel = "/".join(parts[:-1]) + (".md" if len(parts) > 2 else "/index.md")
+        assert rel in nav, f"{rel} is not in the nav"
+
+
+def _agent_bodies(site_dir):
+    return "".join(_article(_read(site_dir, *parts)) for parts in AGENT_PAGES)
 
 
 def test_page_has_the_permission_steps(built_site):
-    html = _read(built_site, *PAGE)
+    html = _read(built_site, "agent", "browser", "index.html") + _read(built_site, "agent", "troubleshooting", "index.html")
     for needle in (
         "jarvis-agent browser install",
         "jarvis-agent browser status",
@@ -67,8 +90,8 @@ def _article(html):
 def test_page_is_linked_from_install_clients_and_troubleshooting(built_site):
     for parts, link in (
         (("install", "index.html"), "clients/desktop-agent/"),
-        (("clients", "index.html"), 'href="desktop-agent/"'),
-        (("troubleshooting", "index.html"), "clients/desktop-agent/#troubleshooting"),
+        (("clients", "index.html"), 'href="../agent/"'),
+        (("troubleshooting", "index.html"), "agent/troubleshooting/"),
     ):
         body = _article(_read(built_site, *parts))
         assert link in body, f"{'/'.join(parts)} doesn't link the page"
@@ -81,7 +104,7 @@ def test_page_covers_install_pairing_and_permissions(built_site):
     permissions, Wayland dictation, both browser extensions, sign-out and self-update, and what is
     still in progress said as such.
     """
-    body = _article(_read(built_site, *PAGE))
+    body = _agent_bodies(built_site)
     # The words as a reader sees them: code highlighting splits a command into spans.
     text = htmllib.unescape(re.sub(r"<[^>]+>", "", body))
     for needle in (
@@ -116,5 +139,11 @@ def test_page_covers_install_pairing_and_permissions(built_site):
     assert 'href="https://github.com/alexberardi/jarvis-server/releases"' in body
     # Only prereleases exist, so GitHub's releases/latest/download/... links 404.
     assert "releases/latest/download" not in body
-    for anchor in ("install", "pair-this-computer", "macos-permissions", "turn-on-website-access", "troubleshooting"):
-        assert f'id="{anchor}"' in body, f"desktop agent page has no #{anchor}"
+    for parts, anchor in (
+        (("agent", "index.html"), "install"),
+        (("agent", "pairing", "index.html"), "pair-this-computer"),
+        (("agent", "macos-permissions", "index.html"), "macos-permissions"),
+        (("agent", "browser", "index.html"), "turn-on-website-access"),
+        (("agent", "troubleshooting", "index.html"), "troubleshooting"),
+    ):
+        assert f'id="{anchor}"' in _read(built_site, *parts), f"{'/'.join(parts)} has no #{anchor}"

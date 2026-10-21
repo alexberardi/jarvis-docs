@@ -1,6 +1,6 @@
 # Voice pipeline
 
-What happens between "Jarvis" and the answer. A voice turn runs between a node (a voice node or a computer with the [desktop agent](../clients/desktop-agent.md)) and the command center module (`cc`) in `jarvisd`, which calls speech to text, the language model and text to speech in process.
+What happens between "Jarvis" and the answer. A voice turn runs between a node (a voice node or a computer with the [desktop agent](../agent/index.md)) and the command center module (`cc`) in `jarvisd`, which calls speech to text, the language model and text to speech in process.
 
 Most of the design serves one goal: keep the time to the first spoken word short. The language model's prompt is kept byte-stable so `llama-server` can reuse its cache, the model is warmed up while you are still speaking, and the answer is spoken while the rest of it is still being synthesised.
 

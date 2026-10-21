@@ -24,6 +24,7 @@ RELEASES = "https://github.com/alexberardi/jarvis-server/releases"
 TOP_LEVEL = [
     "Home",
     "Install",
+    "Agent",
     "Use",
     "Models and hardware",
     "Operate",
@@ -254,7 +255,12 @@ def test_every_legacy_page_has_banner_and_noindex(built_site):
 
 
 def test_current_pages_are_indexed(built_site):
-    for parts in (("index.html",), ("install", "index.html"), ("clients", "desktop-agent", "index.html")):
+    for parts in (
+        ("index.html",),
+        ("install", "index.html"),
+        ("clients", "desktop-agent", "index.html"),
+        ("agent", "index.html"),
+    ):
         html = _read(built_site, *parts)
         assert 'content="noindex"' not in html
         assert "legacy-banner" not in html

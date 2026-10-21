@@ -58,4 +58,4 @@ With `--purge`, `--yes` skips the confirmation, for scripts. If you no longer ha
 
 ## The desktop agent
 
-Each person removes their own copy from the agent's setup page; see [Desktop agent: Remove it](../clients/desktop-agent.md#remove-it).
+Each person removes their own copy from the agent's setup page; see [Desktop agent: Remove it](../agent/index.md#remove-it).

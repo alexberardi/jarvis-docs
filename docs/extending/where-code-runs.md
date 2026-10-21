@@ -11,7 +11,7 @@ Jarvis Automation is a **pre-release** (release candidate rc18), so this changes
 | Pi with the Python node | Yes | Commands, agents, device managers and device protocols |
 | Computer with the desktop agent | Yes | Commands only |
 | Pi with the Go voice node | Not supported yet | Commands and device managers, in a Python sidecar (built, not yet checked on a Pi) |
-| The server (jarvisd) | No | Nothing: [prompt providers](prompt-providers/index.md) are not supported |
+| The server (jarvisd) | No | Nothing: [prompt providers](../legacy/extending/prompt-providers/index.md) are not supported |
 
 ## On a Pi
 
@@ -21,7 +21,7 @@ The Go voice node that `install-pi.sh` installs is still being built. It runs pa
 
 ## On a computer
 
-A [desktop agent](../clients/desktop-agent.md) (`jarvis-agent`, installed with the Agent app or `install-agent.sh`) installs a package from the mobile app the way a Pi does, with no restart. It runs the package in its own Python (3.12, managed by `uv`), with the SDK version the agent pins and the `packages` your manifest lists.
+A [desktop agent](../agent/index.md) (`jarvis-agent`, installed with the Agent app or `install-agent.sh`) installs a package from the mobile app the way a Pi does, with no restart. It runs the package in its own Python (3.12, managed by `uv`), with the SDK version the agent pins and the `packages` your manifest lists.
 
 - **Commands only.** Agents, device managers, device protocols and the other components are skipped, and the install result lists them in `skipped_components`.
 - **The SDK only.** A computer has the SDK but not the Python node's own modules, so import everything from `jarvis_command_sdk`.

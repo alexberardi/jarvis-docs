@@ -8,7 +8,7 @@ Jarvis Automation is a **pre-release** (release candidate rc18). Builds are on t
 |---|---|---|
 | `install.sh` | the server | Linux with systemd (amd64, arm64), macOS on Apple silicon |
 | `install.ps1` | the server | Windows (Windows PowerShell 5.1 or later) |
-| `install-agent.sh` | the [desktop agent](../clients/desktop-agent.md) | any Linux |
+| `install-agent.sh` | the [desktop agent](../agent/index.md) | any Linux |
 | `install-pi.sh` | a [Raspberry Pi voice node](../clients/node-setup.md) (preview) | Raspberry Pi OS, 64-bit |
 
 ## Use the release's own link

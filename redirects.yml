@@ -34,3 +34,7 @@ services/recipes-server.md: legacy/services/recipes-server.md
 services/settings-server.md: legacy/services/settings-server.md
 services/tts.md: legacy/services/tts.md
 services/whisper-api.md: legacy/services/whisper-api.md
+clients/node-docker.md: legacy/clients/node-docker.md
+contributing/integration-tests.md: legacy/contributing/integration-tests.md
+extending/prompt-providers/index.md: legacy/extending/prompt-providers/index.md
+extending/prompt-providers/reference.md: legacy/extending/prompt-providers/reference.md

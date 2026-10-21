@@ -32,10 +32,6 @@ Sign-in and the other services are served on 7700 too, each under its own path (
 
 The main voice interface: a Raspberry Pi with a microphone and speaker that listens for "Hey Jarvis", sends what you say to the server and plays the reply. The Python node (`jarvis-node-setup`) is the supported one. A Go node (`install-pi.sh` from each server release) is an experimental preview.
 
-### [Node in Docker](node-docker.md)
-
-The same Python node as a container: headless (text mode), driven over a REST API instead of a microphone. Good for demos, development and integration tests.
-
 ### [Mobile app](node-mobile.md)
 
 The Jarvis Automation app for iOS and Android. Chat with Jarvis, set up voice nodes (QR code and Wi-Fi), manage devices, routines and settings, and get notifications and the inbox.
@@ -44,7 +40,7 @@ The Jarvis Automation app for iOS and Android. Chat with Jarvis, set up voice no
 
 How a fresh Pi node is set up headless: it opens a Wi-Fi hotspot (`jarvis-XXXX`) and waits for the mobile app to give it your Wi-Fi, its keys and the server's address.
 
-### [Desktop agent](desktop-agent.md)
+### [Desktop agent](../agent/index.md)
 
 Jarvis Automation Agent runs on your own Mac, Windows or Linux computer: installers, pairing with a code, the macOS permissions, dictation, and the Jarvis Browser Control extension (which needs its website access turned on).
 

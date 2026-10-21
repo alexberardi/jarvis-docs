@@ -61,16 +61,18 @@ The wordsmith runs on the command center, not the node. They craft the system pr
 | [Device Managers](devices/managers.md) | `IJarvisDeviceManager` | The Stewards | `device_managers/` | Node | `DeviceManagerDiscoveryService` |
 | [Device Protocols](devices/protocols.md) | `IJarvisDeviceProtocol` | The Translators | `device_families/` | Node | `DeviceFamilyDiscoveryService` |
 | Routines | JSON definitions | The Playbooks | `routines/` | Node | Loaded by `RoutineCommand` |
-| [Prompt Providers](prompt-providers/index.md) | `IJarvisPromptProvider` | The Wordsmiths | `app/core/prompt_providers/` | Command Center | `PromptProviderFactory` |
+| [Prompt Providers](../legacy/extending/prompt-providers/index.md) (legacy install only) | `IJarvisPromptProvider` | The Wordsmiths | `app/core/prompt_providers/` | Command Center | `PromptProviderFactory` |
 | STT Providers | `IJarvisSpeechToTextProvider` | The Scribe | `stt_providers/` | Node | Manual config |
 | TTS Providers | `IJarvisTextToSpeechProvider` | The Orator | `tts_providers/` | Node | Manual config |
 | Wake Response Providers | `IJarvisWakeResponseProvider` | The Greeter | `wake_response_providers/` | Node | Manual config |
 
 "Node" here is a Pi running the Python node. A computer's desktop agent runs commands only, and some packages are kept off computers: see [Where your code runs](where-code-runs.md).
 
+Prompt providers belong to the old Docker install's Command Center. Jarvis Automation (jarvisd) has its prompt formats built in (an admin picks one with the `llm.prompt_provider` setting) and loads no Python prompt providers; their pages are under [Legacy](../legacy/extending/prompt-providers/index.md).
+
 ## How It Works
 
-Under the hood, Jarvis uses Python's `pkgutil` and `importlib` to scan package directories at startup. It finds every class that implements the expected interface, instantiates it, validates any required secrets, and registers it. This happens automatically for commands, agents, device managers, device families, and prompt providers.
+Under the hood, Jarvis uses Python's `pkgutil` and `importlib` to scan package directories at startup. It finds every class that implements the expected interface, instantiates it, validates any required secrets, and registers it. This happens automatically for commands, agents, device managers and device families.
 
 For STT, TTS, and wake response providers, discovery is manual --- you specify the provider in your node's config file. But the implementation pattern is identical: subclass the ABC, implement the required methods, and you are done.
 

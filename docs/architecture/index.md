@@ -125,7 +125,7 @@ The assistant. It runs the voice loop and chat, the tool loop on the language mo
 - **Signals, attention and proposals:** what Jarvis notices and offers to do.
 - **Phone:** calls through Twilio.
 - **Packages:** installing [Pantry](../pantry/index.md) packages onto nodes and desktop agents, and the data commands store.
-- **Desktop agent:** computer control, recordings and watches on a computer running the [desktop agent](../clients/desktop-agent.md).
+- **Desktop agent:** computer control, recordings and watches on a computer running the [desktop agent](../agent/index.md).
 
 The design notes for each area are in jarvis-server's [`docs/cc/`](https://github.com/alexberardi/jarvis-server/tree/main/docs/cc). Replaces: jarvis-command-center.
 

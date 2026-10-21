@@ -30,7 +30,7 @@ The Go node uses much less memory, but it is a preview: some voice commands (dev
 
 ## Node in Docker
 
-To try Jarvis without a Pi, or for development, run the node as a container: [Node in Docker](../clients/node-docker.md).
+Running the node as a container belongs to the old Docker install; its page is under [Legacy: Node in Docker](../legacy/clients/node-docker.md).
 
 ## If the node can't reach the server
 

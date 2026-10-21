@@ -33,7 +33,7 @@ The wizard saves each step as you go: close the tab and the link opens where you
 3. **Hardware**: shows what the server found on this machine, which decides the models it can run.
 4. **Models**: picks the language model. The wizard suggests one that fits and marks the others **Fits** or not; see [Requirements and choosing a model](requirements.md). Nothing large is downloaded until you choose here.
 5. **Privacy**: asks what may leave the server, such as add-on commands from the Pantry and push notifications to phones.
-6. **This computer** (optional): **Also use Jarvis Automation on this computer** downloads the [desktop agent](../clients/desktop-agent.md) for the computer you are on, pairs it with the server and, if you tick it, sets up the browser extension. **Skip for now** leaves it for later; the admin's **Add-ons** page has the same download.
+6. **This computer** (optional): **Also use Jarvis Automation on this computer** downloads the [desktop agent](../agent/index.md) for the computer you are on, pairs it with the server and, if you tick it, sets up the browser extension. **Skip for now** leaves it for later; the admin's **Add-ons** page has the same download.
 7. **Done**: the wizard hands over to the admin.
 
 After setup, the admin stays on port 7710 (`http://<host>:7710`). Phones and voice nodes connect to `http://<host>:7700`; they also find the server by themselves on your network.

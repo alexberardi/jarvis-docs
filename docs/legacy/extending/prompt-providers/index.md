@@ -1,7 +1,7 @@
 # Prompt Providers
 
 !!! warning "Not supported on jarvisd"
-    Prompt providers belong to the [legacy Docker install](../../legacy/index.md)'s Command Center. Jarvis Automation (jarvisd) has its prompt formats built in (an admin picks one with the `llm.prompt_provider` setting) and loads no Python prompt providers, so a Pantry package's prompt provider does not install on it. A way to add your own comes after the migration. This page describes the legacy Command Center.
+    Prompt providers belong to the [legacy Docker install](../../index.md)'s Command Center. Jarvis Automation (jarvisd) has its prompt formats built in (an admin picks one with the `llm.prompt_provider` setting) and loads no Python prompt providers, so a Pantry package's prompt provider does not install on it. A way to add your own comes after the migration. This page describes the legacy Command Center.
 
 > **The Wordsmiths** --- Prompt providers craft the precise language that shapes how the LLM understands and responds to voice commands. They tailor every system prompt, tool schema, and instruction to the specific model being used --- the right framing for the right mind.
 
