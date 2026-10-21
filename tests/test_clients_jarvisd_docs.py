@@ -19,7 +19,6 @@ SERVER_TAG = "v0.1.0-rc18"
 CLIENT_PAGES = (
     "clients/index.md",
     "clients/node-setup.md",
-    "clients/node-docker.md",
     "clients/node-mobile.md",
 )
 ENTRY_PAGES = ("install/voice-node.md", "install/mobile-app.md")
@@ -61,16 +60,16 @@ def test_client_pages_point_at_one_jarvisd_server():
         # The legacy TTS and notifications services are part of jarvisd now.
         assert "7707" not in page, rel
         assert "7712" not in page, rel
-    for rel in ("clients/index.md", "clients/node-docker.md", "clients/node-mobile.md"):
+    for rel in ("clients/index.md", "clients/node-mobile.md"):
         page = _read(rel)
         assert "7703" not in page, rel
         assert "7700" in page, rel
     index = _read("clients/index.md")
     for needle in ("_jarvis-config._tcp", "7710", "architecture/index.md#ports", "legacy_ports"):
         assert needle in index, needle
-    assert index.count("desktop-agent.md") == 1
+    assert index.count("../agent/index.md") == 1
     # One API port: sign-in is found from 7700, not a port clients need.
-    for rel in ("clients/index.md", "clients/node-docker.md", "clients/node-mobile.md"):
+    for rel in ("clients/index.md", "clients/node-mobile.md"):
         for line in _read(rel).splitlines():
             if line.startswith("|"):
                 assert "7701" not in line, (rel, line)

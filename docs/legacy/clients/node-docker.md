@@ -1,6 +1,6 @@
 # Node in Docker (Compose)
 
-Besides the [Raspberry Pi voice node](node-setup.md), Jarvis ships a **containerized node** you can run anywhere Docker runs — a laptop on the LAN, a dev box, or the machine that runs the server. It's the same `jarvis-node-setup` codebase, packaged as an image, and it pairs with `jarvisd`, the Jarvis Automation server, at one address: `http://<server>:7700`.
+Besides the [Raspberry Pi voice node](../../clients/node-setup.md), Jarvis ships a **containerized node** you can run anywhere Docker runs — a laptop on the LAN, a dev box, or the machine that runs the server. It's the same `jarvis-node-setup` codebase, packaged as an image, and it pairs with `jarvisd`, the Jarvis Automation server, at one address: `http://<server>:7700`.
 
 !!! note "This is the text-mode node"
     `ghcr.io/alexberardi/jarvis-node:latest` is the **headless, text-mode** image — no microphone, no wake word, no audio. It exposes a REST API you drive with typed commands (`POST /api/v1/command`), which is ideal for demos, integration tests, and dev. Voice capture needs the separate audio image and host audio devices — see [Voice mode](#voice-mode) below.
@@ -82,7 +82,7 @@ All three volumes hold state that **must persist** across container recreation �
 |---|---|---|
 | `./config:/config` | `config.json` — the node's credentials + bootstrap URLs | The node drops back into setup mode and must be re-paired. |
 | `jarvis-node-data:/data` | The encrypted DB **and** all crypto: `secrets.key` (K1 master key), `k2.enc` (the key shared with the mobile app for settings sync), `db.key` (SQLCipher key), the `.provisioned` marker | The DB and K2 become **unrecoverable**; reminders/timers/installed-command secrets are lost. |
-| `jarvis-node-packages:/root/.jarvis/packages` | Installed [Pantry](../pantry/index.md) package metadata + shared libraries | Installed packages need reinstalling. (`/root` because the image runs as root — the mount path is coupled to that.) |
+| `jarvis-node-packages:/root/.jarvis/packages` | Installed [Pantry](../../pantry/index.md) package metadata + shared libraries | Installed packages need reinstalling. (`/root` because the image runs as root — the mount path is coupled to that.) |
 
 !!! warning "The server is the single source of truth"
     The node fabricates **no** URLs of its own — every service address (command-center, MQTT broker, auth) is resolved through the server's address on port 7700. If the server can't resolve a name, the call fails loudly rather than falling back to `localhost`.
@@ -105,7 +105,7 @@ graph LR
 3. The container exits and `restart: unless-stopped` relaunches it. Now it has credentials, so it boots into **text mode**: runs migrations, connects to MQTT, and serves the REST API. The node is live, authenticating to the server as `X-API-Key: node_id:api_key`.
 
 !!! tip "Minimum server-side requirement"
-    A reachable `jarvisd` (the Jarvis Automation server, see [Install](../install/index.md)) that has finished its [setup wizard](../install/setup-wizard.md), so there is a user account and household to pair with. No mobile app or pre-claim token is needed — the built-in wizard does the whole pairing. (The mobile-app + WiFi-AP flow in [Provisioning](provisioning.md) is the **Pi** route, not this one.)
+    A reachable `jarvisd` (the Jarvis Automation server, see [Install](../../install/index.md)) that has finished its [setup wizard](../../install/setup-wizard.md), so there is a user account and household to pair with. No mobile app or pre-claim token is needed — the built-in wizard does the whole pairing. (The mobile-app + WiFi-AP flow in [Provisioning](../../clients/provisioning.md) is the **Pi** route, not this one.)
 
 ## What the node reaches
 
@@ -146,7 +146,7 @@ The compose above is deliberately minimal. Three additions matter for anything b
 
 (Harmless on Docker Desktop / macOS, where the alias already exists.)
 
-**2. Persist installed-package components.** The `jarvis-node-packages` volume keeps package *metadata and shared libraries*, but the executable component files land under `/app/**/custom_*` inside the image layer. Without volumes for those, [Pantry](../pantry/index.md)-installed commands are lost when you pull a new image. Add:
+**2. Persist installed-package components.** The `jarvis-node-packages` volume keeps package *metadata and shared libraries*, but the executable component files land under `/app/**/custom_*` inside the image layer. Without volumes for those, [Pantry](../../pantry/index.md)-installed commands are lost when you pull a new image. Add:
 
 ```yaml
     volumes:
@@ -171,7 +171,7 @@ The compose above is deliberately minimal. Three additions matter for anything b
 
 ## Voice mode
 
-The `:latest` image is text-only. For a **real voice node** — wake word, microphone capture, and spoken responses — build the separate **audio image** and pass the host's audio through. This works on a **Linux** host with a running sound server and a mic/speaker (a desktop or server, not a Pi — Pi Zeros use the [native install](node-setup.md); macOS Docker Desktop can't pass host audio through at all).
+The `:latest` image is text-only. For a **real voice node** — wake word, microphone capture, and spoken responses — build the separate **audio image** and pass the host's audio through. This works on a **Linux** host with a running sound server and a mic/speaker (a desktop or server, not a Pi — Pi Zeros use the [native install](../../clients/node-setup.md); macOS Docker Desktop can't pass host audio through at all).
 
 The audio image (`Dockerfile.audio`) layers the voice stack — PyAudio, openWakeWord (with wake models pre-baked), and ALSA/PulseAudio tooling — on top of the base node, and bakes in `JARVIS_NODE_MODE=voice`. It isn't published to a registry yet, so you **build it locally**; it needs the sibling `jarvis-command-sdk` repo as a build context.
 
@@ -280,6 +280,6 @@ curl -X POST localhost:7771/api/v1/command \
 
 ## See also
 
-- [Node Setup](node-setup.md) — the full node runtime, service discovery, wake behavior, and update policy
-- [Provisioning](provisioning.md) — the Pi Zero (mobile-app + WiFi-AP) pairing flow
-- [Clients](index.md) — what every client reaches on the server
+- [Node Setup](../../clients/node-setup.md) — the full node runtime, service discovery, wake behavior, and update policy
+- [Provisioning](../../clients/provisioning.md) — the Pi Zero (mobile-app + WiFi-AP) pairing flow
+- [Clients](../../clients/index.md) — what every client reaches on the server

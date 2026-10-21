@@ -127,7 +127,7 @@ The Mac went to sleep. `jarvisd doctor` warns about this; `sudo pmset -a sleep 0
 
 **Cause:** the Jarvis Browser Control extension doesn't have access to websites. It can see tabs load, but can't read or act on pages, so a recording captures no clicks or typing.
 
-**Fix:** turn on website access (Firefox: `about:addons` → **Jarvis Browser Control** → **Permissions** → **Access your data for all websites**; Chrome-family browsers: **Details** → **Site access** → **On all sites**), then **reload the tab**. Private windows need the extension allowed in them too. Full steps: [Desktop agent](../clients/desktop-agent.md#troubleshooting).
+**Fix:** turn on website access (Firefox: `about:addons` → **Jarvis Browser Control** → **Permissions** → **Access your data for all websites**; Chrome-family browsers: **Details** → **Site access** → **On all sites**), then **reload the tab**. Private windows need the extension allowed in them too. Full steps: [Desktop agent: Troubleshooting](../agent/troubleshooting.md).
 
 ## Getting Help
 

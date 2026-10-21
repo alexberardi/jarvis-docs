@@ -76,14 +76,15 @@ def test_page_is_linked_from_build_and_commands(built_site):
 @pytest.mark.parametrize(
     "parts",
     [
-        ("extending", "prompt-providers", "index.html"),
-        ("extending", "prompt-providers", "reference", "index.html"),
+        ("legacy", "extending", "prompt-providers", "index.html"),
+        ("legacy", "extending", "prompt-providers", "reference", "index.html"),
     ],
 )
 def test_prompt_provider_pages_say_unsupported_on_jarvisd(built_site, parts):
+    # Loop item #393 moved them under legacy/, which gives them the legacy banner.
     body = _article(built_site, *parts)
     assert "Not supported on jarvisd" in body
-    assert "legacy/" in body
+    assert "legacy-banner" in body
 
 
 def test_deploy_page_marks_docker_target_legacy(built_site):
