@@ -302,7 +302,7 @@ Everything is on the one `jarvisd` server. The node needs only its address; the 
 | Commands, found from 7700 | Yes | Voice command processing; the node reaches speech-to-text and text-to-speech through it |
 | MQTT broker, found from 7700 | Yes | Spoken responses and server→node messages |
 
-Run `jarvisd doctor` on the server: it checks what nodes and phones need to reach. A node that cannot reach the server keeps retrying and recovers by itself when the server is back; after about 5 minutes without the server it restarts its service.
+Run `jarvisd doctor` on the server: it checks what nodes and phones need to reach. A node that cannot reach the server keeps retrying and recovers by itself when the server is back.
 
 In Docker on the same machine as `jarvisd`, use `http://host.docker.internal:7700` as the server address in the setup UI; the container maps that name to the host.
 

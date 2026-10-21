@@ -33,6 +33,8 @@ GONE = (
     "Email + password or another attempt",
     "`command_center_url`",
     "ADMIN_API_KEY>",
+    "restarts its service",
+    "5 minutes without the server",
 )
 
 
