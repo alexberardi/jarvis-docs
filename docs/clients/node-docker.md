@@ -1,6 +1,6 @@
 # Node in Docker (Compose)
 
-Besides the [Pi Zero voice node](node-setup.md), Jarvis ships a **containerized node** you can run anywhere Docker runs — a laptop on the LAN, a dev box, or alongside the server stack itself (the demo/kitchen nodes on the prod host run this way). It's the same `jarvis-node-setup` codebase, packaged as an image.
+Besides the [Raspberry Pi voice node](node-setup.md), Jarvis ships a **containerized node** you can run anywhere Docker runs — a laptop on the LAN, a dev box, or the machine that runs the server. It's the same `jarvis-node-setup` codebase, packaged as an image, and it pairs with `jarvisd`, the Jarvis Automation server, at one address: `http://<server>:7700`.
 
 !!! note "This is the text-mode node"
     `ghcr.io/alexberardi/jarvis-node:latest` is the **headless, text-mode** image — no microphone, no wake word, no audio. It exposes a REST API you drive with typed commands (`POST /api/v1/command`), which is ideal for demos, integration tests, and dev. Voice capture needs the separate audio image and host audio devices — see [Voice mode](#voice-mode) below.
@@ -41,7 +41,7 @@ The image bakes sensible defaults (`CONFIG_PATH`, `JARVIS_NODE_PORT`, and `JARVI
 
 | Variable | Value | What it does |
 |---|---|---|
-| `CONFIG_PATH` | `/config/config.json` | The node's JSON config — identity (`node_id`, `api_key`), the config-service URL, room, MQTT settings. Seeded from a template on first boot, then filled in by the wizard. Any config key can also be overridden by a `JARVIS_<KEY>` env var, which wins over the file. |
+| `CONFIG_PATH` | `/config/config.json` | The node's JSON config — identity (`node_id`, `api_key`), the server URL, room, MQTT settings. Seeded from a template on first boot, then filled in by the wizard. Any config key can also be overridden by a `JARVIS_<KEY>` env var, which wins over the file. |
 | `JARVIS_NODE_PORT` | `7771` | HTTP bind port for the setup wizard (unprovisioned) or the REST API (provisioned). Must match the container side of the `ports:` mapping. |
 | `JARVIS_NODE_DB` | `/data/jarvis_node.db` | Path to the node's **encrypted** SQLite (SQLCipher) database — reminders, timers, installed-command secrets, agent schedules. |
 | `JARVIS_SECRET_DIRECTORY` | `/data` | Directory holding all crypto material (see [below](#the-volumes)). Defaults to `~/.jarvis`; pointing it at `/data` puts it on the persistent volume. |
@@ -59,7 +59,7 @@ Only one port matters: **`7771`**. What it serves depends on whether the node is
     |---|---|
     | `GET /` | The wizard HTML |
     | `GET /health` | `{"status":"setup_required","mode":"setup"}` |
-    | `POST /setup/discover` | Scan the LAN for `jarvis-config-service` |
+    | `POST /setup/discover` | Scan the Docker host and the LAN for a server on port 7700 |
     | `POST /setup/connect` | Resolve + verify auth/CC URLs, write them to config.json |
     | `POST /setup/complete` | Register the node (mints a provisioning token, exchanges it for a node key) |
 
@@ -84,8 +84,8 @@ All three volumes hold state that **must persist** across container recreation �
 | `jarvis-node-data:/data` | The encrypted DB **and** all crypto: `secrets.key` (K1 master key), `k2.enc` (the key shared with the mobile app for settings sync), `db.key` (SQLCipher key), the `.provisioned` marker | The DB and K2 become **unrecoverable**; reminders/timers/installed-command secrets are lost. |
 | `jarvis-node-packages:/root/.jarvis/packages` | Installed [Pantry](../pantry/index.md) package metadata + shared libraries | Installed packages need reinstalling. (`/root` because the image runs as root — the mount path is coupled to that.) |
 
-!!! warning "Config-service is the single source of truth"
-    The node fabricates **no** URLs of its own — every service address (command-center, MQTT broker, auth) is resolved through config-service. If config-service can't resolve a name, the call fails loudly rather than falling back to `localhost`.
+!!! warning "The server is the single source of truth"
+    The node fabricates **no** URLs of its own — every service address (command-center, MQTT broker, auth) is resolved through the server's address on port 7700. If the server can't resolve a name, the call fails loudly rather than falling back to `localhost`.
 
 ## First boot & provisioning
 
@@ -101,33 +101,37 @@ graph LR
 ```
 
 1. `docker compose up` — the entrypoint copies a blank `config.json` into `/config` (only if one isn't already there), sees no credentials, and starts the **setup wizard** on `:7771`.
-2. Open **`http://localhost:7771`** and walk the five steps: point it at your config-service URL → sign in (or create the first account) → pick a household → name the node + room → **Register**. The wizard writes `node_id` + `api_key` into `config.json` and drops a `.provisioned` marker.
-3. The container exits and `restart: unless-stopped` relaunches it. Now it has credentials, so it boots into **text mode**: runs migrations, connects to MQTT, and serves the REST API. The node is live, authenticating to command-center as `X-API-Key: node_id:api_key`.
+2. Open **`http://localhost:7771`** and walk the five steps: point it at your server, `http://<server>:7700` (the wizard's scan finds a `jarvisd` on the Docker host or the LAN) → sign in (or create the first account) → pick a household → name the node + room → **Register**. The wizard writes `node_id` + `api_key` into `config.json` and drops a `.provisioned` marker.
+3. The container exits and `restart: unless-stopped` relaunches it. Now it has credentials, so it boots into **text mode**: runs migrations, connects to MQTT, and serves the REST API. The node is live, authenticating to the server as `X-API-Key: node_id:api_key`.
 
 !!! tip "Minimum server-side requirement"
-    A reachable `jarvis-config-service` (`:7700`) that has `jarvis-auth` and `jarvis-command-center` registered, plus a user account/household on that stack. No mobile app or pre-claim token is needed — the built-in wizard does the whole pairing. (The mobile-app + WiFi-AP flow in [Provisioning](provisioning.md) is the **Pi** route, not this one.)
+    A reachable `jarvisd` (the Jarvis Automation server, see [Install](../install/index.md)) that has finished its [setup wizard](../install/setup-wizard.md), so there is a user account and household to pair with. No mobile app or pre-claim token is needed — the built-in wizard does the whole pairing. (The mobile-app + WiFi-AP flow in [Provisioning](provisioning.md) is the **Pi** route, not this one.)
 
 ## What the node reaches
 
-| Service | Port | Needed for |
+Everything is on the one `jarvisd` server. The node needs only its address; the rest is discovered from it.
+
+| What | Port | Needed for |
 |---|---|---|
-| [config-service](../architecture/service-discovery.md) | 7700 | **Bootstrap** — everything else is discovered from it |
-| command-center | 7703 | **All** voice/text traffic; node registration |
-| auth | 7701 | Login/registration during setup (at runtime, CC validates the node's key against auth) |
-| MQTT broker | 1883/1884 | Server→node messages — TTS, settings push, package installs, reminders |
+| The server address | 7700 | **Bootstrap** — everything else is discovered from it |
+| Sign-in | 7701 | Login/registration during setup |
+| Voice and text, discovered | from 7700 | **All** voice/text traffic; node registration |
+| MQTT broker, discovered | 1884 | Server→node messages — TTS, settings push, package installs, reminders |
+
+If the node can't reach the server, run `jarvisd doctor` on the server; it checks what nodes need to reach.
 
 ### URL rewrite style (important)
 
-config-service returns each service's registered address as-is; whether those addresses are reachable depends on where the node sits relative to the stack. `JARVIS_CONFIG_URL_STYLE` controls the rewrite. The node **auto-computes** the right value from the config-service host on every startup — so set it to match your topology, or omit it and let the node decide:
+The server returns each service's address as-is; whether those addresses are reachable depends on where the node sits relative to the server. `JARVIS_CONFIG_URL_STYLE` controls the rewrite. The node **auto-computes** the right value from the server's host on every startup — so set it to match your topology, or omit it and let the node decide:
 
 | Node location | Style | Effect |
 |---|---|---|
-| Same Docker host as the stack | `dockerized` | `localhost`-registered rows → `host.docker.internal` (requires `extra_hosts` on Linux — see below) |
-| A different machine / LAN | `external` | Uses each service's **published** address and swaps `localhost` for the server IP — resolves both infra rows (broker) **and** container-name rows (command-center) |
+| Same machine as the server | `dockerized` | `localhost` addresses → `host.docker.internal` (requires `extra_hosts` on Linux — see below) |
+| A different machine / LAN | `external` | Uses each service's **published** address and swaps `localhost` for the server IP |
 | Same box, not containerized | *(none)* | URLs are already reachable as-is |
 
 !!! info "`remote` is legacy"
-    The example compose sets `JARVIS_CONFIG_URL_STYLE=remote`, which is a **retired** value. On startup the node treats an unset-or-`remote` style as "recompute from the config-service host," so it self-heals to `dockerized` or `external`. **For a new deployment, prefer `external` (off-box) or `dockerized` (same host)** — or omit it entirely. (`remote` only rewrote `localhost` rows, so a command-center registered under its container name stayed unreachable off-box — the bug that retired it.)
+    The example compose sets `JARVIS_CONFIG_URL_STYLE=remote`, which is a **retired** value. On startup the node treats an unset-or-`remote` style as "recompute from the server's host," so it self-heals to `dockerized` or `external`. **For a new deployment, prefer `external` (off-box) or `dockerized` (same host)** — or omit it entirely.
 
 ## Hardening the minimal compose
 
@@ -160,8 +164,8 @@ The compose above is deliberately minimal. Three additions matter for anything b
 | Variable | Purpose |
 |---|---|
 | `JARVIS_NODE_MODE` | `text` (default) or `voice`. `voice` needs the audio image + host audio devices. |
-| `JARVIS_CONFIG_URL` | An explicit config-service URL — wins over `config.json` and suppresses the style self-heal. |
-| `JARVIS_<SERVICE>_LAN_URL` | Per-service LAN override, e.g. `JARVIS_COMMAND_CENTER_LAN_URL=http://10.0.0.107:7703`. Short-circuits discovery for a LAN-co-located node (~7 ms vs ~1.9 s via the relay). |
+| `JARVIS_CONFIG_URL` | An explicit server URL (`http://<server>:7700`) — wins over `config.json` and suppresses the style self-heal. |
+| `JARVIS_<SERVICE>_LAN_URL` | Per-service LAN override, e.g. `JARVIS_COMMAND_CENTER_LAN_URL`. Short-circuits discovery for one service; only useful when the server hands out public (tunnel) addresses and the node sits on its LAN, where the direct path is ~7 ms instead of ~1.9 s. |
 | `JARVIS_MASTER_KEY` | Supply the SQLCipher DB key externally instead of the auto-generated `db.key`. |
 | `JARVIS_<CONFIG_KEY>` | Override any `config.json` key — e.g. `JARVIS_ROOM`, `JARVIS_MQTT_ENABLED`. |
 
@@ -278,4 +282,4 @@ curl -X POST localhost:7771/api/v1/command \
 
 - [Node Setup](node-setup.md) — the full node runtime, service discovery, wake behavior, and update policy
 - [Provisioning](provisioning.md) — the Pi Zero (mobile-app + WiFi-AP) pairing flow
-- [Service Discovery](../architecture/service-discovery.md) — how config-service resolves addresses
+- [Clients](index.md) — what every client reaches on the server

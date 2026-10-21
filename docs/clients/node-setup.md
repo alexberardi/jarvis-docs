@@ -2,13 +2,17 @@
 
 The Jarvis node is the primary voice interface for Jarvis. It runs on Raspberry Pi hardware (Pi Zero 2 W, Pi 4, Pi 5), any 64-bit Linux machine, or inside Docker with a mic and speaker attached. macOS is supported for development (native only; Docker Desktop has no audio hardware access via VM).
 
+This Python node is the **supported** Pi voice node. It talks to `jarvisd`, the Jarvis Automation server, at one address: `http://<server>:7700`. Install the server first (see [Install](../install/index.md)); Jarvis Automation is a **pre-release** (release candidate rc18).
+
 ## Quick Install
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/alexberardi/jarvis-node-setup/v0.3.1/install.sh | sudo bash
+curl -fsSL https://raw.githubusercontent.com/alexberardi/jarvis-node-setup/v0.3.6/install.sh | sudo bash
 ```
 
-This installs to `/opt/jarvis-node`, sets up a systemd service, and configures audio. After install, pair the node with your server using the mobile app or `authorize_node.py`.
+This installs to `/opt/jarvis-node`, sets up a systemd service, and configures audio. A fresh node then opens its setup hotspot; pair it with your server from the mobile app (**Add Node**, see [Provisioning](provisioning.md)). The app gives the node your server's address, the same `http://<server>:7700` the app itself uses, and the node finds everything else from it. For development, `authorize_node.py` pairs a node without the app (see [Node Authentication](#node-authentication)).
+
+A node that was paired with the old Docker install keeps its key when you move to `jarvisd` with `jarvisd import-legacy`, and reconnects without being set up again; see [Migrating from the old install](../install/migrate.md).
 
 Flags:
 
@@ -16,8 +20,39 @@ Flags:
 |------|-------------|
 | `--no-audio` | Skip ALSA / I2S DAC configuration |
 | `--force` | Reinstall even if already at latest version |
-| `--version TAG` | Install a specific version (e.g. `v0.3.0`) |
+| `--version TAG` | Install a specific version (e.g. `v0.3.6`) |
 | `--local` | Skip the download and install from a tarball already staged in `/opt/jarvis-node` |
+
+## Go Pi node (experimental preview)
+
+!!! warning "Experimental: keep the Python node"
+    Each `jarvis-server` release also carries `install-pi.sh`, which installs the **Go** voice node (`jarvis-agent --profile pi`). It is an experimental preview, not a replacement yet: the Python node above stays the supported Pi node until the Go node passes its 24-hour soak and closes the gaps below. Try it on a spare Pi, not the one your household relies on.
+
+What it needs and what it is:
+
+- A Raspberry Pi with the **ReSpeaker 2-Mics HAT v2.0**, running **64-bit** Raspberry Pi OS (the script refuses anything but arm64).
+- It installs next to the Python node, **disabled**. Only one node can own the HAT; `--activate` stops the Python node and makes the Go node the one that runs at boot, and `--deactivate` switches back. Nothing is removed either way.
+- It enrolls as a **new** node: it does not take over the Python node's id, room or settings.
+- It needs far less memory than the Python node: an estimated ~160 MB with its command sidecar and PulseAudio on a Pi Zero 2 W, against 340–420 MB. That is why it is being built.
+
+Known gaps in this preview:
+
+- Wake words over music fail more often (no echo cancellation yet), and there is no wake-word auto-calibration or false-wake cool-down. A Pi without the HAT has no LEDs.
+- "Turn on the kitchen light", routines and "send me a link" do not work **by voice** on the Go node yet; device control from the app does.
+- The app's node settings may not reach a Go node yet (not confirmed).
+- A bad release that keeps crashing may not roll back on its own.
+- A factory reset that brings the node back into setup mode is built but not yet checked on a Pi.
+
+Install it from the release (pin the tag; every release so far is a pre-release, so there is no "latest" download link):
+
+```bash
+curl -fsSLo install-pi.sh https://github.com/alexberardi/jarvis-server/releases/download/v0.1.0-rc18/install-pi.sh
+sudo sh install-pi.sh                     # installs the Go node, disabled
+/opt/jarvis-agent/jarvis-agent enroll --server <server> --room <room>
+sudo sh install-pi.sh --activate          # make it the node that runs (--deactivate goes back)
+```
+
+Run `enroll` as the node's user (`pi` by default). It prints a code: approve it in the mobile app or on the web app's **Nodes** page. The script checks the download against the release's `SHA256SUMS` (and `SHA256SUMS.minisig` when `minisign` is installed). A change to `config.txt` or the HAT overlay takes effect after a reboot.
 
 ## What It Does
 
@@ -81,7 +116,7 @@ The node runs multiple supervised threads:
 
 ### Service Discovery: config-service Is the Single Source of Truth
 
-Since jarvis-node-setup#55, every service URL a node needs — command-center, the MQTT broker, whisper, tts, auth — resolves through **config-service only**, via one uniform path (`utils/service_discovery.py`). There is no more JSON-config or hardcoded-`localhost` fallback for service URLs:
+On `jarvisd`, config-service is the server's port 7700, and every service the node resolves is served by the same `jarvisd`. Since jarvis-node-setup#55, every service URL a node needs — command-center, the MQTT broker, whisper, tts, auth — resolves through **config-service only**, via one uniform path (`utils/service_discovery.py`). There is no more JSON-config or hardcoded-`localhost` fallback for service URLs:
 
 - **Fail loud.** A provisioned node that can't resolve a service raises `ServiceUnresolvedError` instead of fabricating a `mqtt://localhost:1884`-style URL. The old fallback ladder (config-service → `config.json` keys → `localhost`) is what let a node get silently pinned to a stale/cloud host, or collapse to a broker address that reaches nothing inside a container, while still reporting healthy.
 - **Provisioning is the one exception.** A node without a `.provisioned` marker (or with `JARVIS_SKIP_PROVISIONING_CHECK` set) isn't expected to reach config-service yet, so unresolved services return `""` there instead of raising.
@@ -97,9 +132,9 @@ There's one deliberate escape hatch to the config-service-only rule. A per-servi
 JARVIS_COMMAND_CENTER_LAN_URL=http://10.0.0.107:7703
 ```
 
-config-service hands back the **cloud relay** URLs to every consumer, so a node co-located with the server would otherwise round-trip its audio through the internet and back — ~2s per turn — to reach a whisper instance a few feet away. The override keeps it on the wire (~7ms). This is the single biggest voice-latency lever for co-located nodes.
+When the server hands back **public** (tunnel) addresses (`jarvisd` does once a service has a public URL on the web app's **Connections** page), a node co-located with the server would otherwise round-trip its audio through the internet and back — ~2s per turn — to reach a whisper instance a few feet away. The override keeps it on the wire (~7ms). This is the single biggest voice-latency lever for co-located nodes.
 
-It's **per-node and per-service**: remote and multi-household nodes leave it unset and keep resolving through config-service (the relay) exactly as before, so nothing about remote access changes. Only `command-center` matters for the voice hot path — the node proxies whisper and TTS through it. `JARVIS_CONFIG_URL` can likewise point config-service itself at the LAN box. (Node v0.1.152+.)
+It's **per-node and per-service**: remote and multi-household nodes leave it unset and keep resolving through config-service (the public addresses) exactly as before, so nothing about remote access changes. Only `command-center` matters for the voice hot path — the node proxies whisper and TTS through it. `JARVIS_CONFIG_URL` can likewise point config-service itself at the LAN box. (Node v0.1.152+.)
 
 ### URL Rewrite Style (`JARVIS_CONFIG_URL_STYLE`)
 
@@ -511,7 +546,7 @@ Auto-detects your host's audio transport (PipeWire/PulseAudio socket vs raw `/de
 docker compose -f docker-compose.audio.yaml up
 ```
 
-On first boot there are no credentials, so the node starts the **setup web UI** on `http://<host>:7771`. Log in, pick a household and room, and point it at your command center URL. Credentials are saved to the `jarvis-node-config` Docker volume.
+On first boot there are no credentials, so the node starts the **setup web UI** on `http://<host>:7771`. Log in, pick a household and room, and point it at your server, `http://<server>:7700`. Credentials are saved to the `jarvis-node-config` Docker volume.
 
 **4. Restart into voice mode**
 
@@ -575,10 +610,14 @@ Validated in-container on Ubuntu/PipeWire: calibration succeeds, the pipeline ru
 
 Images are built with native per-arch runners (no QEMU), so arm64 builds take ~3 minutes instead of ~38.
 
-## Service Dependencies
+## What the Node Reaches
 
-| Service | Required | Purpose |
+Everything is on the one `jarvisd` server. The node needs only its address; the rest resolves through it.
+
+| What | Required | Purpose |
 |---------|----------|---------|
-| Command Center (7703) | Yes | Voice command processing |
-| TTS (7707) | No | Spoken responses via MQTT |
-| Config Service (7700) | Yes (once provisioned) | Service discovery — every other service URL resolves through it; see [Service Discovery: config-service Is the Single Source of Truth](#service-discovery-config-service-is-the-single-source-of-truth). Only tolerated as unreachable while a node is still provisioning. |
+| The server address, port 7700 (config-service) | Yes (once provisioned) | Service discovery — every other service URL resolves through it; see [Service Discovery: config-service Is the Single Source of Truth](#service-discovery-config-service-is-the-single-source-of-truth). Only tolerated as unreachable while a node is still provisioning. |
+| Command center, resolved from 7700 | Yes | Voice command processing; the node proxies speech-to-text and text-to-speech through it |
+| MQTT broker, resolved from 7700 | Yes | Spoken responses and server→node messages |
+
+If a node can't reach the server, run `jarvisd doctor` on the server: it checks what nodes and phones need to reach.

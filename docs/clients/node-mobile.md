@@ -1,12 +1,26 @@
 # Mobile App (jarvis-node-mobile)
 
-The Jarvis mobile app is built with Expo/React Native and runs on iOS and Android. It serves as the companion app for managing Pi Zero nodes, receiving notifications, and browsing deep research results.
+The Jarvis Automation mobile app is built with Expo/React Native and runs on iOS and Android. It is the companion app for chatting with Jarvis, setting up and managing voice nodes, receiving notifications, and browsing deep research results. It talks to one server: `jarvisd`, the Jarvis Automation server.
+
+Jarvis Automation is a **pre-release** (release candidate rc18). Server builds are on the [releases page](https://github.com/alexberardi/jarvis-server/releases); each one is marked *Pre-release*. Get the app from the [App Store](https://apps.apple.com/app/id6760924901) or [Google Play](https://play.google.com/store/apps/details?id=com.jarvis.nodemobile).
+
+## Connect to your server
+
+The app asks for one address, the server's, and finds everything else from it:
+
+1. On the first screen, tap **Set Server URL**.
+2. Enter `http://<server>:7700`, where `<server>` is the IP address or hostname of the machine running `jarvisd` (for example `http://192.168.1.100:7700`), and tap **Save**.
+3. **Log In**, or **Create Account** if nobody has made you one in the web app yet.
+
+The app does not search the network for the server: the address you pin is the only one it uses, so it never connects to a different server than the one it shows. To change it later, tap the address on the first screen, or use **Settings → Config Service URL**. If the app says it can't reach the server, check that the phone is on the same network and run `jarvisd doctor` on the server.
+
+When the app sets up a voice node, it gives the node this same address.
 
 ## Features
 
-- **Node provisioning** -- QR code scanning to pair new Pi Zero nodes and push WiFi credentials
+- **Node provisioning** -- QR code scanning to pair new Pi nodes and push WiFi credentials
 - **Settings sync** -- View and edit node command settings via encrypted snapshots (K2 key)
-- **Push notifications** -- Receive alerts from Jarvis services (via `jarvis-notifications`)
+- **Push notifications** -- Receive alerts from Jarvis (sent by `jarvisd` through the push relay)
 - **Inbox** -- Browse deep research results and other long-form content
 - **Home Assistant** -- Device discovery and smart home control
 - **Node management** -- View paired nodes, rooms, and device status
@@ -79,7 +93,7 @@ jarvis-node-mobile/
 │   │   └── Settings/          # App settings
 │   ├── navigation/            # Tab layout + stack navigators
 │   ├── services/
-│   │   ├── configDiscoveryService.ts   # Find config-service on network
+│   │   ├── configDiscoveryService.ts   # Resolve services from the pinned server URL
 │   │   ├── configPushService.ts        # Push config to nodes
 │   │   ├── haApiService.ts             # Home Assistant API
 │   │   ├── haDiscoveryService.ts       # HA auto-discovery
@@ -128,16 +142,16 @@ Tokens never touch the mobile app — the command center handles code exchange a
 
 ## Push Notifications
 
-The mobile app registers for push notifications with `jarvis-notifications`:
+The mobile app registers for push notifications with `jarvisd`:
 
-1. App registers its Expo push token with the notifications service
-2. Backend services send notifications (e.g., deep research complete, timer alerts)
-3. `jarvis-notifications` forwards to `jarvis-notifications-relay` for Expo Push API delivery
+1. App registers its Expo push token with the server
+2. Jarvis sends notifications (e.g., deep research complete, timer alerts)
+3. `jarvisd` forwards them to the push relay (`jarvis-notifications-relay`) for Expo Push API delivery
 4. User taps the notification to open the relevant screen (e.g., inbox detail)
 
 ## Inbox
 
-The Inbox tab displays long-form results from deep research queries and other asynchronous operations. Items are stored in `jarvis-notifications` and fetched via its REST API.
+The Inbox tab displays long-form results from deep research queries and other asynchronous operations. Items are stored on `jarvisd` and fetched over its REST API.
 
 <figure markdown>
   ![Inbox detail](../assets/images/screenshots/inbox.png){ width="300" loading=lazy }
@@ -166,30 +180,30 @@ npm run test:coverage
 
 API URLs are configured in `src/config/env.ts`. In development mode, the app connects to `localhost`.
 
-### E2E / CI Config Discovery (`EXPO_PUBLIC_MANUAL_CONFIG_URL`)
+### E2E / CI server URL (`EXPO_PUBLIC_MANUAL_CONFIG_URL`)
 
-In **DEV_MODE**, config discovery has a Tier-0 fallback to a baked config-service URL. This lets a fresh `clearState` e2e build reach config-service in CI environments where mDNS network sweeping is unavailable.
+The app has no network discovery: it resolves every service from the server URL the user pinned. In **DEV_MODE** only, a build with no pinned URL falls back to a baked one, so a fresh `clearState` e2e build can still reach the server in CI.
 
-Set `EXPO_PUBLIC_MANUAL_CONFIG_URL` to the config-service base URL before building. The `development-e2e` EAS profile sets this automatically:
+Set `EXPO_PUBLIC_MANUAL_CONFIG_URL` to the server's base URL (port 7700) before building. The `development-e2e` EAS profile sets this automatically:
 
 ```json
 // eas.json — development-e2e profile
 "EXPO_PUBLIC_MANUAL_CONFIG_URL": "http://localhost:7700"
 ```
 
-**Discovery priority order (DEV_MODE only):**
+**URL priority order (DEV_MODE only):**
 
 1. UI-pinned URL (AsyncStorage) — always wins; a developer's manually-pinned URL is never overridden
 2. `EXPO_PUBLIC_MANUAL_CONFIG_URL` — baked fallback for e2e / CI builds with no pinned URL
-3. mDNS / LAN sweep
 
-This variable is inert in production builds: `DEV_MODE` is `false` and production EAS profiles never set `EXPO_PUBLIC_MANUAL_CONFIG_URL`.
+With neither, the app asks for a URL. This variable is inert in production builds: `DEV_MODE` is `false` and production EAS profiles never set `EXPO_PUBLIC_MANUAL_CONFIG_URL`.
 
-## Service Dependencies
+## What the app reaches
 
-| Service | Required | Purpose |
-|---------|----------|---------|
-| Auth (7701) | Yes | Login, token management |
-| Config Service (7700) | Yes | Service discovery |
-| Command Center (7703) | No | Node registration, settings sync |
-| Notifications (7712) | No | Push notifications, inbox |
+Everything is on the one `jarvisd` server. The app starts from the address you pinned (port 7700), which tells it where the rest is.
+
+| Port | Required | Purpose |
+|------|----------|---------|
+| 7700 | Yes | The server address you enter; it lists the other services |
+| 7701 | Yes | Login, token management |
+| Others, from 7700 | No | Node registration and settings sync, push notifications and the inbox |
