@@ -10,7 +10,7 @@ The app asks for one address, the server's, and finds everything else from it:
 
 1. On the first screen, tap **Set Server URL**.
 2. Enter `http://<server>:7700`, where `<server>` is the IP address or hostname of the machine running `jarvisd` (for example `http://192.168.1.100:7700`), and tap **Save**.
-3. **Log In**, or **Create Account** if nobody has made you one in the web app yet.
+3. **Log In**, or **Create Account** with an invite code from a household admin. Only the first account on a new server can sign up without one (see [Authentication](../mobile/auth.md#registration)).
 
 The app does not search the network for the server: the address you pin is the only one it uses, so it never connects to a different server than the one it shows. To change it later, tap the address on the first screen, or use **Settings → Config Service URL**. If the app says it can't reach the server, check that the phone is on the same network and run `jarvisd doctor` on the server.
 
@@ -18,7 +18,7 @@ When the app sets up a voice node, it gives the node this same address.
 
 ## Features
 
-- **Node provisioning** -- QR code scanning to pair new Pi nodes and push WiFi credentials
+- **Node provisioning** -- set up new Pi nodes over their Wi-Fi hotspot and give them your Wi-Fi and the server's address (see [Provisioning](provisioning.md))
 - **Settings sync** -- View and edit node command settings via encrypted snapshots (K2 key)
 - **Push notifications** -- Receive alerts from Jarvis (sent by `jarvisd` through the push relay)
 - **Inbox** -- Browse deep research results and other long-form content
@@ -46,7 +46,7 @@ When the app sets up a voice node, it gives the node this same address.
 
 <figure markdown>
   ![Nodes](../assets/images/screenshots/nodes.png){ width="280" loading=lazy }
-  <figcaption>Nodes — paired Pi Zero devices</figcaption>
+  <figcaption>Nodes — voice nodes and computers</figcaption>
 </figure>
 
 <figure markdown>
@@ -72,7 +72,7 @@ When the app sets up a voice node, it gives the node this same address.
 | React Navigation 7 | — | Bottom tabs + native stacks |
 | React Native Paper | — | Material Design UI components |
 | React Query 5 | — | Server state management |
-| expo-camera | — | QR code scanning |
+| expo-camera | — | Scanning K2 key backup QR codes |
 | expo-secure-store | — | Token storage in platform keychain |
 
 ## Architecture
@@ -85,11 +85,16 @@ jarvis-node-mobile/
 │   ├── screens/
 │   │   ├── Auth/              # Login, registration
 │   │   ├── Home/              # Main dashboard
-│   │   ├── Devices/           # Paired device list
+│   │   ├── Devices/           # Smart-home devices
 │   │   ├── Provisioning/      # Node setup flow
 │   │   ├── SmartHome/         # Home Assistant integration
 │   │   ├── ImportKey/         # K2 key import
-│   │   ├── Inbox/             # Deep research results
+│   │   ├── Inbox/             # Inbox items and their screens
+│   │   ├── Nodes/             # Nodes tab, node detail and settings, Add a computer
+│   │   ├── Routines/          # Routines tab
+│   │   ├── Schedules/         # Scheduled errands
+│   │   ├── Store/             # Pantry tab
+│   │   ├── Memories/, Phonebook/, CallContext/, RecentCommands/, CommandData/
 │   │   └── Settings/          # App settings
 │   ├── navigation/            # Tab layout + stack navigators
 │   ├── services/
@@ -115,9 +120,9 @@ The mobile app and Pi Zero nodes share a symmetric encryption key called **K2** 
 The flow:
 
 1. User taps a node in the mobile app to view its settings
-2. Mobile requests a snapshot via the command center
-3. Command center notifies the node via MQTT
-4. Node builds a settings snapshot, encrypts it with K2, uploads to command center
+2. Mobile requests a snapshot from the server
+3. The server notifies the node via MQTT
+4. Node builds a settings snapshot, encrypts it with K2, uploads it to the server
 5. Mobile polls for the snapshot, decrypts with K2, and displays the settings
 
 For development, generate K2 manually:
@@ -133,12 +138,12 @@ Then import the key into the mobile app via the **Import Key** screen (Nodes tab
 
 Some commands require OAuth tokens (e.g., email, calendar). The mobile app handles the OAuth authorization flow:
 
-1. Command center identifies that a command needs OAuth
+1. The server reports that a command needs OAuth
 2. Mobile app opens the OAuth provider's authorization URL
 3. User grants access in the browser
-4. Mobile app captures the redirect and sends the token back to the node's encrypted storage
+4. Mobile app captures the redirect and finishes the flow for that provider
 
-Tokens never touch the mobile app — the command center handles code exchange and storage. The mobile app only orchestrates the browser-based consent flow.
+How the tokens are handled depends on the provider. For Home Assistant, the app itself exchanges the code with Home Assistant and creates a long-lived access token, which it uses to import your devices, so for that provider the tokens pass through the app.
 
 ## Push Notifications
 
@@ -177,8 +182,6 @@ npm run android
 npm test
 npm run test:coverage
 ```
-
-API URLs are configured in `src/config/env.ts`. In development mode, the app connects to `localhost`.
 
 ### E2E / CI server URL (`EXPO_PUBLIC_MANUAL_CONFIG_URL`)
 

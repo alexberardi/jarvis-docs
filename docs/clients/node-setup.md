@@ -4,13 +4,15 @@ The Jarvis node is the primary voice interface for Jarvis. It runs on Raspberry 
 
 This Python node is the **supported** Pi voice node. It talks to `jarvisd`, the Jarvis Automation server, at one address: `http://<server>:7700`. Install the server first (see [Install](../install/index.md)); Jarvis Automation is a **pre-release** (release candidate rc18).
 
+This page starts with installing and running a node, then its settings and troubleshooting. The node's internals, for people working on `jarvis-node-setup` or writing commands, are at the end under [For developers](#for-developers).
+
 ## Quick Install
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/alexberardi/jarvis-node-setup/v0.3.6/install.sh | sudo bash
 ```
 
-This installs to `/opt/jarvis-node`, sets up a systemd service, and configures audio. A fresh node then opens its setup hotspot; pair it with your server from the mobile app (**Add Node**, see [Provisioning](provisioning.md)). The app gives the node your server's address, the same `http://<server>:7700` the app itself uses, and the node finds everything else from it. For development, `authorize_node.py` pairs a node without the app (see [Node Authentication](#node-authentication)).
+This installs to `/opt/jarvis-node`, sets up a systemd service, and configures audio. A fresh node then opens its setup hotspot; pair it with your server from the mobile app (**Add Node**, see [Provisioning](provisioning.md)). The app gives the node your server's address, the same `http://<server>:7700` the app itself uses, and the node finds everything else from it.
 
 A node that was paired with the old Docker install keeps its key when you move to `jarvisd` with `jarvisd import-legacy`, and reconnects without being set up again; see [Migrating from the old install](../install/migrating-from-docker.md).
 
@@ -22,6 +24,8 @@ Flags:
 | `--force` | Reinstall even if already at latest version |
 | `--version TAG` | Install a specific version (e.g. `v0.3.6`) |
 | `--local` | Skip the download and install from a tarball already staged in `/opt/jarvis-node` |
+
+The installer runs the node as the `pi` user, with the `XDG_RUNTIME_DIR` that PulseAudio needs, and stages the default `hey_jarvis` wake-word model (unless `--no-audio`). It needs internet access for that download; see [Troubleshooting](#troubleshooting) if wake word never fires.
 
 ## Go Pi node (experimental preview)
 
@@ -56,290 +60,14 @@ Run `enroll` as the node's user (`pi` by default). It prints a code: approve it 
 
 ## What It Does
 
-1. **Wake word detection** -- Listens locally for a configured wake word using [openWakeWord](https://github.com/dscripka/openWakeWord). Local ONNX inference — no cloud service or API key required. The model is set via `wake_word_model` in `config.json` (default: `hey_jarvis`); `install.sh` stages it during install (see [Wake Word Model Staging on Fresh Installs](#wake-word-model-staging-on-fresh-installs)). No audio leaves the device until the wake word is heard.
+1. **Wake word detection** -- Listens locally for a configured wake word using [openWakeWord](https://github.com/dscripka/openWakeWord). Local ONNX inference — no cloud service or API key required. The model is set via `wake_word_model` in `config.json` (default: `hey_jarvis`). No audio leaves the device until the wake word is heard.
 2. **Audio capture** -- Records speech until silence is detected.
-3. **Command submission** -- Sends the audio to the command center, which handles transcription, intent classification, and command execution.
-4. **Response playback** -- Receives spoken responses via MQTT (from the TTS service) and plays them through the speaker.
+3. **Command submission** -- Sends the audio to the server, which transcribes it, works out what you asked for and runs the command.
+4. **Response playback** -- Receives the spoken response from the server over MQTT and plays it through the speaker.
 
-## Architecture
+### Volume and mute by voice
 
-```
-jarvis-node-setup/
-├── scripts/
-│   ├── main.py                # Native entry point
-│   ├── entrypoint.py          # Container entry point (routes setup / voice mode)
-│   ├── jarvis-apt-install     # Sudo-able apt-get shim for Pantry-declared packages
-│   └── configure-audio.sh     # Audio device auto-detect for containerised runs
-├── core/
-│   ├── ijarvis_command.py     # Command interface (re-exports from SDK)
-│   ├── ijarvis_parameter.py   # Parameter definitions
-│   ├── ijarvis_secret.py      # Secret definitions
-│   ├── command_response.py    # Response structure
-│   └── platform_abstraction.py # Hardware abstraction (Pi vs generic Linux)
-├── commands/                  # Built-in commands (control_node, etc.)
-├── agents/                    # Background agents (reminders, device discovery)
-├── services/
-│   ├── secret_service.py      # Encrypted secret management
-│   ├── mqtt_tts_listener.py   # MQTT TTS listener
-│   ├── agent_scheduler_service.py  # Background agent scheduling
-│   ├── alert_queue_service.py # Proactive alert queue + button announce
-│   ├── button_service.py      # ReSpeaker GPIO17 button handler
-│   ├── settings_snapshot_service.py # Settings snapshot builder
-│   └── reminder_service.py    # Persistent reminders
-├── stt_providers/
-│   └── jarvis_whisper_client.py  # Whisper API client
-├── provisioning/              # Headless provisioning system
-└── utils/
-    ├── audio_volume.py        # PulseAudio volume/mute control
-    ├── config_service.py      # Configuration loader
-    ├── config_env.py          # JARVIS_CONFIG_URL_STYLE selection, shared by main.py and entrypoint.py
-    └── service_discovery.py   # config-service-only service URL resolution
-```
-
-### Platform detection
-
-`core/platform_abstraction.py` exposes two probes used at runtime:
-
-- `is_raspberry_pi()` — reads the device-tree model string; returns `True` only on Pi hardware.
-- `has_respeaker_hat()` — checks for the `seeed2micvoicec` ALSA card; gates TLV320 self-heal and sink keepalive.
-
-On non-Pi 64-bit Linux (and in containers), `LinuxHostAudioProvider` is selected instead of the HAT-specific provider. HAT-specific drivers ship in `requirements-hat.txt` and are not installed by default.
-
-## Threading Model
-
-The node runs multiple supervised threads:
-
-- **Main thread** -- Voice listener. Detects wake word, captures audio, sends to command center.
-- **MQTT thread** -- Receives TTS audio from the broker and plays it through the speaker.
-- **Agent scheduler** -- Runs background agents on configurable intervals (reminders, device discovery, token refresh).
-- **ButtonShortPress thread** -- Handles ReSpeaker GPIO17 short-press events. Speaks queued alerts via local TTS without blocking the GPIO callback. Started after TTS, LED, and alert-queue services are ready.
-
-### Service Discovery: config-service Is the Single Source of Truth
-
-On `jarvisd`, config-service is the server's port 7700, and every service the node resolves is served by the same `jarvisd`. Since jarvis-node-setup#55, every service URL a node needs — command-center, the MQTT broker, whisper, tts, auth — resolves through **config-service only**, via one uniform path (`utils/service_discovery.py`). There is no more JSON-config or hardcoded-`localhost` fallback for service URLs:
-
-- **Fail loud.** A provisioned node that can't resolve a service raises `ServiceUnresolvedError` instead of fabricating a `mqtt://localhost:1884`-style URL. The old fallback ladder (config-service → `config.json` keys → `localhost`) is what let a node get silently pinned to a stale/cloud host, or collapse to a broker address that reaches nothing inside a container, while still reporting healthy.
-- **Provisioning is the one exception.** A node without a `.provisioned` marker (or with `JARVIS_SKIP_PROVISIONING_CHECK` set) isn't expected to reach config-service yet, so unresolved services return `""` there instead of raising.
-- **Callers retry, they don't degrade.** The voice listener (`main.py`) distinguishes `ServiceUnresolvedError` (config-service down → retry indefinitely with capped exponential backoff, self-heals when it returns) from audio failures (bounded retry, then falls through to headless — a broken mic won't self-heal). The MQTT connect loop (`mqtt_tts_listener.py`) re-attempts discovery init and re-resolves the broker on every retry, so it's promoted from a failed first attempt to the real address as soon as config-service comes back — unbounded retries with capped backoff (up to 60 s), never "continuing without MQTT".
-- `config.json`'s `jarvis_config_service_url` is now the **only** thing read from JSON — the node's one bootstrap address. It is never used as a service-URL fallback.
-
-### LAN Override (`JARVIS_<SERVICE>_LAN_URL`)
-
-There's one deliberate escape hatch to the config-service-only rule. A per-service `JARVIS_<SERVICE>_LAN_URL` env short-circuits config-service for that service:
-
-```bash
-# .env — for a node on the same LAN as the server
-JARVIS_COMMAND_CENTER_LAN_URL=http://10.0.0.107:7703
-```
-
-When the server hands back **public** (tunnel) addresses (`jarvisd` does once a service has a public URL on the web app's **Connections** page), a node co-located with the server would otherwise round-trip its audio through the internet and back — ~2s per turn — to reach a whisper instance a few feet away. The override keeps it on the wire (~7ms). This is the single biggest voice-latency lever for co-located nodes.
-
-It's **per-node and per-service**: remote and multi-household nodes leave it unset and keep resolving through config-service (the public addresses) exactly as before, so nothing about remote access changes. Only `command-center` matters for the voice hot path — the node proxies whisper and TTS through it. `JARVIS_CONFIG_URL` can likewise point config-service itself at the LAN box. (Node v0.1.152+.)
-
-### URL Rewrite Style (`JARVIS_CONFIG_URL_STYLE`)
-
-config-service returns each service's registered coordinates as-is; whether those need rewriting for this node to actually reach them depends on the node's vantage point relative to the stack. `utils/config_env.py` computes the style from the config-service host and both entrypoints apply it the same way:
-
-| Config-service host | Style | Effect |
-|---|---|---|
-| `host.docker.internal` | `dockerized` | This node is a Docker peer of the stack; rewrites localhost-registered rows to `host.docker.internal`. |
-| A real IP / hostname | `external` | This node is off-box (a LAN Pi, or a node on another host); rewrites **both** localhost-registered rows and container-name HTTP rows (e.g. `jarvis-command-center`) to the server host. |
-| `localhost` / `127.0.0.1` / empty | *(none)* | Same box as the stack — config-service's URLs are already reachable as-is. |
-
-Since jarvis-node-setup#56, this is computed identically for **both** entrypoints — a bare-metal/Pi node running `python -m scripts.main` directly (which never touches `entrypoint.py`) now gets the same style computation as a containerized node. Previously only `entrypoint.py` set the style, and `install.sh` hardcoded `JARVIS_CONFIG_URL_STYLE=remote` into the systemd unit for the Pi path — `remote` only rewrites localhost-registered rows, so a Pi resolving command-center (a container-name row) got back an unreachable `host.docker.internal` address and lost voice + heartbeat with `NameResolutionError`.
-
-Since jarvis-node-setup#57, an explicit `dockerized`/`external` override still wins, but an **unset or retired-`remote`** style is (re)computed from the config-service host on every startup (`apply_config_url_style()`), so a node whose systemd unit wasn't regenerated by a code-only update still self-heals instead of staying pinned to the stale value. The shipped unit template (`setup/jarvis-node.service`) no longer hardcodes `remote` at all.
-
-### Wake Word Model Restoration Across Updates
-
-The openWakeWord models live **inside the venv** (`site-packages/openwakeword/resources/models/`), and every node update replaces the venv wholesale — the CI-built tarball never bundles the models, and a full `rebuild_venv` wipes them entirely. Since autodownload defaults to opt-in-off, the boot-time re-download that used to silently repair this loss no longer runs, so every update permanently killed wake word while the node otherwise reported healthy (MQTT connected, heartbeats green).
-
-`install.sh` now runs `restore_wake_models()` immediately after `restore_pantry_pip_deps`:
-
-- Copies `*.onnx` / `*.tflite` files forward from the `${INSTALL_DIR}.bak` venv, globbing the Python version on both sides so the copy survives a cross-version rebuild.
-- Resolves the destination by asking the **new** venv's own Python where `openwakeword` is installed — no hardcoded version path.
-- Never clobbers models a node has already re-staged itself (autodownload-enabled nodes keep their freshly downloaded files).
-- Is best-effort: a missing `.bak` venv or an un-importable `openwakeword` degrades to a loud warning with remediation (enable `wake_word_model_autodownload_enabled`, or copy the models manually) — never a failed install.
-
-### Wake Word Model Staging on Fresh Installs
-
-`restore_wake_models()` only helps an *update* — it copies models forward from `${INSTALL_DIR}.bak`, which doesn't exist on a fresh install. Combined with `wake_word_model_autodownload_enabled` defaulting off, a first boot had no `.onnx`/`.tflite` staged at all: the node came up otherwise healthy (MQTT connected, heartbeats green) but permanently voice-headless.
-
-`install.sh` runs `stage_default_wake_model()` immediately after `restore_wake_models`, unless `--no-audio` was passed:
-
-- Probes the new venv for an already-staged `.onnx` model and no-ops if one is present (so a node that already downloaded its own model, or was just restored, isn't re-downloaded).
-- Otherwise downloads the `hey_jarvis` model via openWakeWord's own downloader. Since `install.sh` is already an explicit, user-initiated download from GitHub, this doesn't violate the no-silent-runtime-downloads policy that keeps `wake_word_model_autodownload_enabled` off by default.
-- Is best-effort: an offline/airgapped install warns and continues — the node boots voice-headless exactly as before, with a remediation hint to enable autodownload or stage the model manually.
-
-## Wake Behavior
-
-### Wake Acceptance Gate
-
-A unified gate (`_wake_min_next_ts`) in `scripts/voice_listener.py` controls when the next wake fire is accepted. Two sources push the gate forward:
-
-| Source | Default duration | Trigger |
-|--------|-----------------|---------|
-| Same-utterance debounce | 8 s | Every accepted wake — prevents openWakeWord from scoring the same "Hey Jarvis" on consecutive 80 ms chunks |
-| `not_for_me` cool-down | 20 s (configurable) | When the command center responds with `<not_for_me/>`, side conversations cluster; suppressing for the cool-down kills the re-trigger loop |
-
-Multiple suppressions do not stack — the later or longer deadline wins.
-
-Log lines to watch in `journalctl`:
-
-| Log key | Meaning |
-|---------|---------|
-| `wake-suppressed-gate` | A wake score > 0.3 was suppressed; includes `cooldown_remaining_sec` |
-| `wake-gate-extended` | The gate was pushed further out; includes `seconds` and `reason` |
-
-### Configuring the not_for_me cool-down
-
-Set `not_for_me_quiet_seconds` in `config.json` (default `20.0`). Raise it if side conversations keep looping after a `<not_for_me/>` response; lower it if legitimate follow-ups are being dropped after a misclassification.
-
-```json
-{
-  "not_for_me_quiet_seconds": 20.0
-}
-```
-
-### Configuring the debounce
-
-Set `wake_debounce_secs` in `config.json` (default `8.0`) to change how long an accepted wake blocks the next one. The
-default also swallows a repeat request made within a few seconds of an answer; lower it if your household talks back
-quickly. Values below `0.5` are raised to `0.5` so one "Hey Jarvis" cannot fire twice on consecutive chunks.
-
-```json
-{
-  "wake_debounce_secs": 3.0
-}
-```
-
-### Pauses after the wake word
-
-By default the recording stops as soon as the end-of-speech silence window passes, counted from the first chunk, so
-someone who says "Hey Jarvis" and then pauses is stopped before they start. Set `listen_onset_wait_secs` (default `0`,
-off) to hold the silence stop until speech has been heard, for up to that many seconds:
-
-```json
-{
-  "listen_onset_wait_secs": 2.0
-}
-```
-
-If no speech arrives within the wait, the recording ends as it would have anyway.
-
-### suppress_wake_for() API
-
-Any caller can extend the gate programmatically:
-
-```python
-from scripts.voice_listener import suppress_wake_for
-
-suppress_wake_for(seconds=30.0, reason="my-signal")
-```
-
-The gate advances only if the new deadline is further out than the current one. The `reason` string appears in `wake-gate-extended` log lines for debuggability.
-
-## Update Policy
-
-### Update Consent Gate (`allow_updates`)
-
-Nodes carry an `allow_updates` consent flag governing whether an update task is applied. Refusing an update now reports back to the command center via `POST /api/v0/nodes/tasks/{id}/status` (see [Command Center: Node Task Status Reporting](../legacy/services/command-center.md#node-task-status-reporting)) with an actionable reason — previously a refusal was silent, and the task instead died ~15 minutes later as a misleading sweeper "no heartbeat" timeout.
-
-`allow_updates`, `wake_word_model_autodownload_enabled`, and `release_track` are surfaced read-only in the node's settings snapshot so the mobile app can render consent controls, and are hidden entirely for nodes that predate this gate (key absence is the capability signal).
-
-**Pushing policy changes:** these three keys are written exclusively through a new `node_config` config-push type:
-
-- **Strict allowlist** — only `allow_updates`, `wake_word_model_autodownload_enabled`, `release_track` (∈ `stable`/`dev`) may be set this way.
-- **Real-boolean validation** — a string `"false"` is rejected rather than read back truthy.
-- **Replay guard** — each push carries an `__issued_at` timestamp; the node persists a monotonic watermark and rejects anything not strictly newer, so a compromised command center re-serving a stale `allow_updates: true` payload after revocation is refused.
-- The node restarts (delayed, guarded) if the boot-time autodownload flag changes.
-
-The legacy plaintext `update_node_config` channel now explicitly **rejects** these policy keys (and any `_`-prefixed internal key) — that channel is forgeable by anything that can reach the command center or the broker, which must never be enough to flip a consent flag.
-
-All four of the node's `config.json` writers now go through a locked, atomic (write-temp + `os.replace`) update path, closing a prior lost-update / torn-write risk that could silently un-revoke consent or drop `node_id`/`api_key` from the file.
-
-!!! note "Fielded nodes need one manual opt-in"
-    Nodes on 0.1.130–0.1.136 have the underlying gate but predate this exposure — they need one SSH opt-in (or a direct `config.json` edit) before they can be updated to a version ≥ this one.
-
-## Plugin Architecture
-
-Commands live in the `commands/` directory. Each command implements the `IJarvisCommand` interface:
-
-```python
-class IJarvisCommand(ABC):
-    @property
-    def name(self) -> str: ...
-
-    @property
-    def description(self) -> str: ...
-
-    @property
-    def parameters(self) -> list[IJarvisParameter]: ...
-
-    @property
-    def required_secrets(self) -> list[IJarvisSecret]: ...
-
-    def execute(self, request_info: RequestInformation, **kwargs) -> CommandResponse: ...
-```
-
-Commands declare their parameters and secrets. The command center uses these schemas to build LLM tool definitions. When the LLM selects a command, the center calls `execute()` with the extracted arguments.
-
-### Pre-Routing (Fast Path)
-
-Commands can implement `pre_route()` to claim short, unambiguous utterances without LLM inference:
-
-```python
-def pre_route(self, voice_command: str) -> PreRouteResult | None:
-    if voice_command.strip().lower() == "pause":
-        return PreRouteResult(arguments={}, spoken_response="Paused.")
-    return None
-```
-
-This skips the LLM entirely, reducing latency to near-zero for simple commands like "pause" or "stop".
-
-The built-in time command also answers date questions this way, from the node's clock: "what day is it" (and
-"tomorrow" / "yesterday"), "what's the date", "what year is it", "what month is it", "is it the weekend" and "how many
-days until Christmas". Without the fast path these went to the model, which tended to answer with the time of day or
-invent a date.
-
-### Installing Commands from the Pantry
-
-Additional commands can be installed from the community Pantry store via the mobile app or CLI:
-
-```bash
-jarvis pantry install get_weather
-```
-
-#### Command Installation Pipeline
-
-The install pipeline runs these steps in order: clone → validate → test → copy files → **apt deps (step 9)** → pip deps (step 10) → namespace → secrets → registry enable.
-
-apt runs before pip so a fast failure (disk full, bad package name, missing wrapper) aborts before the slower pip work begins.
-
-#### apt Dependencies
-
-Commands that declare system packages in their manifest (`apt_packages` field) trigger an apt install step. The installer:
-
-1. **Pre-flights disk space** — requires ≥ 500 MB free on `/`. Fails fast before invoking apt if the check fails.
-2. **Validates package names** — each name is checked against `^[a-z][a-z0-9.+-]*$`. One invalid name aborts the entire call with no partial installs.
-3. **Invokes `/usr/local/sbin/jarvis-apt-install`** via `sudo` — a root-owned POSIX sh wrapper deployed by `install.sh` that forwards valid names to `nice -n 15 apt-get install -y --no-install-recommends` with a 60 s dpkg-lock wait and a 300 s total timeout.
-
-The installer adds this entry to `/etc/sudoers.d/jarvis-node`:
-
-```
-${SERVICE_USER} ALL=(root) NOPASSWD: /usr/local/sbin/jarvis-apt-install *
-```
-
-The `*` is in the argument position (not the binary path), so only `jarvis-apt-install` itself can be invoked with elevated privileges — no other command gains `sudo` access via this entry.
-
-!!! tip "Wrapper missing?"
-    If node logs show `apt wrapper missing at /usr/local/sbin/jarvis-apt-install`, re-run `install.sh` to redeploy the wrapper.
-
-## Built-in Commands
-
-### `control_node` — Volume and Mute
-
-The `control_node` command handles local volume and mute control. It uses pre-routing (no LLM round-trip) for all volume intents.
+The built-in `control_node` command handles volume and mute on the node itself, without a round trip to the model.
 
 | Action | Trigger phrases | Notes |
 |--------|----------------|-------|
@@ -349,167 +77,20 @@ The `control_node` command handles local volume and mute control. It uses pre-ro
 | Mute | "mute", "mute the speaker", "please mute" | |
 | Unmute | "unmute", "unmute the volume" | |
 
-Volume state is persisted to `config.json` under `volume_percent` and restored on restart. Adjustments apply to both the system default sink and any paired Bluetooth sinks simultaneously.
+Volume is saved to `config.json` as `volume_percent` and restored on restart. Changes apply to the default speaker and any paired Bluetooth speakers together.
 
-## Audio
+The built-in time command also answers date questions from the node's clock: "what day is it" (and "tomorrow" / "yesterday"), "what's the date", "what year is it", "what month is it", "is it the weekend" and "how many days until Christmas".
 
-The node uses **PulseAudio** for playback and mute control. The wake-word capture path uses ALSA `dsnoop` directly to avoid PulseAudio resampling and AGC latency.
+### ReSpeaker 2-Mics HAT v2
 
-!!! warning "ALSA softvol removed"
-    The `SoftMaster` softvol layer used in HiFiBerry-era setups has been removed. Do not add `amixer sset SoftMaster` calls to install scripts or cron jobs — that control no longer exists.
+The node has first-class support for the [Seeed Studio ReSpeaker 2-Mics Pi HAT v2](https://wiki.seeedstudio.com/ReSpeaker_2_Mics_Pi_HAT/). When the HAT is present, the mobile app shows its controls (LED brightness, button):
 
-### PulseAudio Volume Control
+- **LEDs**: `led_enabled` and `led_brightness_percent` in `config.json` are applied at startup, so the LEDs don't flash at full brightness on boot.
+- **Button**: a short press speaks any queued alerts and clears them, or says "No new notifications." A long press (hold) shuts the node down.
 
-Runtime volume and mute go through `pactl`:
+## Running in Docker
 
-- **Set volume**: `pactl set-sink-volume @DEFAULT_SINK@ <percent>%`
-- **Toggle mute**: `pactl set-sink-mute @DEFAULT_SINK@ toggle`
-- All `bluez_sink.*` Bluetooth sinks are adjusted simultaneously with the default sink.
-
-### ALSA Configuration (`/etc/asound.conf`)
-
-The installer writes an asymmetric config that routes playback through PulseAudio while keeping capture on the raw hardware device:
-
-```
-pcm.output         type pulse          — playback via PulseAudio
-pcm.dsnoopmic_hw   type dsnoop         — shared capture on hw:seeed2micvoicec,0
-                                          ipc_key 87654321, 2ch, 48000 Hz, S16_LE
-pcm.dsnoopmic      type plug → dsnoopmic_hw
-pcm.!default       type asym: playback=output, capture=dsnoopmic
-```
-
-Wake-word detection reads from `dsnoopmic` (raw PCM, no PA resampling); the listener resamples the 48 kHz capture to 16 kHz (openWakeWord's expected input rate) before scoring. TTS and streaming playback go through PulseAudio.
-
-### Required Systemd Environment
-
-PulseAudio requires `XDG_RUNTIME_DIR` to find its session socket. Add these lines to `/etc/systemd/system/jarvis-node.service`:
-
-```ini
-[Service]
-User=pi
-Group=pi
-Environment=HOME=/home/pi
-Environment=XDG_RUNTIME_DIR=/run/user/1000
-```
-
-Without `XDG_RUNTIME_DIR`, `libpulse` cannot locate the PulseAudio socket and all audio operations will fail silently.
-
-## Hardware: ReSpeaker 2-Mics HAT v2
-
-The node has first-class support for the [Seeed Studio ReSpeaker 2-Mics Pi HAT v2](https://wiki.seeedstudio.com/ReSpeaker_2_Mics_Pi_HAT/). When the HAT is present, the ALSA card appears as `seeed2micvoicec` and the node exposes a `hardware` block in the settings snapshot.
-
-### Hardware Settings Snapshot Block
-
-The `hardware` key appears in every settings snapshot. The mobile app uses it to show or hide HAT-specific controls (LED brightness, button config):
-
-| Field | Type | Description |
-|-------|------|-------------|
-| `hat_detected` | bool | `true` when ReSpeaker HAT is present |
-| `led_chain_available` | bool | `true` when the APA102 LED ring is available (equals `hat_detected`) |
-| `audio_card` | string \| null | ALSA card name, e.g. `"seeed2micvoicec"`; `null` on macOS or no HAT |
-| `is_muted` | bool | Current PulseAudio mute state; omitted if indeterminate |
-| `button_available` | bool | `true` when gpiozero is importable and `hat_detected` is `true` |
-
-### LED Behavior
-
-LED state is persisted in `config.json` (`led_enabled`, `led_brightness_percent`) and applied at startup before the alert queue is wired, so the LED no longer flickers at full brightness on boot.
-
-### Button Behavior
-
-The ReSpeaker GPIO17 button short-press speaks any queued proactive alerts via local TTS and flushes the alert queue. If no alerts are queued it announces "No new notifications." A long-press (hold) still reaches the shutdown handler.
-
-## Dependencies
-
-| Library | Purpose |
-|---------|---------|
-| PyAudio, SoundDevice | Audio capture and playback |
-| paho-mqtt | MQTT integration (TTS listener) |
-| openwakeword | Wake word detection (local ONNX inference; no API key or cloud service required) |
-| httpx | REST client to command center |
-| SQLAlchemy + pysqlcipher3 | Local encrypted database |
-| jarvis-command-sdk | Shared command/agent interfaces |
-| mpv | Streaming command audio playback (`--ao=alsa` path) |
-
-HAT-specific drivers (TLV320, APA102 LEDs, gpiozero) live in `requirements-hat.txt` and are installed separately on Pi HAT nodes only.
-
-## Local Encrypted Storage
-
-Node secrets (API keys, OAuth tokens) are stored in a local SQLite database encrypted with [PySQLCipher](https://github.com/niccokunzmann/pysqlcipher3). The encryption key (`K1`) is generated on first boot and stored in `~/.jarvis/secrets.key`.
-
-This means secrets are encrypted at rest on the Pi Zero's SD card.
-
-## Configuration
-
-Development nodes use `config-mac.json` (gitignored). Production nodes use configuration set during provisioning.
-
-Key config fields:
-
-| Field | Description |
-|-------|-------------|
-| `node_id` | UUID assigned during registration |
-| `api_key` | API key for authenticating to command center |
-| `command_center_url` | URL of the command center |
-| `room` | Room name (e.g., "kitchen", "office") |
-| `household_id` | Household UUID for multi-tenant isolation |
-| `release_track` | Update channel: `"stable"` (default) or `"dev"`. Mobile-managed via the `node_config` config-push (see [Update Policy](#update-policy)). |
-| `allow_updates` | Consent gate for update tasks — a node refuses (and reports) unsolicited updates unless `true`. Read-only in the settings snapshot; only settable via the `node_config` config-push. See [Update Policy](#update-policy). |
-| `wake_word_model_autodownload_enabled` | Whether openWakeWord model files auto-download at boot. Defaults off; a fresh install still gets a model via `install.sh`'s one-time staging step instead. Read-only in the settings snapshot; only settable via the `node_config` config-push. See [Update Policy](#update-policy). |
-| `volume_percent` | Persisted speaker volume (0–100); written on every volume command |
-| `led_enabled` | Whether the LED ring is active on boot (HAT nodes only) |
-| `led_brightness_percent` | LED brightness applied at startup (0–100, default 100) |
-| `not_for_me_quiet_seconds` | Seconds the wake gate is held after a `<not_for_me/>` response. Default: `20.0` |
-| `wake_word_model` | openWakeWord model name. Default: `hey_jarvis`. Staged by `install.sh` on fresh installs and restored across updates (see [Wake Word Model Staging on Fresh Installs](#wake-word-model-staging-on-fresh-installs)); runtime autodownload only applies if `wake_word_model_autodownload_enabled` is set. |
-| `audio_output_device` | ALSA device for playback (e.g. `hw:1,0`, named PulseAudio sink). Overrides auto-detection. Container nodes: set via `JARVIS_AUDIO_OUTPUT_DEVICE` env. |
-
-## Node Authentication
-
-Nodes authenticate to the command center with an API key header:
-
-```
-X-API-Key: {node_id}:{api_key}
-```
-
-For development, register a node using the `authorize_node.py` utility:
-
-```bash
-python utils/authorize_node.py \
-  --cc-url http://localhost:7703 \
-  --cc-key <ADMIN_API_KEY> \
-  --household-id <household-uuid> \
-  --room office --name dev-mac \
-  --update-config config-mac.json
-```
-
-## Service User
-
-The node runs as the `pi` user (not `root`). Running as root breaks the PulseAudio session socket path (`XDG_RUNTIME_DIR=/run/user/1000` is only valid for a user with UID 1000).
-
-For nodes originally installed as root, migrate with these steps:
-
-```bash
-# 1. Add pi to the bluetooth group
-sudo usermod -aG bluetooth pi
-
-# 2. Copy node data to pi's home and fix ownership
-sudo cp -a /root/.jarvis /home/pi/.jarvis
-sudo chown -R pi:pi /home/pi/.jarvis
-sudo chown -R pi:pi /opt/jarvis-node
-
-# 3. Update the systemd unit
-sudo sed -i '/\[Service\]/a User=pi\nGroup=pi\nEnvironment=HOME=/home/pi\nEnvironment=XDG_RUNTIME_DIR=/run/user/1000' \
-  /etc/systemd/system/jarvis-node.service
-
-# 4. Reload and restart
-sudo systemctl daemon-reload
-sudo systemctl restart jarvis-node
-```
-
-!!! tip "Backup before migrating"
-    `sudo tar -czf /tmp/jarvis-pre-migration.tar.gz /root/.jarvis /opt/jarvis-node` before step 2.
-
-## Container Deployment
-
-The voice node ships a Docker image (`Dockerfile.audio`) for running the full voice runtime — mic capture, wake word, STT, TTS playback — on any 64-bit Linux host, with or without Pi hardware.
+The voice node also runs in a container (`Dockerfile.audio`): mic capture, wake word and playback on any 64-bit Linux host, with or without Pi hardware.
 
 !!! warning "macOS is not supported via Docker"
     Docker Desktop runs containers in a VM with no access to the Mac's audio hardware. Run natively on macOS for development.
@@ -518,19 +99,36 @@ The voice node ships a Docker image (`Dockerfile.audio`) for running the full vo
 
 | Host | Architecture | Notes |
 |------|-------------|-------|
-| Raspberry Pi (64-bit OS) | arm64 | Any model; USB or HAT audio |
+| Raspberry Pi 4 or 5 (64-bit OS) | arm64 | USB or HAT audio. A Pi Zero 2 W should use the native install above |
 | Ubuntu/Debian server or desktop | amd64 | USB mic + speaker recommended |
 | Any Linux with Docker | arm64 / amd64 | Requires mic + speaker accessible to the container |
 
+### Images
+
+Each release publishes two images to GitHub's container registry, for amd64 and arm64:
+
+| Image | What it is |
+|-------|-----------|
+| `ghcr.io/alexberardi/jarvis-node-audio` | The voice node with host audio (this section) |
+| `ghcr.io/alexberardi/jarvis-node` | The node without audio (`docker-compose.yaml`) |
+
+| Tag | Trigger |
+|-----|---------|
+| `:edge` | Every merge to `main` |
+| `:latest` | `v*` git tag |
+| `:<version>` | `v*` git tag |
+
 ### Quick start
 
-**1. Build the image**
+The steps use a checkout of `jarvis-node-setup`.
 
-```bash
-docker compose -f docker-compose.audio.yaml build
+**1. Get the image**
+
+The repo's `docker-compose.audio.yaml` builds the image locally, which needs the `jarvis-command-sdk` repo checked out next to it (`../jarvis-command-sdk`). To use the published image instead, replace the service's `build:` block with:
+
+```yaml
+    image: ghcr.io/alexberardi/jarvis-node-audio:<version>
 ```
-
-Builds for the host's native architecture — no QEMU. First build downloads onnxruntime, scipy, and the openWakeWord models; allow a few minutes.
 
 **2. Detect audio devices and write config**
 
@@ -554,7 +152,7 @@ On first boot there are no credentials, so the node starts the **setup web UI** 
 docker compose -f docker-compose.audio.yaml restart
 ```
 
-The node now has credentials and starts the full voice loop (wake → STT → CC → TTS playback).
+The node now has credentials and starts the full voice loop (wake word → server → spoken reply).
 
 ### Audio transport
 
@@ -573,13 +171,13 @@ JARVIS_HOST_UID=$(id -u) docker compose -f docker-compose.audio.yaml -f docker-c
 
 ### Echo Cancellation (AEC)
 
-AEC removes the node's own TTS playback from the mic signal so the node can hear "Hey Jarvis" over its own audio (barge-in). Requires the PulseAudio/PipeWire transport. Enable with:
+AEC removes the node's own playback from the mic signal so the node can hear "Hey Jarvis" over its own audio (barge-in). Requires the PulseAudio/PipeWire transport. Enable with:
 
 ```bash
 JARVIS_AEC_ENABLED=true   # in audio.env
 ```
 
-Validated in-container on Ubuntu/PipeWire: calibration succeeds, the pipeline runs per-frame with no errors. Most useful with open speakers; a closed headset has minimal echo.
+Most useful with open speakers; a closed headset has minimal echo.
 
 ### Container environment variables
 
@@ -591,33 +189,333 @@ Validated in-container on Ubuntu/PipeWire: calibration succeeds, the pipeline ru
 | `JARVIS_MIC_SAMPLE_RATE` | Mic capture rate; runtime resamples to 16 kHz internally. Try `44100` for USB mics that reject 48 kHz | `48000` |
 | `JARVIS_HOST_UID` | Host login UID used for the PipeWire socket path | `1000` |
 | `JARVIS_AEC_ENABLED` | Enable acoustic echo cancellation (requires pulse transport) | `false` |
-| `JARVIS_CONFIG_URL_STYLE` | Overrides the auto-computed URL rewrite style (`external`/`dockerized`). See [Service Discovery: URL Rewrite Style](#url-rewrite-style-jarvis_config_url_style). Usually left unset — the node computes it from the config-service host. | *(auto-computed)* |
+| `JARVIS_CONFIG_URL_STYLE` | Overrides how the node rewrites service addresses (`external`/`dockerized`). Leave it unset: the node works it out itself. | *(auto-computed)* |
 
-### Container troubleshooting
+## Configuration
 
-- **No input devices / `PyAudio.open()` fails** — confirm `/dev/snd` exists on the host and `arecord -l` shows the mic. The compose file adds the container user to the `audio` group automatically.
-- **Playback silent** — set `JARVIS_AUDIO_OUTPUT_DEVICE` to a specific device from `aplay -L` on the host. `default` may map to the wrong card on multi-device systems.
-- **Wake word never fires** — run `docker compose -f docker-compose.audio.yaml exec jarvis-node-audio python scripts/list_audio_devices.py` to verify the mic is visible. Lower `JARVIS_MIC_SAMPLE_RATE` if the device doesn't support 48 kHz.
-- **Can't reach the command center** — the container maps `host.docker.internal` to the host IP. Use that hostname in the setup UI when CC runs on the same machine.
+A provisioned node keeps its settings in `/opt/jarvis-node/config.json`. Provisioning writes the first ones; most of the rest are changed from the mobile app's node settings. Development nodes use `config-mac.json` (git-ignored).
 
-### Docker images (CI-published)
+| Field | Description |
+|-------|-------------|
+| `node_id` | The node's id, assigned during registration |
+| `api_key` | API key the node authenticates to the server with |
+| `jarvis_config_service_url` | The server's address, `http://<server>:7700`. The only address the node reads from the file: it finds every service from it |
+| `jarvis_command_center_api_url` | The command address provisioning was given (`http://<server>:7700/cc` on `jarvisd`). The node will not start without it, but resolves the address it uses from `jarvis_config_service_url` |
+| `room` | Room name (e.g., "kitchen", "office") |
+| `household_id` | Household UUID for multi-tenant isolation |
+| `release_track` | Update channel: `"stable"` (default) or `"dev"`. Set from the mobile app (see [Update Policy](#update-policy)). |
+| `allow_updates` | Consent gate for update tasks — a node refuses (and reports) updates unless `true`. Set from the mobile app; see [Update Policy](#update-policy). |
+| `wake_word_model_autodownload_enabled` | Whether openWakeWord model files auto-download at boot. Defaults off; a fresh install still gets a model from `install.sh`. Set from the mobile app; see [Update Policy](#update-policy). |
+| `volume_percent` | Persisted speaker volume (0–100); written on every volume command |
+| `led_enabled` | Whether the LED ring is active on boot (HAT nodes only) |
+| `led_brightness_percent` | LED brightness applied at startup (0–100, default 100) |
+| `wake_word_model` | openWakeWord model name. Default: `hey_jarvis`. Staged by `install.sh` on fresh installs and restored across updates; runtime autodownload only applies if `wake_word_model_autodownload_enabled` is set. |
+| `wake_debounce_secs` | See [Wake Behavior](#wake-behavior). Default: `8.0` |
+| `not_for_me_quiet_seconds` and related keys | See [Wake Behavior](#wake-behavior). Default: `20.0` |
+| `listen_onset_wait_secs` | See [Wake Behavior](#wake-behavior). Default: `0` (off) |
+| `audio_output_device` | ALSA device for playback (e.g. `hw:1,0`, named PulseAudio sink). Overrides auto-detection. Container nodes: set via `JARVIS_AUDIO_OUTPUT_DEVICE` env. |
 
-| Tag | Trigger | Architectures |
-|-----|---------|--------------|
-| `:edge` | Every merge to `main` | amd64, arm64 |
-| `:latest` | `v*` git tag | amd64, arm64 |
-| `:<version>` | `v*` git tag | amd64, arm64 |
+### Wake Behavior
 
-Images are built with native per-arch runners (no QEMU), so arm64 builds take ~3 minutes instead of ~38.
+The node holds one gate that decides when the next wake word is accepted (`core/voice_filters.py`, checked in `core/wake_detector.py`). Two things push it forward:
 
-## What the Node Reaches
+| Source | Default | Trigger |
+|--------|---------|---------|
+| Same-utterance debounce | 8 s | Every accepted wake — stops openWakeWord from scoring the same "Hey Jarvis" on consecutive 80 ms chunks |
+| `not_for_me` cool-down | 20 s, 60 s when repeated | The server answered `<not_for_me/>` (you were talking to someone else); side conversations cluster, so the cool-down stops the re-trigger loop |
+
+A later or longer deadline wins; they do not stack.
+
+#### The not_for_me cool-down
+
+The cool-down is soft: a wake word spoken clearly enough (a score of at least `not_for_me_override_threshold`) gets through at once, so a real question after a misclassified one is not locked out. Ambient speech that barely reaches the base threshold stays suppressed.
+
+| Key | Default | Meaning |
+|-----|---------|---------|
+| `not_for_me_quiet_seconds` | `20.0` | Cool-down after one `<not_for_me/>`. `0` or less turns the cool-down off |
+| `not_for_me_escalated_quiet_seconds` | `60.0` | Cool-down once there have been 2 or more within the window |
+| `not_for_me_escalation_window_seconds` | `120.0` | The window for counting repeats |
+| `not_for_me_override_threshold` | `0.6` | Wake score that gets through an armed cool-down |
+
+Raise the quiet seconds if side conversations keep looping; lower them, or lower the override threshold, if real follow-ups are dropped.
+
+```json
+{
+  "not_for_me_quiet_seconds": 20.0
+}
+```
+
+#### The debounce
+
+Set `wake_debounce_secs` in `config.json` (default `8.0`) to change how long an accepted wake blocks the next one. The
+default also swallows a repeat request made within a few seconds of an answer; lower it if your household talks back
+quickly. Values below `0.5` are raised to `0.5` so one "Hey Jarvis" cannot fire twice on consecutive chunks.
+
+```json
+{
+  "wake_debounce_secs": 3.0
+}
+```
+
+#### Pauses after the wake word
+
+By default the recording stops as soon as the end-of-speech silence window passes, counted from the first chunk, so
+someone who says "Hey Jarvis" and then pauses is stopped before they start. Set `listen_onset_wait_secs` (default `0`,
+off) to hold the silence stop until speech has been heard, for up to that many seconds:
+
+```json
+{
+  "listen_onset_wait_secs": 2.0
+}
+```
+
+If no speech arrives within the wait, the recording ends as it would have anyway.
+
+### Update Policy
+
+A node applies an update only when its `allow_updates` consent flag is on. When it refuses one, it tells the server why, so the app shows the reason instead of a timeout.
+
+`allow_updates`, `wake_word_model_autodownload_enabled` and `release_track` are set from the mobile app's node screen (see [Software Updates](../mobile/nodes.md#software-updates)). They travel end-to-end encrypted with the node's K2 key, so the server cannot change them, and the node refuses a replayed older change. Nodes too old to have the gate show no consent controls.
+
+!!! note "Fielded nodes need one manual opt-in"
+    Nodes on 0.1.130–0.1.136 have the underlying gate but predate the app's controls — they need one SSH opt-in (or a direct `config.json` edit) before they can be updated to a newer version.
+
+### Keeping voice on the LAN
+
+When the server hands out **public** addresses (`jarvisd` does once a service has a public URL on the web app's **Connections** page), a node in the same house would send its audio out to the internet and back, about 2 s per turn. Point it at the server's LAN address instead, in the node's `.env`:
+
+```bash
+JARVIS_COMMAND_CENTER_LAN_URL=http://<server-lan-ip>:7700/cc
+```
+
+That keeps voice on the local network (a few milliseconds). The override is per node and per service (`JARVIS_<SERVICE>_LAN_URL`); remote nodes leave it unset. Only the command service matters for voice, because the node reaches speech-to-text and text-to-speech through it. `JARVIS_CONFIG_URL` can likewise point the node's first lookup at the server's LAN address.
+
+## Troubleshooting
+
+### The node can't reach the server
 
 Everything is on the one `jarvisd` server. The node needs only its address; the rest resolves through it.
 
 | What | Required | Purpose |
 |---------|----------|---------|
-| The server address, port 7700 (config-service) | Yes (once provisioned) | Service discovery — every other service URL resolves through it; see [Service Discovery: config-service Is the Single Source of Truth](#service-discovery-config-service-is-the-single-source-of-truth). Only tolerated as unreachable while a node is still provisioning. |
-| Command center, resolved from 7700 | Yes | Voice command processing; the node proxies speech-to-text and text-to-speech through it |
-| MQTT broker, resolved from 7700 | Yes | Spoken responses and server→node messages |
+| The server address, port 7700 | Yes (once provisioned) | Every other service address is looked up there. Only tolerated as unreachable while a node is still provisioning. |
+| Commands, found from 7700 | Yes | Voice command processing; the node reaches speech-to-text and text-to-speech through it |
+| MQTT broker, found from 7700 | Yes | Spoken responses and server→node messages |
 
-If a node can't reach the server, run `jarvisd doctor` on the server: it checks what nodes and phones need to reach.
+Run `jarvisd doctor` on the server: it checks what nodes and phones need to reach. A node that cannot reach the server keeps retrying and recovers by itself when the server is back; after about 5 minutes without the server it restarts its service.
+
+In Docker on the same machine as `jarvisd`, use `http://host.docker.internal:7700` as the server address in the setup UI; the container maps that name to the host.
+
+### Wake word never fires
+
+- On a fresh install, `install.sh` downloads the `hey_jarvis` model. An offline install skips it with a warning, and the node runs without wake word. Re-run the installer with internet access, or turn on `wake_word_model_autodownload_enabled` from the app.
+- After an update, the installer copies the models from the previous install. If it warns that it could not, do the same.
+- In a container, run `docker compose -f docker-compose.audio.yaml exec jarvis-node-audio python scripts/list_audio_devices.py` to check the mic is visible, and lower `JARVIS_MIC_SAMPLE_RATE` if the device doesn't support 48 kHz.
+
+Log lines to watch with `journalctl -u jarvis-node`:
+
+| Log key | Meaning |
+|---------|---------|
+| `wake-suppressed-gate` | A wake score above 0.3 was suppressed by the gate; includes `cooldown_remaining_sec` |
+| `wake-override-cooldown` | A clear wake word got through an armed `not_for_me` cool-down |
+| `not-for-me-cooldown-armed` | The server answered `<not_for_me/>`; includes `cooldown_sec` |
+
+### No sound, or audio fails silently
+
+- PulseAudio needs `XDG_RUNTIME_DIR`. The installer's unit sets it (with `User=pi`); a unit you wrote by hand needs `Environment=XDG_RUNTIME_DIR=/run/user/<uid of the user>` and must not run as root.
+- In a container, set `JARVIS_AUDIO_OUTPUT_DEVICE` to a device from `aplay -L` on the host; `default` may map to the wrong card on multi-device systems. If `PyAudio.open()` fails, check `/dev/snd` exists on the host and `arecord -l` shows the mic.
+
+### A Pantry install fails with "apt wrapper missing"
+
+If node logs show `apt wrapper missing at /usr/local/sbin/jarvis-apt-install`, re-run `install.sh` to put the wrapper back.
+
+## For developers
+
+This part is for working on `jarvis-node-setup` itself or writing commands for it.
+
+### Architecture
+
+```
+jarvis-node-setup/
+├── scripts/
+│   ├── main.py                # Native entry point
+│   ├── entrypoint.py          # Container entry point (routes setup / voice mode)
+│   ├── voice_listener.py      # The voice loop
+│   ├── mqtt_tts_listener.py   # MQTT listener for spoken replies
+│   ├── command_store.py       # Command store CLI (install, remove, list, update)
+│   ├── jarvis-apt-install     # Sudo-able apt-get shim for Pantry-declared packages
+│   └── configure-audio.sh     # Audio device auto-detect for containerised runs
+├── core/
+│   ├── voice_filters.py       # Wake gate and not_for_me cool-down
+│   ├── wake_detector.py       # Wake-word scoring against the gate
+│   ├── ijarvis_parameter.py   # Parameter definitions
+│   ├── ijarvis_secret.py      # Secret definitions
+│   ├── command_response.py    # Response structure
+│   └── platform_abstraction.py # Hardware abstraction (Pi vs generic Linux)
+├── commands/                  # Built-in commands (control_node, timers, ...)
+├── agents/                    # Background agents (reminders, device discovery)
+├── services/
+│   ├── secret_service.py      # Encrypted secret management
+│   ├── agent_scheduler_service.py  # Background agent scheduling
+│   ├── alert_queue_service.py # Proactive alert queue + button announce
+│   ├── button_service.py      # ReSpeaker GPIO17 button handler
+│   ├── settings_snapshot_service.py # Settings snapshot builder
+│   └── reminder_service.py    # Persistent reminders
+├── stt_providers/
+│   └── jarvis_whisper_client.py  # Speech-to-text client (through the server)
+├── provisioning/              # Headless provisioning system
+└── utils/
+    ├── audio_volume.py        # PulseAudio volume/mute control
+    ├── authorize_node.py      # Register a node without the app
+    ├── config_service.py      # Configuration loader
+    ├── config_env.py          # JARVIS_CONFIG_URL_STYLE selection, shared by main.py and entrypoint.py
+    └── service_discovery.py   # Service URL resolution from the server address
+```
+
+Commands import `IJarvisCommand` straight from the SDK (`from jarvis_command_sdk import IJarvisCommand`).
+
+### Platform detection
+
+`core/platform_abstraction.py` exposes two probes used at runtime:
+
+- `is_raspberry_pi()` — reads the device-tree model string; returns `True` only on Pi hardware.
+- `has_respeaker_hat()` — checks for the `seeed2micvoicec` ALSA card; gates TLV320 self-heal and sink keepalive.
+
+On non-Pi 64-bit Linux (and in containers), `LinuxHostAudioProvider` is selected instead of the HAT-specific provider. HAT-specific drivers ship in `requirements-hat.txt` and are not installed by default.
+
+### Threading model
+
+The node runs multiple supervised threads:
+
+- **Main thread** -- Voice listener. Detects wake word, captures audio, sends it to the server.
+- **MQTT thread** -- Receives spoken replies from the broker and plays them through the speaker.
+- **Agent scheduler** -- Runs background agents on configurable intervals (reminders, device discovery, token refresh).
+- **ButtonShortPress thread** -- Handles ReSpeaker GPIO17 short-press events. Speaks queued alerts via local TTS without blocking the GPIO callback. Started after TTS, LED, and alert-queue services are ready.
+
+### Service discovery
+
+The node reads one address from `config.json`, `jarvis_config_service_url` (the server's port 7700), and resolves every service it needs from there through `utils/service_discovery.py`: commands (`/cc`), the MQTT broker, speech-to-text, text-to-speech and sign-in. There is no fallback to other `config.json` keys or to `localhost`:
+
+- **Fail loud.** A provisioned node that can't resolve a service raises `ServiceUnresolvedError` instead of making up an address.
+- **Provisioning is the one exception.** A node without a `.provisioned` marker (or with `JARVIS_SKIP_PROVISIONING_CHECK` set) isn't expected to reach the server yet, so unresolved services return `""` there instead of raising.
+- **Callers retry, they don't degrade.** The voice listener retries an unreachable server indefinitely with capped backoff and recovers when it returns; audio failures get a bounded retry, then the node runs headless. The MQTT loop re-resolves the broker on every retry (backoff up to 60 s).
+
+The node also works out from the server address whether the addresses it gets back need rewriting (`utils/config_env.py`, `JARVIS_CONFIG_URL_STYLE`): `external` for a real IP or hostname, `dockerized` for `host.docker.internal`, none for `localhost`. Leave the variable unset; it is recomputed on every start. `JARVIS_<SERVICE>_LAN_URL` short-circuits the lookup for one service (see [Keeping voice on the LAN](#keeping-voice-on-the-lan)).
+
+### Writing commands
+
+Commands live in the `commands/` directory, or come from the Pantry. Each one implements `IJarvisCommand` from the [command SDK](../libraries/command-sdk.md), which lists the abstract members: `command_name`, `description`, `generate_prompt_examples()`, `generate_adapter_examples()`, `parameters`, `required_secrets`, `keywords` and `run(self, request_info, **kwargs)`. The server builds the model's tool definitions from these; when the model picks a command, the node calls the SDK's `execute()`, which validates the arguments and calls `run()`. See the [Interface Reference](../commands/interface-reference.md) for the rest.
+
+#### Pre-routing (fast path)
+
+Commands can implement `pre_route()` to claim short, unambiguous utterances without LLM inference:
+
+```python
+def pre_route(self, voice_command: str) -> PreRouteResult | None:
+    if voice_command.strip().lower() == "pause":
+        return PreRouteResult(arguments={}, spoken_response="Paused.")
+    return None
+```
+
+This skips the LLM entirely, reducing latency to near-zero for simple commands like "pause" or "stop". `control_node` and the time command's date answers work this way.
+
+### Installing commands from the Pantry
+
+Install commands from the mobile app's [Pantry](../mobile/pantry.md) tab, or on the node with the command store CLI:
+
+```bash
+python scripts/command_store.py install get_weather
+python scripts/command_store.py install --url <github_url> [--version <tag>]
+python scripts/command_store.py list
+```
+
+The install pipeline runs these steps in order: clone → validate → test → copy files → **apt deps** → pip deps → namespace → secrets → registry enable. apt runs before pip so a fast failure (disk full, bad package name, missing wrapper) aborts before the slower pip work begins.
+
+#### apt dependencies
+
+Commands that declare system packages in their manifest (`apt_packages` field) trigger an apt install step. The installer:
+
+1. **Pre-flights disk space** — requires ≥ 500 MB free on `/`. Fails fast before invoking apt if the check fails.
+2. **Validates package names** — each name is checked against `^[a-z][a-z0-9.+-]*$`. One invalid name aborts the entire call with no partial installs.
+3. **Invokes `/usr/local/sbin/jarvis-apt-install`** via `sudo` — a root-owned POSIX sh wrapper deployed by `install.sh` that forwards valid names to `nice -n 15 apt-get install -y --no-install-recommends` with a 60 s dpkg-lock wait and a 300 s total timeout.
+
+The installer adds this entry to `/etc/sudoers.d/jarvis-node`:
+
+```
+${SERVICE_USER} ALL=(root) NOPASSWD: /usr/local/sbin/jarvis-apt-install *
+```
+
+The `*` is in the argument position (not the binary path), so only `jarvis-apt-install` itself can be invoked with elevated privileges — no other command gains `sudo` access via this entry.
+
+### Audio internals
+
+The node uses **PulseAudio** for playback and mute control. The wake-word capture path uses ALSA `dsnoop` directly to avoid PulseAudio resampling and AGC latency. Runtime volume and mute go through `pactl` (`set-sink-volume`, `set-sink-mute`), on the default sink and every `bluez_sink.*` Bluetooth sink together.
+
+The installer writes an asymmetric `/etc/asound.conf` that routes playback through PulseAudio while keeping capture on the raw hardware device:
+
+```
+pcm.output         type pulse          — playback via PulseAudio
+pcm.dsnoopmic_hw   type dsnoop         — shared capture on hw:seeed2micvoicec,0
+                                          ipc_key 87654321, 2ch, 48000 Hz, S16_LE
+pcm.dsnoopmic      type plug → dsnoopmic_hw
+pcm.!default       type asym: playback=output, capture=dsnoopmic
+```
+
+Wake-word detection reads from `dsnoopmic` (raw PCM, no PA resampling); the listener resamples the 48 kHz capture to 16 kHz (openWakeWord's expected input rate) before scoring.
+
+The `hardware` block in every settings snapshot tells the app which HAT controls to show:
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `hat_detected` | bool | `true` when ReSpeaker HAT is present |
+| `led_chain_available` | bool | `true` when the APA102 LED ring is available (equals `hat_detected`) |
+| `audio_card` | string \| null | ALSA card name, e.g. `"seeed2micvoicec"`; `null` on macOS or no HAT |
+| `is_muted` | bool | Current PulseAudio mute state; omitted if indeterminate |
+| `button_available` | bool | `true` when gpiozero is importable and `hat_detected` is `true` |
+
+### Wake-word models across updates
+
+The openWakeWord models live inside the venv (`site-packages/openwakeword/resources/models/`), which every update replaces. `install.sh` therefore runs `restore_wake_models()` (copy `*.onnx` / `*.tflite` forward from the `${INSTALL_DIR}.bak` venv, never overwriting models the node staged itself) and then `stage_default_wake_model()` (download `hey_jarvis` if no `.onnx` is staged; skipped with `--no-audio`). Both are best-effort: a failure warns and the install carries on.
+
+### Update policy internals
+
+The three policy keys are written only through the `node_config` config push: a strict allowlist (`allow_updates`, `wake_word_model_autodownload_enabled`, `release_track` ∈ `stable`/`dev`), real booleans only (a string `"false"` is rejected), and an `__issued_at` timestamp checked against a stored watermark so a stale payload is refused. The older plaintext `update_node_config` channel rejects these keys (and any `_`-prefixed key). A refused update is reported with `POST /api/v0/nodes/tasks/{id}/status`. All `config.json` writers go through one locked, atomic write.
+
+### Local encrypted storage
+
+Node secrets (API keys, OAuth tokens) are stored in a local SQLite database encrypted with [PySQLCipher](https://github.com/niccokunzmann/pysqlcipher3). The encryption key (`K1`) is generated on first boot and stored in `~/.jarvis/secrets.key`, so secrets are encrypted at rest on the SD card.
+
+### Dependencies
+
+| Library | Purpose |
+|---------|---------|
+| PyAudio, SoundDevice | Audio capture and playback |
+| paho-mqtt | MQTT integration (spoken replies) |
+| openwakeword | Wake word detection (local ONNX inference; no API key or cloud service required) |
+| httpx | REST client to the server |
+| SQLAlchemy + pysqlcipher3 | Local encrypted database |
+| jarvis-command-sdk | Shared command/agent interfaces |
+| mpv | Streaming command audio playback (`--ao=alsa` path) |
+
+HAT-specific drivers (TLV320, APA102 LEDs, gpiozero) live in `requirements-hat.txt` and are installed separately on Pi HAT nodes only.
+
+### Node authentication
+
+Nodes authenticate to the server with an API key header:
+
+```
+X-API-Key: {node_id}:{api_key}
+```
+
+The usual way to get one is the mobile app's **Add Node** flow, or the web app's **Nodes** page. To register a development node without either, use `utils/authorize_node.py`:
+
+```bash
+python utils/authorize_node.py \
+  --cc-url http://<server>:7700/cc \
+  --cc-key "$ADMIN_API_KEY" \
+  --household-id <household-uuid> \
+  --room office --name dev-mac \
+  --update-config config-mac.json
+```
+
+The script uses the admin node routes, which `jarvisd` refuses unless it was started with the `ADMIN_API_KEY` environment variable set; pass the same value as `--cc-key`.

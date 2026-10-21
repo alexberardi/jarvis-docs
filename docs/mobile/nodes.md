@@ -1,36 +1,45 @@
 # Nodes
 
-The Nodes tab manages your Pi Zero voice nodes --- the physical devices that capture voice commands.
+The Nodes tab lists your household's voice nodes (Raspberry Pi Zero 2 W, Pi 4 or Pi 5) and the computers running the [desktop agent](../agent/index.md).
 
 ## Node List
 
-Each node card shows:
+Each card shows:
 
-- Room name
-- Node ID
-- Operating mode (brief/full)
+- a dot that is green when the node is online, and an icon for its kind (a Pi or a computer);
+- its name;
+- **Online**, or **Offline · Last seen …**;
+- **Mode: …** (the node's voice mode), or **Jarvis Automation agent** for a computer.
 
-Tap a node to view its detail screen with settings, installed commands, and status.
+Tap a node to view its detail screen with settings, installed commands, and status. Pull down to refresh.
 
 ## Adding a Node
 
-Tap **Add Node** to start the provisioning flow:
+Tap **Add Node** to set up a fresh Pi. The node must be powered on and showing its setup hotspot (see [Provisioning](../clients/provisioning.md)).
 
-1. **Scan** --- The app scans for nearby Jarvis nodes broadcasting a WiFi access point
-2. **Connect** --- Connect to the node's AP network
-3. **Configure** --- Enter your home WiFi credentials
-4. **Register** --- The node registers with the command center
+1. While your phone is on your home Wi-Fi, tap **Prepare**. The app fetches a provisioning token from your server; it is valid for only a few minutes, so go straight on.
+2. Join the node's Wi-Fi network (`jarvis-` and 8 characters) in your phone's settings; **Open Settings** takes you there.
+3. Back in the app, tap **Connect to Node**. The app shows the node's info; tap **Continue to Network Selection**.
+4. **Select Network**: pick the home Wi-Fi the node should join.
+5. **Configure**: enter the **WiFi Password** and the node's **Room Location**, then tap **Provision Node**.
+6. The node joins your Wi-Fi and registers with your server. When the app asks, reconnect your phone to your home Wi-Fi and tap **I've Reconnected to WiFi**.
+
+The **Success!** screen offers **Set Up Smart Home** (connect Home Assistant), **Backup Encryption Key** and **Done**.
+
+## Adding a computer
+
+Tap **Add a computer** to pair a computer running the desktop agent. The screen gives you the agent's download link, then lists the computers waiting to be paired: check that the code matches the one the computer shows, choose the household and room, and tap **Approve** (or **Deny**). See [Pairing](../agent/pairing.md#approve-it-in-the-mobile-app).
 
 !!! tip
     For development, you can use **Import Key** (top right) to manually pair a node by pasting its K2 encryption key.
 
 ## K2 Encryption Key
 
-Every node has a **K2** key --- an AES-256 key generated during provisioning and stored on your device. K2 encrypts the settings sync channel between the mobile app and the node; the command center transports the encrypted blob but cannot read it.
+Every node has a **K2** key --- an AES-256 key generated during provisioning and stored on your device. K2 encrypts the settings sync channel between the mobile app and the node; the server transports the encrypted blob but cannot read it.
 
 ### Backing Up K2
 
-After a successful provisioning, the **Success** screen offers a **Back Up Encryption Key** button. Two backup modes are available:
+After a successful provisioning, the **Success** screen offers a **Backup Encryption Key** button. Two backup modes are available:
 
 | Mode | Protection |
 |------|------------|
@@ -56,7 +65,7 @@ The node's detail screen shows an update control gated by the node's `allow_upda
 - **Consent refused** --- The Update button is replaced by an **Enable updates** button. Tapping it shows a confirmation modal explaining that the node will be allowed to download and install releases; confirming flips the gate on.
 - **Older nodes** --- Nodes that predate the consent gate (node-setup < 0.1.137) show the previous Update button with no consent controls.
 
-Consent changes are written end-to-end through the K2-encrypted config-push channel --- the command center transports ciphertext only and cannot forge or replay a consent flip.
+Consent changes are written end-to-end through the K2-encrypted config-push channel --- the server transports ciphertext only and cannot forge or replay a consent flip.
 
 ## Node Settings
 

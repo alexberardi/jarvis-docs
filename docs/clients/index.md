@@ -34,11 +34,11 @@ The main voice interface: a Raspberry Pi with a microphone and speaker that list
 
 ### [Mobile app](node-mobile.md)
 
-The Jarvis Automation app for iOS and Android. Chat with Jarvis, set up voice nodes (QR code and Wi-Fi), manage devices, routines and settings, and get notifications and the inbox.
+The Jarvis Automation app for iOS and Android. Chat with Jarvis, set up voice nodes over Wi-Fi, manage devices, routines and settings, and get notifications and the inbox.
 
 ### [Provisioning](provisioning.md)
 
-How a fresh Pi node is set up headless: it opens a Wi-Fi hotspot (`jarvis-XXXX`) and waits for the mobile app to give it your Wi-Fi, its keys and the server's address.
+How a fresh Pi node is set up headless: it opens a Wi-Fi hotspot (`jarvis-` and 8 characters from its MAC address) and waits for the mobile app to give it your Wi-Fi, its keys and the server's address.
 
 ### [Desktop agent](../agent/index.md)
 
@@ -50,6 +50,7 @@ Jarvis Automation Agent runs on your own Mac, Windows or Linux computer: install
 |--------|-------------|--------|
 | Voice node | Node API key | `X-API-Key: {node_id}:{api_key}` |
 | Mobile app | JWT bearer token | `Authorization: Bearer <token>` |
+| Desktop agent | Node API key, issued when its pairing code is approved | `X-API-Key: {node_id}:{api_key}` |
 | Provisioning | Provisioning token (one-time) | Via registration payload |
 
 ## Coming from the old install
