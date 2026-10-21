@@ -104,7 +104,18 @@ secrets:
     is_sensitive: true
     required: true
 packages:
-  - httpx
+  - name: httpx
+```
+
+Each `packages` entry is an object with a `name` and an optional `version`, not a bare string.
+
+The fields `jdt manifest` writes are not the whole manifest. Where a package may run (`targets`, `platforms`) and the Pi-only install steps (`apt_packages`, `apt_sources`, `post_install`) are added by hand; see [Where your code runs](../where-code-runs.md). For example:
+
+```yaml
+targets: [node]          # Pi only; leave out to offer it to computers too
+platforms: [linux]
+apt_packages:
+  - libasound2-dev
 ```
 
 ## Updating an Existing Manifest
@@ -116,6 +127,11 @@ If `jarvis_package.yaml` already exists, `jdt manifest` uses its values as defau
 3. Accept or modify the prompted values
 
 The existing manifest is overwritten with the updated version.
+
+!!! warning "Re-running `jdt manifest` drops fields it does not know"
+    `jdt manifest` rebuilds the file from a fixed set of fields and writes only those. From an existing manifest it keeps `name`, `display_name`, `description`, `version`, `author`, `categories`, `keywords` and `platforms` (and `secrets` and `packages` when introspection finds none). It **removes** `targets`, `apt_packages`, `apt_sources`, `post_install`, `jarvis_dependencies`, `parameters`, `homepage` and `setup_guide`; it resets `min_jarvis_version` and `license` to their defaults; and it takes `authentication` from your code only.
+
+    Losing `targets` matters: a Pi-only package becomes offered to computers. After running `jdt manifest`, check the diff (`git diff jarvis_package.yaml`) and put those keys back by hand.
 
 ## Non-Interactive Mode
 

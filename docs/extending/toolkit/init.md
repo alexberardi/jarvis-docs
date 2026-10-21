@@ -101,6 +101,8 @@ Categories: automation, calendar, communication, ...
 Category [utilities]: weather
 ```
 
+`prompt_provider` is for the old Docker install only: Jarvis Automation (jarvisd) does not load Python prompt providers, and a node has nowhere to install one.
+
 ### Non-interactive (CI/scripting)
 
 ```bash
@@ -119,10 +121,10 @@ Uses defaults: type `command`, author `community`, category `utilities`.
 | agent | `agents/{name}/agent.py` |
 | device_protocol | `device_families/{name}/protocol.py` |
 | device_manager | `device_managers/{name}/manager.py` |
-| prompt_provider | `prompt_providers/{name}/provider.py` |
+| prompt_provider (legacy only; not supported on jarvisd) | `prompt_providers/{name}/provider.py` |
 | routine | `routines/{name}/routine.json` |
 
-This matches what `CommandDiscoveryService`, `AgentDiscoveryService`, and the other discovery services scan for at startup.
+This is the package's own layout. When the package is installed, each component is copied into the node's matching `custom_*` directory (`commands/custom_commands/{name}/` and so on), which is where the discovery services look: see [Where installed packages land](../discovery.md#where-installed-packages-land).
 
 ## Generated CLAUDE.md
 

@@ -45,6 +45,9 @@ platforms: [linux, darwin, windows]
 
 Leave out `desktop` for a Pi-only package. See [`jdt manifest`](toolkit/manifest.md) for the rest of the manifest.
 
+!!! warning "`jdt manifest` drops `targets`"
+    `jdt manifest` does not know `targets`, `apt_packages`, `apt_sources` or `post_install`, and removes them when it rewrites `jarvis_package.yaml`. A Pi-only package then has no `targets` and is offered to computers. Write these keys by hand, and put them back after any run of `jdt manifest` ([details](toolkit/manifest.md#updating-an-existing-manifest)).
+
 ## Next
 
 - [Building Commands](../commands/index.md): write your first command.

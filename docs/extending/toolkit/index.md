@@ -4,7 +4,10 @@ The Jarvis Developer Toolkit is a CLI that handles the full package lifecycle: s
 
 ## Installation
 
+`jdt` depends on the Jarvis command SDK (`jarvis-command-sdk`), which is not on PyPI, so install the SDK from git first:
+
 ```bash
+pip install git+https://github.com/alexberardi/jarvis-command-sdk.git
 pip install git+https://github.com/alexberardi/jarvis-developer-toolkit.git
 ```
 
@@ -22,7 +25,7 @@ jdt --version
 | [`jdt test`](test.md) | Three-phase validation (manifest + AST + imports) | ~2s |
 | [`jdt validate`](validate.md) | Fast manifest-only check | Instant |
 | [`jdt manifest`](manifest.md) | Generate/update `jarvis_package.yaml` from code | ~1s |
-| [`jdt deploy`](deploy.md) | Install to a node (local, Docker, or SSH) | ~3s |
+| [`jdt deploy`](deploy.md) | Install to a node (local or SSH; Docker on the legacy install), then restart the node | ~3s |
 
 ## Typical Workflow
 
@@ -37,7 +40,7 @@ cd my_weather
 # 3. Validate as you go
 jdt test .
 
-# 4. Deploy to a node
+# 4. Deploy to a node, then restart the node so it loads the package
 jdt deploy local .
 ```
 
@@ -64,7 +67,7 @@ The stubs are not empty shells --- they implement every required property and me
 
 ## Component Types
 
-`jdt` supports all six Jarvis extension types:
+`jdt` scaffolds six component types. Five of them install on a Jarvis Automation node; prompt providers belong to the old Docker install only:
 
 | Type | Flag | Interface | Entry File |
 |------|------|-----------|------------|
@@ -73,7 +76,7 @@ The stubs are not empty shells --- they implement every required property and me
 | Device Protocol | `--type protocol` | `IJarvisDeviceProtocol` | `protocol.py` |
 | Device Manager | `--type manager` | `IJarvisDeviceManager` | `manager.py` |
 | Routine | `--type routine` | JSON schema | `routine.json` |
-| Prompt Provider | `--type prompt_provider` | `IJarvisPromptProvider` | `provider.py` |
+| Prompt Provider (legacy only; not supported on jarvisd) | `--type prompt_provider` | `IJarvisPromptProvider` | `provider.py` |
 
 You can combine types in a single package:
 
@@ -85,7 +88,7 @@ This creates a multi-component bundle with all three stubs and a unified manifes
 
 ## Validation Pipeline
 
-`jdt test` runs the same three-phase pipeline that Pantry uses for submission review. Passing locally means your package will pass Pantry validation.
+`jdt test` runs the structural checks Pantry runs on a submission, in three phases. Passing locally means your package passes those checks; Pantry also runs an AI security review of the code, which can flag a package that `jdt test` passes.
 
 ```
 Phase 1: Manifest Validation
@@ -98,7 +101,7 @@ Phase 1: Manifest Validation
 Phase 2: Static Analysis (AST)
   ├── Correct base class (IJarvisCommand, etc.)
   ├── Required methods/properties present
-  ├── No dangerous imports (subprocess, os, shutil)
+  ├── No dangerous imports (subprocess, os, shutil, ctypes, importlib)
   ├── No dangerous calls (eval, exec, os.system)
   ├── No raw database access (sqlite3, sqlalchemy)
   └── No shared directory name collisions

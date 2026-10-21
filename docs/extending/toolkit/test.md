@@ -1,6 +1,6 @@
 # `jdt test` --- Validate a Package
 
-Runs the full three-phase validation pipeline locally. This is the same pipeline that Pantry runs on submission, so passing locally guarantees your package will pass review.
+Runs the full three-phase validation pipeline locally. These are the structural checks Pantry runs on submission, so passing locally means your package passes them. Pantry also runs an AI security review of the code, which `jdt test` does not, and that review can still flag a package.
 
 ## Usage
 
