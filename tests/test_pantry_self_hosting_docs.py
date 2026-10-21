@@ -49,3 +49,17 @@ def test_pantry_pages_do_not_link_legacy():
 def test_local_author_is_not_named_as_a_literal():
     # The stored author is "_local" (jarvis-pantry app/api/local_commands.py:25).
     assert "reserved `local` author" not in _text("self-hosting.md")
+
+
+def test_pantry_base_url_is_server_wide_and_needs_no_restart():
+    # pantry.base_url is not in cc's household allowlist (only pantry.enabled is,
+    # jarvis-server internal/modules/cc/household_settings.go:67), and the admin
+    # API refuses a household value (internal/admin/bff.go:313). It is read on every
+    # call (cc/packages.go:89); JARVIS_PANTRY_URL is only the fallback while no
+    # value is stored (internal/platform/settings/settings.go:53).
+    page = _text("self-hosting.md")
+    para = page.split("`pantry.base_url`", 1)[1].split("\n\n", 1)[0]
+    assert "household can override" not in page
+    assert "server-wide" in para
+    assert "applies at once" in para
+    assert "only while no value is set in Settings" in para

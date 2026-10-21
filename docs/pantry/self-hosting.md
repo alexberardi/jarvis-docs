@@ -105,8 +105,10 @@ as one store, so a node needs only one address.
 - The mirror is read-only: nothing is written upstream.
 
 Point your Jarvis Automation server at your Pantry by setting `pantry.base_url` to the Pantry's address, for example
-`http://pantry.lan:7721`: in the admin web app (**Settings**; a household can override it), or with `JARVIS_PANTRY_URL`
-in `jarvisd.env`, then restart jarvisd. Its default is the public Pantry's API (`https://pantry-api.jarvisautomation.io`).
+`http://pantry.lan:7721`. It is a server-wide setting in the admin web app's **Settings** (a household cannot override
+it), and a change there applies at once. You can also set `JARVIS_PANTRY_URL` in `jarvisd.env`: it takes effect after a
+restart of jarvisd, and only while no value is set in Settings. Its default is the public Pantry's API
+(`https://pantry-api.jarvisautomation.io`).
 The server hands the address to nodes and the mobile app, so they must be able to reach it too, not only the server. The
 household also needs `pantry.enabled` on.
 
