@@ -12,9 +12,14 @@ JarvisParameter(
     description: str | None = None,     # Description shown to the LLM
     default: str | None = None,         # Default value
     enum_values: list[str] | None = None,  # Constrained values
-    refinable: bool = False,            # Can be refined by the user after initial response
+    refinable: bool = False,            # Filled in by a second, focused model call (see below)
+    options_source: str | None = None,  # Live option list for UIs (see below)
 )
 ```
+
+`JarvisParameter` is imported from `jarvis_command_sdk`.
+
+`options_source` tells UIs such as the routine builder to fill a dropdown from live data instead of (or as well as) `enum_values`: `"devices"`, `"devices:<domain>"` (e.g. `"devices:light"`), `"rooms"` or `"news_categories"`. It is copied into the parameter's tool schema as `options_source`.
 
 ## Supported Types
 
@@ -38,20 +43,30 @@ JarvisParameter(
 | `"time"` | `string` | `datetime.time` |
 | `"timedelta"` | `string` | `datetime.timedelta` |
 
+### Image Type
+
+| Type String | Aliases | What `run()` receives |
+|-------------|---------|------------------------|
+| `"image"` | `"array<image>"` | `list[JarvisImage]` |
+
+An image parameter receives the photos the user attached in the mobile app's chat: always a list, in attach order, at most 4 images of at most 2 MiB each. `execute()` turns the wire value into `JarvisImage` objects before `validate_call()`; a bad image, or an empty list for a required parameter, comes back as a validation error.
+
 ### Array Types
 
-Array types use three equivalent syntaxes:
+The date and time arrays accept three spellings; the other arrays only the angle-bracket one:
 
-| Angle Bracket | Square Bracket | Shorthand | Items Type |
+| Angle Bracket | Square Bracket | Shorthand | `items` in the tool schema |
 |--------------|----------------|-----------|------------|
-| `"array<datetime>"` | `"array[datetime]"` | `"datetime[]"` | `date-time` |
-| `"array<date>"` | `"array[date]"` | `"date[]"` | `date` |
-| `"array<time>"` | `"array[time]"` | `"time[]"` | `time` |
-| `"array<timedelta>"` | `"array[timedelta]"` | `"timedelta[]"` | `timedelta` |
-| `"array<string>"` | `"array[string]"` | | `string` |
-| `"array<int>"` | `"array[int]"` | | `integer` |
-| `"array<float>"` | `"array[float]"` | | `number` |
-| `"array<bool>"` | `"array[bool]"` | | `boolean` |
+| `"array<datetime>"` | `"array[datetime]"` | `"datetime[]"` | `{"type": "string", "format": "date-time"}` |
+| `"array<date>"` | `"array[date]"` | `"date[]"` | `{"type": "string", "format": "date"}` |
+| `"array<time>"` | `"array[time]"` | `"time[]"` | none |
+| `"array<timedelta>"` | `"array[timedelta]"` | `"timedelta[]"` | none |
+| `"array<string>"` | | | none |
+| `"array<int>"` | | | none |
+| `"array<float>"` | | | none |
+| `"array<bool>"` | | | none |
+
+The tool schema describes only `datetime` and `date` arrays' items; every other array reaches the model as a bare `"type": "array"`, so say what the items are in the `description`.
 
 **Example -- weather command with date array:**
 
@@ -95,7 +110,7 @@ JarvisParameter(
 )
 ```
 
-The LLM sees these as an `enum` in the JSON Schema. During validation, if the value does not match any enum value, a `ValidationResult` error is generated with the list of valid values. The command center can then retry with the corrected value.
+The LLM sees these as an `enum` in the JSON Schema. During validation, if the value does not match any enum value, a `ValidationResult` error is generated with the list of valid values. The node sends that back to `jarvisd` as a failed tool result, and the model can call the tool again with a valid value.
 
 **Enum values are always strings**, even for integer parameters. Compare as strings when validating.
 
@@ -132,7 +147,7 @@ def validate_call(self, **kwargs) -> list[ValidationResult]:
 
 ## The `refinable` Flag
 
-A `refinable` parameter can be adjusted by the user after the initial response, without restarting the command. This is used for parameters where the user might want to tweak the value.
+A `refinable` parameter is left out of the first tool call and filled in by a second, focused model call. Use it for detail parameters that a small model tends to get wrong when it also has to pick the tool.
 
 ```python
 JarvisParameter(
@@ -153,7 +168,7 @@ JarvisParameter(
 )
 ```
 
-When `refinable=True`, the parameter schema includes a `_refinable: true` hint. This signals to the command center that follow-up utterances like "make it louder" or "actually, play it next" should be interpreted as parameter refinements rather than new commands.
+When `refinable=True`, the parameter schema includes a `_refinable: true` marker. On the text path, `jarvisd` removes refinable parameters from the schema the model sees when it picks the tool. Once the model has picked this tool, `jarvisd` makes a second, focused model call on the same utterance to fill in the refinable parameters, and adds them to the tool call before it goes to the node. `control_device` and `get_device_status` have their own resolvers and skip this step. It applies to the current utterance only; follow-up turns ("make it louder") are ordinary new turns.
 
 ## Validation Pipeline
 
@@ -215,7 +230,7 @@ parameters = [
     JarvisParameter("dates", "array<datetime>", required=True, description="Target dates"),
 ]
 
-# The LLM sees this schema:
+# to_openai_tool_schema() returns:
 {
     "type": "function",
     "function": {
@@ -240,9 +255,15 @@ parameters = [
             },
             "required": ["dates"]
         }
-    }
+    },
+    "allow_direct_answer": false,
+    "is_risky": false,
+    "keywords": [...],
+    "examples": [...]
 }
 ```
+
+The top-level `allow_direct_answer`, `is_risky`, `keywords`, `examples` (and `antipatterns`, when declared) are Jarvis extensions, read by `jarvisd` when it builds the prompt. Where it passes the tools on as tool definitions, it removes `allow_direct_answer`, `keywords`, `examples` and the `_refinable` markers first.
 
 ## Best Practices
 

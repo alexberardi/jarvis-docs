@@ -11,6 +11,8 @@ IJarvisCommand (ABC)
 
 `IJarvisCommand` provides the `execute()` orchestration (validation, auto-correction, then `run()`) plus the full property interface -- command name, description, parameters, secrets, examples, and all optional hooks.
 
+Everything on this page is imported from `jarvis_command_sdk` (installed from git: `pip install git+https://github.com/alexberardi/jarvis-command-sdk.git`; see [jarvis-command-sdk](../libraries/command-sdk.md)). The command runs on the node; `jarvisd` only runs the model turn (see [Execution Lifecycle](lifecycle.md)).
+
 ---
 
 ## Abstract Properties (Required)
@@ -112,6 +114,15 @@ def generate_prompt_examples(self) -> List[CommandExample]:
 - At most **1** example may have `is_primary=True`
 - Keep this list small (3-7 examples) -- it goes into every prompt
 
+### `generate_adapter_examples() -> List[CommandExample]`
+
+A larger, more varied set of examples (10-20) used to train adapters. It is abstract like the others: a command without it can't be instantiated, and the node skips it. If you have nothing extra, return the prompt examples:
+
+```python
+def generate_adapter_examples(self) -> List[CommandExample]:
+    return self.generate_prompt_examples()
+```
+
 ### `run(request_info, **kwargs) -> CommandResponse`
 
 The actual command logic. Called after all validation passes.
@@ -127,8 +138,9 @@ def run(self, request_info: RequestInformation, **kwargs) -> CommandResponse:
 
 **Arguments:**
 
-- `request_info`: A `RequestInformation` object with the original voice command, conversation ID, and validation context
+- `request_info`: A `RequestInformation` object with the original voice command, conversation ID, user, and validation context
 - `**kwargs`: Validated parameters extracted by the LLM, matching your `parameters` definitions
+- `secrets` (in `kwargs`): when the host passes a `secrets` dict to `execute()`, it is forwarded to `run()` as the `secrets` keyword. The Python node always passes it: the values of your `required_secrets` that are set. It is absent when `execute()` is called without it (in tests, for example), so read it with `kwargs.get("secrets") or {}`.
 
 ---
 
@@ -227,7 +239,7 @@ def run_without_confirmation(self) -> bool:
 Pip dependencies for this command. At install time, `install_command.py` collects all `required_packages` from enabled commands, checks for version conflicts against each other and against `requirements.txt`, and writes the merged result to `custom-requirements.txt`.
 
 ```python
-from core.ijarvis_package import JarvisPackage
+from jarvis_command_sdk import JarvisPackage
 
 @property
 def required_packages(self) -> List[JarvisPackage]:
@@ -257,7 +269,7 @@ def associated_service(self) -> str | None:
 OAuth configuration. Commands sharing the same `provider` string share auth state -- once one command completes OAuth, all commands with that provider see the tokens.
 
 ```python
-from core.ijarvis_authentication import AuthenticationConfig
+from jarvis_command_sdk import AuthenticationConfig
 
 @property
 def authentication(self) -> AuthenticationConfig | None:
@@ -295,6 +307,28 @@ def all_possible_secrets(self) -> List[IJarvisSecret]:
 
 **Default:** Delegates to `required_secrets`.
 
+### `setup_guide -> str | None`
+
+Markdown shown in the mobile app when the user taps "Setup Help" on the command's settings: how to get an API key, enable an integration, and so on.
+
+**Default:** `None`
+
+### `supported_platforms -> List[str]`
+
+Platforms the command runs on, e.g. `["darwin"]` for a macOS-only command. An empty list means all.
+
+**Default:** `[]`
+
+### `fast_path_patterns -> List[FastPathPattern]`
+
+Regex patterns the command claims for the fast path (no model turn). The default `pre_route()` tries them; the mobile app lists them so the user can turn single patterns off. See `pre_route()` under Lifecycle Methods below.
+
+**Default:** `[]`
+
+### Other optional members
+
+The SDK has more optional members than this page covers: `proposable_actions` and `listening_signal_types` (errands and signals), the data-browser members (`data_browser_storage_name`, `editable_fields`, `display_summary`, ...) that let the mobile app edit records the command keeps in `JarvisStorage`, and `context_operations`. Their docstrings in `jarvis_command_sdk/command.py` describe them.
+
 ---
 
 ## Running without a tap (household rules)
@@ -314,19 +348,47 @@ Nothing runs on its own until the household turns on background errands, and eve
 
 These methods participate in the command execution pipeline. See [Execution Lifecycle](lifecycle.md) for the full flow.
 
-### `pre_route(voice_command) -> PreRouteResult | None`
+### `pre_route(voice_command, *, disabled_pattern_ids=frozenset()) -> PreRouteResult | None`
 
-Fast-path routing that bypasses the LLM entirely. Override for short, unambiguous utterances that can be parsed deterministically.
+Fast-path routing that bypasses the LLM entirely. The node calls it on every command before it contacts `jarvisd`; the first command that returns a result wins, and the node runs it with `request_info.is_pre_routed=True`.
+
+The usual way in is to declare `fast_path_patterns` and let the default `pre_route()` match them. Each pattern names a handler method on the command, called as `handler(match, voice_command)`:
 
 ```python
-def pre_route(self, voice_command: str) -> PreRouteResult | None:
+import re
+
+from jarvis_command_sdk import FastPathPattern, PreRouteResult
+
+
+@property
+def fast_path_patterns(self) -> List[FastPathPattern]:
+    return [
+        FastPathPattern(
+            id="music.pause",               # stable across versions
+            description="Pause playback",
+            example="pause the music",
+            regex=r"^pause( the music)?$",
+            handler="_pre_route_pause",
+        ),
+    ]
+
+def _pre_route_pause(self, match: re.Match, voice_command: str) -> PreRouteResult | None:
+    return PreRouteResult(arguments={"action": "pause"})
+```
+
+The user can turn single patterns off in the mobile app; the node passes their ids as `disabled_pattern_ids`. If you override `pre_route()` for parsing a regex can't do, keep the signature and honour that set:
+
+```python
+def pre_route(self, voice_command: str, *, disabled_pattern_ids=frozenset()) -> PreRouteResult | None:
+    if "music.pause" in disabled_pattern_ids:
+        return None
     text = voice_command.lower().strip()
     if text in ("pause", "pause the music"):
         return PreRouteResult(arguments={"action": "pause"})
-    return None  # Fall through to LLM
+    return None  # Fall through to the LLM
 ```
 
-**Returns:** `PreRouteResult` with `arguments` dict and optional `spoken_response`, or `None` to use the normal LLM path.
+**Returns:** `PreRouteResult` with `arguments` dict and optional `spoken_response`, or `None` to use the normal LLM path. On the fast path no model writes the reply, so put the sentence to speak in `context_data["message"]` (or `spoken_response`).
 
 ### `post_process_tool_call(args, voice_command) -> dict`
 
@@ -346,7 +408,7 @@ def post_process_tool_call(self, args: dict, voice_command: str) -> dict:
 Custom parameter validation after basic type and presence checks pass. Override for cross-parameter validation, context-dependent checks, or entity resolution.
 
 ```python
-from core.validation_result import ValidationResult
+from jarvis_command_sdk import ValidationResult
 
 def validate_call(self, **kwargs) -> list[ValidationResult]:
     results = super().validate_call(**kwargs)  # Run default enum/type checks
@@ -366,11 +428,9 @@ def validate_call(self, **kwargs) -> list[ValidationResult]:
 
 ### `handle_action(action_name, context) -> CommandResponse`
 
-Handle interactive button taps from the mobile app. Called when a user taps a button on a response that included `actions`.
+Handle interactive button taps from the mobile app. When a user taps a button on a response that included `actions`, `jarvisd` forwards the tap to the node over MQTT, and the node calls this method and posts the result back.
 
 ```python
-from core.ijarvis_button import IJarvisButton
-
 def handle_action(self, action_name: str, context: dict) -> CommandResponse:
     if action_name == "send_click":
         # Send the email draft from context
@@ -385,32 +445,36 @@ def handle_action(self, action_name: str, context: dict) -> CommandResponse:
 
 ### `store_auth_values(values) -> None`
 
-Called when OAuth tokens are delivered from the mobile app. Override to process and store tokens as secrets.
+Called on the node when `jarvisd` delivers new OAuth tokens (after the user connects the account in the mobile app), and again after each background refresh. Override to store the tokens as secrets.
 
 ```python
+from jarvis_command_sdk import JarvisStorage
+
 def store_auth_values(self, values: dict[str, str]) -> None:
-    from services.secret_service import set_secret
+    storage = JarvisStorage(self.command_name)
     if "access_token" in values:
-        set_secret("GMAIL_ACCESS_TOKEN", values["access_token"], "integration")
+        storage.set_secret("GMAIL_ACCESS_TOKEN", values["access_token"])
     if "refresh_token" in values:
-        set_secret("GMAIL_REFRESH_TOKEN", values["refresh_token"], "integration")
+        storage.set_secret("GMAIL_REFRESH_TOKEN", values["refresh_token"])
 ```
+
+Only one command per provider gets the call; see [OAuth Command Tutorial](tutorial-oauth.md#implementing-store_auth_values).
 
 **Default:** No-op.
 
 ### `refresh_token(*, refresh_token, client_secret=None, timeout_seconds=15.0) -> TokenBundle | None`
 
-Refresh an OAuth2 access token. The default implementation is a pure HTTP call: it POSTs to `auth.exchange_url` with `grant_type=refresh_token` and returns a `TokenBundle` (`access_token`, `refresh_token`, `expires_in`, `raw`) on success, or `None` if the command has no authentication config or the HTTP call fails. **The caller (the node runtime) persists the returned tokens** — the SDK method itself does not touch the secret store.
+Refresh an OAuth2 access token. The default implementation is a pure HTTP call: it POSTs to `auth.exchange_url` with `grant_type=refresh_token` and returns a `TokenBundle` (`access_token`, `refresh_token`, `expires_in`, `raw`) on success, or `None` if the command has no authentication config or the HTTP call fails. The method itself does not touch the secret store.
 
-Override for non-standard refresh flows.
+Override it for non-standard refresh flows. The Python node's background refresh (for `requires_background_refresh=True`) calls your override when you have one, otherwise it does the standard grant itself; either way it hands the new tokens to `store_auth_values()`. See [Background Token Refresh](tutorial-oauth.md#background-token-refresh).
 
 ### `needs_auth(*, secrets, auth_status=None) -> bool`
 
-Check whether the mobile app should prompt the user for authentication. Pure check against the host-supplied `secrets` dict: returns `True` when a required secret is missing or when the optional `auth_status` (host-supplied, e.g. set after a prior 401) flags re-auth. Commands with no `authentication` config return `False`.
+Whether the user needs to (re)connect the account. Pure check against the host-supplied `secrets` dict: returns `True` when a required secret is missing or when the optional `auth_status` flags re-auth. Commands with no `authentication` config return `False`. The Python node does not pass `auth_status` today; it keeps its own re-auth flag (set when a background refresh fails) in its settings snapshot.
 
 ### `init_data() -> dict`
 
-One-time initialization hook. Called manually via `python scripts/init_data.py --command <name>`. Use for first-install setup like registering devices or fetching initial state.
+One-time initialization hook. Run it by hand from a shell on the node: `python scripts/init_data.py --command <name>`. Use for first-install setup like registering devices or fetching initial state.
 
 ```python
 def init_data(self) -> dict:
@@ -435,6 +499,9 @@ def execute(self, request_info, *, secrets=None, **kwargs) -> CommandResponse:
         if missing:
             raise MissingSecretsError(missing)
     # Check required params present (raises ValueError on omissions)
+    image_errors = self._coerce_image_params(kwargs)  # "image" params -> list[JarvisImage]
+    if image_errors:
+        return CommandResponse.validation_error(image_errors)
     results = self.validate_call(**kwargs)  # Value validation
     errors = [r for r in results if not r.success]
     if errors:
@@ -442,7 +509,9 @@ def execute(self, request_info, *, secrets=None, **kwargs) -> CommandResponse:
     for r in results:              # Apply auto-corrections
         if r.suggested_value is not None:
             kwargs[r.param_name] = r.suggested_value
-    return self.run(request_info, secrets=secrets, **kwargs)
+    if secrets is not None:        # Forwarded only when given
+        return self.run(request_info, secrets=secrets, **kwargs)
+    return self.run(request_info, **kwargs)
 ```
 
 ---
@@ -486,7 +555,12 @@ class RequestInformation:
     conversation_id: str                        # Conversation session ID
     is_validation_response: bool = False        # True if this is a clarification reply
     validation_context: dict | None = None      # Context from validation flow
+    user_id: int | None = None                  # The speaker, when known
+    is_pre_routed: bool = False                 # True on the fast path: no LLM writes the reply
+    home_context: dict | None = None            # Household info from jarvisd, e.g. {"location": ...}
 ```
+
+When `is_pre_routed` is `True`, put the full sentence to speak in `context_data["message"]`.
 
 ### `CommandResponse`
 
@@ -495,6 +569,7 @@ See [Response Patterns](responses.md) for full documentation. Quick reference:
 | Factory Method | Success | Wait for Input | Use Case |
 |----------------|---------|----------------|----------|
 | `success_response()` | `True` | `True` | Standard success |
+| `with_items()` | `True` | `True` | A list the user can act on next ("mark those as read") |
 | `error_response()` | `False` | `False` | Errors |
 | `follow_up_response()` | `True` | `True` | Expects more user input |
 | `final_response()` | `True` | `False` | One-shot, conversation ends |
@@ -514,6 +589,28 @@ class ValidationResult:
     valid_values: list[str] | None = None       # Allowed values (for LLM retry)
 ```
 
+### `ReferenceableItem` and `@callback`
+
+A command that reads out a list can let the user act on it in the next turn ("mark those as read", "send me number 3"). Return the items with `CommandResponse.with_items()`; each item's `actions` name methods decorated with `@callback` on the same command. The node remembers which command owns each item, and the built-in `act_on_items` tool calls the callback with the chosen rows.
+
+```python
+from jarvis_command_sdk import CommandResponse, ReferenceableItem, callback
+
+
+def run(self, request_info, **kwargs) -> CommandResponse:
+    items = [
+        ReferenceableItem(ref_id=m.id, label=f"email from {m.sender}", actions=["mark_read"])
+        for m in self._unread()
+    ]
+    return CommandResponse.with_items(f"You have {len(items)} unread emails.", items)
+
+@callback("mark_read")
+def mark_read(self, data: dict, request_info) -> CommandResponse:
+    ...
+```
+
+`@callback` methods are also what a tap on a rich inbox item in the mobile app calls.
+
 ### `JarvisParameter`
 
 See [Parameters Deep Dive](parameters.md).
@@ -531,6 +628,7 @@ class IJarvisButton:
     button_action: str                          # "send_click", "cancel_click"
     button_type: Literal["primary", "secondary", "destructive"]
     button_icon: str | None = None              # MaterialCommunityIcons name
+    completion_message: str | None = None       # Shown after the action succeeds ("Email sent!")
 ```
 
 ### `JarvisPackage`
@@ -543,9 +641,6 @@ class JarvisPackage:
 
     def to_pip_spec(self) -> str:
         """'requests', 'httpx==0.25.1', 'pydantic>=2.0,<3.0'"""
-
-    def to_requirement(self) -> Requirement:
-        """Convert to a packaging.requirements.Requirement for programmatic use."""
 
 # Examples:
 JarvisPackage("requests")                    # Latest
@@ -567,20 +662,22 @@ class AuthenticationConfig:
     keys: list[str]                 # Keys to extract from token response
 
     # External OAuth (full URLs):
-    authorize_url: str | None       # "https://accounts.google.com/..."
-    exchange_url: str | None        # "https://oauth2.googleapis.com/token"
+    authorize_url: str | None = None       # "https://accounts.google.com/..."
+    exchange_url: str | None = None        # "https://oauth2.googleapis.com/token"
 
     # Local/discoverable OAuth (paths + network scan):
-    authorize_path: str | None      # "/auth/authorize"
-    exchange_path: str | None       # "/auth/token"
-    discovery_port: int | None      # 8123
-    discovery_probe_path: str | None  # "/api/"
+    authorize_path: str | None = None      # "/auth/authorize"
+    exchange_path: str | None = None       # "/auth/token"
+    discovery_port: int | None = None      # 8123
+    discovery_probe_path: str | None = None  # "/api/"
 
     # OAuth extras:
-    scopes: list[str]
-    extra_authorize_params: dict[str, str]
-    extra_exchange_params: dict[str, str]
+    scopes: list[str] = []
+    extra_authorize_params: dict[str, str] = {}
+    extra_exchange_params: dict[str, str] = {}
+    send_redirect_uri_in_exchange: bool = True   # False for Home Assistant
     supports_pkce: bool = False
+    client_secret: str | None = None  # Web-application clients: sent instead of PKCE
     native_redirect_uri: str | None = None
 
     # Background refresh:
