@@ -12,7 +12,7 @@ curl -fsSL https://raw.githubusercontent.com/alexberardi/jarvis-node-setup/v0.3.
 
 This installs to `/opt/jarvis-node`, sets up a systemd service, and configures audio. A fresh node then opens its setup hotspot; pair it with your server from the mobile app (**Add Node**, see [Provisioning](provisioning.md)). The app gives the node your server's address, the same `http://<server>:7700` the app itself uses, and the node finds everything else from it. For development, `authorize_node.py` pairs a node without the app (see [Node Authentication](#node-authentication)).
 
-A node that was paired with the old Docker install keeps its key when you move to `jarvisd` with `jarvisd import-legacy`, and reconnects without being set up again; see [Migrating from the old install](../install/migrate.md).
+A node that was paired with the old Docker install keeps its key when you move to `jarvisd` with `jarvisd import-legacy`, and reconnects without being set up again; see [Migrating from the old install](../install/migrating-from-docker.md).
 
 Flags:
 

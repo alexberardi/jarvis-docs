@@ -45,7 +45,7 @@ Put them after `sh install.sh`. `sh install.sh --help` lists them too.
 | `--version <tag>` | Install that release, such as `v0.1.0-rc18`, instead of the one the script came from. |
 | `--user` | Linux only: run the server as a service of your own account, without root. The program goes to `~/.local/bin`, the data to `~/.jarvisd`. Run it without `sudo`. |
 | `--yes` | Answer yes for you: apply the firewall fix without asking. Use it where there is no terminal to ask in. |
-| `--stop-legacy` | Stop the old Docker install on the same machine (its containers, and on macOS its background services and admin), so the new server can take its ports. Nothing is deleted. See [Migrating from the old install](migrate.md). |
+| `--stop-legacy` | Stop the old Docker install on the same machine (its containers, and on macOS its background services and admin), so the new server can take its ports. Nothing is deleted. See [Migrating from the old install](migrating-from-docker.md). |
 | `--force` | Reinstall even when this version is already installed. |
 | `--uninstall` | Remove the service, the firewall rules and the program. Your data is kept. See [Uninstall](uninstall.md). |
 | `--purge` | With `--uninstall`: also delete the data, after you type a confirmation. |

@@ -39,7 +39,7 @@ If a check can't read what it needs (a firewall's rules, a data directory that b
 | **network profile** (Windows) | Windows treats your network as Public; the server's firewall rule covers Private networks only. | Settings → Network & internet → your network → **Private network**. |
 | **sleep** (macOS) | The Mac sleeps when idle, and a sleeping server doesn't answer. | `sudo pmset -a sleep 0`, or prevent sleep in System Settings. |
 | **data directory** (Linux, macOS) | Other accounts on the machine can read the data directory, or some of its files belong to another account. | Follow the `fix:` line. See [Data and backups](../operate/data-and-backups.md#where-the-data-lives). |
-| **legacy stack** | The old Docker install is running and uses the server's ports or the GPU. | The `fix:` line stops it and keeps it from starting at boot; its data is kept. To bring its data over: [Migrating from the old install](../install/migrate.md). |
+| **legacy stack** | The old Docker install is running and uses the server's ports or the GPU. | The `fix:` line stops it and keeps it from starting at boot; its data is kept. To bring its data over: [Migrating from the old install](../install/migrating-from-docker.md). |
 | **mqtt anonymous** | `JARVIS_MQTT_ALLOW_ANONYMOUS=1` lets anyone on your network read every message. | Remove it from `jarvisd.env` and restart. |
 | **env file** | `jarvisd.env` can't be read, so the checks used the default ports. | Run `sudo jarvisd doctor`. |
 
