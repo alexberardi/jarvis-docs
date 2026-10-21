@@ -1,124 +1,101 @@
 # Coding Standards
 
-## Working Style
+## Working style
 
 **Be a scalpel, not a hammer.**
 
-- Ask questions early when stuck or uncertain, rather than repeatedly trying the same approach
-- If something fails 2-3 times, step back and re-evaluate
-- Precision over persistence -- one well-aimed question beats five failed attempts
+- Ask questions early when stuck or uncertain, rather than repeatedly trying the same approach.
+- If something fails two or three times, step back and re-evaluate.
+- Precision over persistence: one well-aimed question beats five failed attempts.
 
-## Language and Framework
+## Languages
 
-- **Python 3.11+** for all backend services
-- **FastAPI + Uvicorn** for all HTTP services
-- **Docker + Docker Compose** for containerization
-- **TypeScript** for the mobile app (React Native/Expo)
+| Where | Language | Notes |
+|---|---|---|
+| `jarvis-server` (jarvisd, jarvis-agent) | **Go 1.27** (`go.mod`: `go 1.27.1`) | Built with `CGO_ENABLED=0` always. Native libraries (sherpa-onnx, onnxruntime) are loaded at run time through purego, not linked. |
+| `jarvis-server/web/admin` | TypeScript (React) | The admin web app, embedded in the binary by `make jarvisd`. Its own rules are in `web/admin/CLAUDE.md`. |
+| `jarvis-node-setup` | Python 3.10+ | The Python voice node and its commands |
+| `jarvis-pantry` | Python 3.11+ | The Pantry API |
+| `jarvis-command-sdk`, `jarvis-developer-toolkit` | Python | Packages and `jdt` |
+| `jarvis-node-mobile` | TypeScript (React Native) | The mobile app |
 
-## Imports
+## Go (jarvis-server)
 
-All imports must be at the top of the file. No mid-file imports unless absolutely necessary (e.g., circular import resolution).
+- **Format and vet.** Code is `gofmt`-formatted and passes `go vet` for Linux, macOS and Windows. `scripts/check` runs
+  both, so a build break on another OS shows up before CI.
+- **No cgo in builds.** `CGO_ENABLED=0` for every build. Only the race detector needs cgo, so tests run with
+  `CGO_ENABLED=1 go test -race`.
+- **Errors** are returned, not logged and swallowed. Add context when you pass one up
+  (`fmt.Errorf("load node %s: %w", id, err)`) so callers can still match it with `errors.Is` and `errors.As`.
+- **Logging** uses the standard library's `log/slog`. jarvisd sets up the logger once
+  (`internal/platform/logging`): records go to stderr and, in batches, into the built-in logs module, which the admin
+  web app's **Logs** page reads. Take the `*slog.Logger` your module is given, and log with key-value pairs:
 
-Group imports in this order:
+  ```go
+  m.log.Info("node paired", "node_id", nodeID, "household_id", hh)
+  m.log.Error("tool call failed", "tool", name, "err", err)
+  ```
 
-1. Standard library
-2. Third-party packages
-3. Local imports
+  There is no `print`-style logging and no separate log service.
+- **Read the design first.** Behaviour that the old Python services had is specified in jarvis-server's `docs/`
+  (for example `docs/cc/` for the command center), and parity with it is proven by the contract suite (see
+  [Testing](testing.md#the-contract-suite)), not by reading the old code. Don't port what the plan's cut lists drop.
 
-```python
-# Standard library
-import os
-from datetime import datetime, timezone
-from typing import Any
+## Adding to a module
 
-# Third-party
-import httpx
-from fastapi import APIRouter, Depends
-from sqlalchemy.orm import Session
+jarvisd is one process made of modules under `internal/modules/` (`auth`, `cc`, `llm`, `stt`, `tts`, `logs`,
+`notifications`, `recipes` and others). Each implements the `Module` interface in `internal/platform/module`. New server
+work goes into a module; there are no new services. A change usually touches some of these:
 
-# Local
-from app.core.config import settings
-from app.services.memory_service import MemoryService
-```
+1. **A migration** when it needs a table or column: a goose SQL file in
+   `internal/modules/<module>/migrations/<NNNNN>_<what>.sql`, numbered above the module's highest, with a real
+   `-- +goose Down`. Tables carry the module's prefix (`cc_`, `auth_`, …) because every module shares one SQLite file.
+   Migrations are embedded in the binary and run when `jarvisd serve` starts; `jarvisd migrate status` shows them.
+   Keep them additive within a release series (new tables, nullable columns or columns with defaults): a drop or rename
+   breaks rolling back to the previous release.
+2. **A setting** when behaviour should be configurable: a `settings.Definition` (from `internal/platform/settings`)
+   next to the code that reads it, registered with the module's definitions. Give it a dotted, lowercase key prefixed by
+   its area (`pantry.enabled`, `cc.compaction.threshold`), a type, a default and a description (the admin web app shows
+   it). Declare only keys that code reads, and use `EnvFallback` only for secrets and URLs. A read cascades from the
+   most specific scope (user, node, household) to the system value, then the env fallback, then the default.
+3. **An access tier** for every new `/api` route on the admin gateway: who may call it (superuser, any signed-in user,
+   or open) is recorded in `internal/modules/admin/tiers.go`. `TestEveryAPIRouteHasATier` fails on a route nobody
+   classified, and the tier tests check each route as an anonymous caller, a member, a power user, a household admin,
+   a superuser and another household's member. A change to the access rules, or a route below `superuser`, is reviewed
+   by the maintainer before it merges.
+4. **Tests** in the module's own `_test.go` files, and the contract suite when a response's shape changes.
+5. **Docs**: the subsystem's design note in jarvis-server's `docs/`, and a file in `docs/decisions/` for a design
+   choice a later reader would otherwise have to rediscover.
 
-## Type Hints
+## Python repositories
 
-Always use type hints on every function parameter, return type, and variable declaration. No ambiguous signatures.
+The Python voice node, the SDK, `jdt` and the Pantry keep their Python conventions. Each repository's `CLAUDE.md` has
+the details; the shared rules:
 
-```python
-# Good
-def process_command(text: str, user_id: int, timeout: float = 5.0) -> CommandResponse | None:
-    count: int = 0
-    results: list[dict[str, Any]] = []
-    ...
+- **Imports** at the top of the file, grouped standard library, third-party, local.
+- **Type hints** on every function's parameters and return value; prefer `X | None` over `Optional[X]`.
+- **Exceptions:** never a bare `except:`; catch specific types and keep the exception (`except httpx.HTTPError as e`).
+- **Lint:** `ruff`, configured in each repository's `pyproject.toml` (`line-length = 79` in jarvis-node-setup,
+  `line-length = 132` in jarvis-pantry).
+- **Tests:** `pytest`, written first. See [Testing](testing.md#python-repositories).
 
-# Bad
-def process_command(text, user_id, timeout=5.0):
-    count = 0
-    results = []
-    ...
-```
+### Logging in the Python node
 
-Prefer `X | None` over `Optional[X]` (Python 3.10+ syntax). Use the `typing` module for complex types (`TypeVar`, `Protocol`, etc.).
-
-## Logging
-
-All logging must go through `jarvis-log-client` to the `jarvis-logs` service. No `print()` statements in production code.
+The Python node (jarvis-node-setup) still logs through `jarvis-log-client`, which sends its records to the server.
+No `print()` in production code; CLI scripts and tests are the exception.
 
 ```python
 from jarvis_log_client import JarvisLogger
 
-logger = JarvisLogger("my-service")
-
-logger.info("Processing command", extra={"user_id": user_id, "command": command_name})
-logger.error("Command failed", extra={"error": str(e)}, exc_info=True)
+logger = JarvisLogger("my-command")
+logger.info("Processing command", extra={"command": command_name})
 ```
 
-The only acceptable uses of `print()` are:
+## Before you commit
 
-- CLI scripts (e.g., `install_command.py`, `authorize_node.py`)
-- Test files
-- Worker `_safe_print()` pattern (for pre-logger-init output)
+| Repository | Gate |
+|---|---|
+| `jarvis-server` | `scripts/check` (gofmt and `go vet` for three OSes on what changed, race tests of the changed packages, the admin web app's typecheck and tests when `web/admin/` changed), then `CGO_ENABLED=1 go test -race ./...` |
+| Python repositories | `ruff check .` and `pytest` in that repository |
 
-## Exception Handling
-
-- Never use bare `except:` -- always catch specific exception types
-- Always capture the exception with `as e` when using `except Exception`
-- Prefer specific exceptions (`ValueError`, `httpx.HTTPError`) over broad `Exception`
-
-```python
-# Good
-try:
-    result = await client.post(url, json=payload)
-    result.raise_for_status()
-except httpx.HTTPStatusError as e:
-    logger.error("HTTP error", extra={"status": e.response.status_code})
-except httpx.RequestError as e:
-    logger.error("Connection error", extra={"error": str(e)})
-
-# Bad
-try:
-    result = await client.post(url, json=payload)
-except:
-    pass
-```
-
-## New Services
-
-When creating a new service:
-
-1. Use Docker containers with `Dockerfile` and `docker-compose.yaml`
-2. Follow existing service patterns (FastAPI + Uvicorn)
-3. Include a `CLAUDE.md` with service-specific documentation
-4. Add health check endpoint at `/health`
-5. Use Alembic for database migrations
-6. Register with `jarvis-config-service` for service discovery
-7. Use `jarvis-log-client` for logging
-8. Add the service to the CLI's service registry in the `jarvis` script
-
-## Code Quality
-
-- Target 80%+ test coverage for all services
-- Run `pytest` before committing
-- Use `ruff` for linting (configured at the project level)
-- Keep files under 500 lines -- split into modules if growing larger
+See [Testing](testing.md) for the suites behind these.

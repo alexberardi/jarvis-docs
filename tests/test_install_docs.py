@@ -135,14 +135,15 @@ def test_setup_wizard_page():
     text = _text("install/setup-wizard.md")
     assert "jarvisd setup-link" in text and "--qr" in text
     assert "setup token" in text.lower() and "setup-token" in text
-    for step in ["Check", "Account", "Hardware", "Models", "Privacy"]:
+    for step in ["Check", "Account", "Hardware", "Language model", "Speech-to-text", "Voice",
+                 "Voice recognition", "Memory & search", "Privacy", "This computer", "Done"]:
         assert f"**{step}**" in text, f"setup-wizard.md doesn't describe the {step} step"
     assert "7700" in text  # where nodes and the app point afterwards
 
 
 def test_upgrade_page():
     text = _text("install/upgrade.md")
-    assert "**Update**" in text
+    assert "**Update now**" in text  # the Updates page's button (UpdatePage.tsx)
     assert "jarvisd upgrade" in text and "--rollback" in text
     assert "backups/" in text and "jarvisd.prev" in text
     assert DATA_PAGE in text

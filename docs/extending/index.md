@@ -2,11 +2,11 @@
 
 Jarvis uses a **plugin architecture** built on abstract Python interfaces (ABCs). Every extension point follows the same pattern:
 
-1. **Implement** an abstract interface (e.g., `IJarvisCommand`, `IJarvisAgent`)
-2. **Place** the file in the corresponding package directory
-3. **Done** --- the discovery system finds it automatically via Python reflection
+1. **Implement** an abstract interface (e.g., `IJarvisCommand`, `IJarvisAgent`) from the `jarvis-command-sdk`
+2. **Package** it: a directory with a fixed entry file (`command.py`, `agent.py`, `protocol.py`) and a `jarvis_package.yaml` manifest
+3. **Install** it on a node --- from the mobile app, or with `jdt deploy` followed by a restart of the node --- and the discovery system finds it via Python reflection
 
-There is no registration step, no config file to edit, no decorator to apply. Drop a Python file in the right directory and it is live.
+There is no registration step and no decorator to apply: the node finds every class that implements the interface in the installed package. Nothing watches the disk, though, so a package copied in by hand or with `jdt deploy` is picked up when the node next restarts (see [Discovery](discovery.md#where-installed-packages-land)).
 
 ## The Household Staff
 
@@ -22,7 +22,7 @@ Commands are the specialists on staff --- the chef, the accountant, the gardener
 
 Agents are the senior staff who work autonomously in the background. While commands respond to direct requests, agents watch for conditions and act on their own --- monitoring an inbox for urgent emails, checking if a package has shipped, or alerting you when a flight is delayed. They coordinate across services without being asked.
 
-**Example:** An email alert agent periodically checks for high-priority messages and pushes a notification. A token refresh agent silently renews OAuth credentials before they expire.
+**Example:** An email alert agent periodically checks for high-priority messages and queues an alert, which the node announces aloud. A token refresh agent silently renews OAuth credentials before they expire.
 
 ### The Stewards --- `IJarvisDeviceManager`
 
@@ -42,7 +42,7 @@ The scribe listens and transcribes. When someone speaks, the scribe converts aud
 
 ### The Orator --- `IJarvisTextToSpeechProvider`
 
-The orator is the household's voice. When Jarvis needs to speak a response aloud, the orator converts text into natural speech. Like the scribe, different orators use different engines (Piper, Kokoro, or a cloud TTS API), but they all produce audio from text. The server-side engine is swappable via the `tts.provider` setting — see the [TTS service docs](../legacy/services/tts.md).
+The orator is the household's voice. When Jarvis needs to speak a response aloud, the orator converts text into natural speech. Like the scribe, different orators use different engines, but they all produce audio from text. When the node hands speech to the server, jarvisd speaks with Kokoro, its only TTS engine (tune it with the `tts.kokoro_*` settings).
 
 ### The Greeter --- `IJarvisWakeResponseProvider`
 
@@ -50,7 +50,7 @@ The greeter handles the first moment of interaction --- the acknowledgment when 
 
 ### The Wordsmith --- `IJarvisPromptProvider`
 
-The wordsmith runs on the command center, not the node. They craft the system prompts that shape how the LLM interprets voice commands --- choosing the right framing, formatting tool schemas, and tuning the prompt for the specific model being used. Different wordsmiths optimize for different LLMs. They belong to the legacy Command Center and are not supported on jarvisd.
+The wordsmith ran on the old Command Center, not the node. They crafted the system prompts that shape how the LLM interprets voice commands --- choosing the right framing, formatting tool schemas, and tuning the prompt for the specific model being used. Different wordsmiths optimize for different LLMs. They belong to the legacy Command Center and are not supported on jarvisd.
 
 ## Extension Points
 
@@ -61,10 +61,10 @@ The wordsmith runs on the command center, not the node. They craft the system pr
 | [Device Managers](devices/managers.md) | `IJarvisDeviceManager` | The Stewards | `device_managers/` | Node | `DeviceManagerDiscoveryService` |
 | [Device Protocols](devices/protocols.md) | `IJarvisDeviceProtocol` | The Translators | `device_families/` | Node | `DeviceFamilyDiscoveryService` |
 | Routines | JSON definitions | The Playbooks | `routines/` | Node | Loaded by `RoutineCommand` |
-| [Prompt Providers](../legacy/extending/prompt-providers/index.md) (legacy install only) | `IJarvisPromptProvider` | The Wordsmiths | `app/core/prompt_providers/` | Command Center | `PromptProviderFactory` |
-| STT Providers | `IJarvisSpeechToTextProvider` | The Scribe | `stt_providers/` | Node | Manual config |
-| TTS Providers | `IJarvisTextToSpeechProvider` | The Orator | `tts_providers/` | Node | Manual config |
-| Wake Response Providers | `IJarvisWakeResponseProvider` | The Greeter | `wake_response_providers/` | Node | Manual config |
+| [Prompt Providers](../legacy/extending/prompt-providers/index.md) (legacy install only; not on jarvisd) | `IJarvisPromptProvider` | The Wordsmiths | `app/core/prompt_providers/` | Old Command Center | `PromptProviderFactory` |
+| STT Providers | `IJarvisSpeechToTextProvider` | The Scribe | `stt_providers/` | Node | Selected by name from `config.json` |
+| TTS Providers | `IJarvisTextToSpeechProvider` | The Orator | `tts_providers/` | Node | Selected by name from `config.json` |
+| Wake Response Providers | `IJarvisWakeResponseProvider` | The Greeter | `wake_response_providers/` | Node | Selected by name from `config.json` |
 
 "Node" here is a Pi running the Python node. A computer's desktop agent runs commands only, and some packages are kept off computers: see [Where your code runs](where-code-runs.md).
 
@@ -74,7 +74,7 @@ Prompt providers belong to the old Docker install's Command Center. Jarvis Autom
 
 Under the hood, Jarvis uses Python's `pkgutil` and `importlib` to scan package directories at startup. It finds every class that implements the expected interface, instantiates it, validates any required secrets, and registers it. This happens automatically for commands, agents, device managers and device families.
 
-For STT, TTS, and wake response providers, discovery is manual --- you specify the provider in your node's config file. But the implementation pattern is identical: subclass the ABC, implement the required methods, and you are done.
+STT, TTS and wake response providers work differently. The node scans each provider directory the same way, but uses only the one whose `provider_name` matches the value in its `config.json` (for example `tts_provider`). Providers are built into the node: they are not package components, so they cannot be shipped through Pantry or `jdt`, and adding one means editing the node's source.
 
 ## Architecture Diagram
 
@@ -103,15 +103,13 @@ graph TB
         DFDS -->|scans| DF
     end
 
-    subgraph CC ["Command Center (jarvis-command-center)"]
+    subgraph Server ["Jarvis Automation server (jarvisd)"]
         direction TB
-        PP["The Wordsmiths<br/><small>IJarvisPromptProvider</small>"]
-        PPF["PromptProviderFactory"]
-        PPF -->|scans| PP
+        LLM["LLM + built-in prompts<br/><small>llm.prompt_provider</small>"]
     end
 
-    Node -- "voice/text commands" --> CC
-    CC -- "parsed intent + args" --> Node
+    Node -- "voice/text + tool schemas" --> Server
+    Server -- "tool call + args" --> Node
 ```
 
 ## Common Patterns
@@ -120,30 +118,29 @@ Most extension points share a set of common patterns that make the plugin system
 
 ### Required Secrets
 
-Many plugins need API keys or credentials. The `required_secrets` property declares what a plugin needs, and the discovery system validates availability before registering it:
+Many plugins need API keys or credentials. The `required_secrets` property declares what a plugin needs, as a list of `JarvisSecret` objects:
 
 ```python
-@property
-def required_secrets(self) -> list[str]:
-    return ["GOVEE_API_KEY"]
+from jarvis_command_sdk import JarvisSecret
 
-def validate_secrets(self) -> bool:
-    """Return True if all required secrets are available."""
-    for secret in self.required_secrets:
-        if not self.secret_service.get_secret(secret):
-            return False
-    return True
+@property
+def required_secrets(self) -> list[JarvisSecret]:
+    return [
+        JarvisSecret("GOVEE_API_KEY", "Govee developer API key", "integration", "string"),
+    ]
 ```
 
-If secrets are missing, the plugin is skipped with a log warning rather than crashing the service. This allows optional plugins to coexist with required ones.
+You do not write the check yourself. On the node, each plugin's `validate_secrets()` returns the keys of the required secrets that have no value yet (an empty list when all are set), and the discovery system checks it before registering the plugin.
 
-### The `name` Property
+If secrets are missing, agents, device managers and device protocols are skipped with a log warning rather than crashing the service (commands excepted: a command is still registered, and its missing secrets are reported when it runs). This allows optional plugins to coexist with required ones.
 
-Every plugin has a `name` property that serves as its unique identifier. This is how the system refers to plugins in logs, configuration, and the command registry:
+### The Name Property
+
+Every plugin has a name property that serves as its unique identifier. This is how the system refers to plugins in logs, configuration, and the command registry. Commands call it `command_name`, device protocols `protocol_name`, and agents and device managers `name`:
 
 ```python
 @property
-def name(self) -> str:
+def command_name(self) -> str:
     return "get_weather"
 ```
 
@@ -153,18 +150,20 @@ All discovery services catch `ImportError` and other exceptions during scanning.
 
 ### Thread Safety
 
-Discovery services use `threading.RLock` for thread-safe access to the plugin registry. This is important because the background refresh thread (used by `CommandDiscoveryService`) can update the registry while other threads are reading it.
+Discovery services hold a lock (`threading.Lock` or `RLock`) around the plugin registry. A refresh (after a test install or a config push, for example) can replace the registry while other threads are reading it.
 
 ## Getting Started
 
 The fastest way to extend Jarvis is the [Developer Toolkit (`jdt`)](toolkit/index.md):
 
 ```bash
+# jdt depends on the SDK, which is not on PyPI: install it from git first
+pip install git+https://github.com/alexberardi/jarvis-command-sdk.git
 pip install git+https://github.com/alexberardi/jarvis-developer-toolkit.git
 jdt init my_command --type command
 cd my_command
 jdt test .          # Verify it passes
-jdt deploy local .  # Install to your node
+jdt deploy local .  # Install to your node, then restart the node
 ```
 
 `jdt` scaffolds a complete, working package with valid stubs, a manifest, and a `CLAUDE.md` for AI-assisted development. See the [Development Workflow](toolkit/workflow.md) for a full walkthrough, or the [Claude Code Integration](toolkit/claude-code.md) guide if you are using Claude Code.

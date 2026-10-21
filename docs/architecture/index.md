@@ -45,7 +45,7 @@ Clients do not hard-code these paths: they ask the config module's `/services` e
 
 Clients use the entry's `url` as the base and append their routes, for example `http://<host>:7700/cc/health`.
 
-An install upgraded from the old Docker stack also keeps the old per-service ports (7701-7712, 7030, 7031, and the MQTT WebSocket on 9883), and `/services` keeps answering with them, so clients that were set up against them keep working. The setting is `server.legacy_ports`: on for an upgraded install, off for a fresh one. It applies after jarvisd restarts. The environment variable `JARVIS_LEGACY_PORTS` (`1` or `0`) overrides it.
+An upgraded install also keeps the old per-service ports (7701-7712, 7030, 7031, and the MQTT WebSocket on 9883), and `/services` keeps answering with them, so clients that were set up against them keep working. The setting is `server.legacy_ports`: on for an install that was upgraded (from the old Docker stack, or from an earlier `jarvisd` that predates the setting), off for a fresh one. It applies after jarvisd restarts. The environment variable `JARVIS_LEGACY_PORTS` (`1` or `0`) overrides it.
 
 ### Storage
 
@@ -56,7 +56,7 @@ An install upgraded from the old Docker stack also keeps the old per-service por
 | Files (images, recipe photos, OCR input) | A blob store on the local disk, under the data directory. |
 | Logs | A table in the database with a retention period. |
 
-The data directory is `~/.jarvisd/` by default. The Linux system service uses `/var/lib/jarvisd`. You can set it with `--home` or `JARVIS_HOME`.
+The data directory is `~/.jarvisd/` by default. The Linux system service uses `/var/lib/jarvisd`, the Windows service `%ProgramData%\jarvisd`. You can set it with `--home` or `JARVIS_HOME`.
 
 ### Inference
 
@@ -64,7 +64,7 @@ The models run on your hardware. Model weights and GPU engines are not in the bi
 
 | Capability | How it runs |
 |---|---|
-| Language model | `llama-server` subprocesses, one per slot: a **live** slot for conversations and a **background** slot for jobs such as memory and summaries. Remote providers (OpenAI, Anthropic, Ollama, LM Studio) can stand in. |
+| Language model | `llama-server` subprocesses, one per slot: a **live** slot for conversations and a **background** slot for jobs such as memory and summaries. A Hugging Face directory model runs instead on MLX (Apple Silicon), vLLM (Linux x86-64) or Transformers, Python engines that `jarvisd` installs with uv in their own environment. Remote providers (OpenAI, Anthropic, Ollama, LM Studio) can stand in. |
 | Speech to text | whisper.cpp's `whisper-server`, as a subprocess. |
 | Text to speech | Kokoro, inside the binary (sherpa-onnx). |
 | Speaker identification | ERes2Net voiceprints, inside the binary (sherpa-onnx). Off by default. |
@@ -74,7 +74,7 @@ The models run on your hardware. Model weights and GPU engines are not in the bi
 
 ### Discovery
 
-`jarvisd` advertises itself on the local network over mDNS (`_jarvis-config._tcp`), so the mobile app can find the server without typing an address. Set `JARVIS_MDNS=0` to turn it off.
+`jarvisd` advertises itself on the local network over mDNS (`_jarvis-config._tcp`), so the desktop agent's first-run page can find the server without typing an address. The mobile app doesn't look for it: it asks for the address and hands it to the voice nodes it sets up. Set `JARVIS_MDNS=0` to turn it off.
 
 ## Modules
 
@@ -96,7 +96,7 @@ Each module is a Go package in [`internal/modules/`](https://github.com/alexbera
 
 ### Service registry (`config`)
 
-The first thing every client talks to. The mobile app finds the server over mDNS, checks `GET /info`, then reads `GET /services` for the URL of every other module.
+The first thing every client talks to. The mobile app takes the server's address from the user, checks `GET /info`, then reads `GET /services` for the URL of every other module.
 
 - At startup `jarvisd` registers its own modules in the registry.
 - Entries for things outside the process (a remote GPU machine, for example) can be added and edited.
@@ -142,7 +142,7 @@ Starts and supervises `llama-server` engines and routes requests to them, or to 
 
 Transcribes audio on a supervised `whisper-server`, and identifies speakers.
 
-- Speaker identification uses ERes2Net voiceprints, matched against each household member's enrolled voice. It is off by default per household and stores voiceprints only, never recordings.
+- Speaker identification uses ERes2Net voiceprints, matched against each household member's enrolled voice. It is off by default (`voice.recognition_enabled`, an install-wide setting) and stores voiceprints only, never recordings.
 - The command center calls it in process; nodes and the mobile app reach it through the command center.
 - Replaces: jarvis-whisper-api.
 
@@ -177,7 +177,7 @@ The household's recipe box, meal planner and shopping list, and recipe import fr
 The mobile app's inbox, device push tokens and push sends.
 
 - Push sends are queued jobs with retries.
-- Push goes through a relay, which is **off by default**: the setup wizard's privacy step turns it on. Until then, notifications stay in the inbox.
+- Push goes through a relay, which is **off by default**. You can turn it on in the setup wizard's privacy step ("Phone push notifications", which uses the project's relay, `relay.jarvisautomation.io`) or by setting `relay.url`. Until then, notifications stay in the inbox. Every push's title and body go through the relay to Expo.
 - Replaces: jarvis-notifications.
 
 ### Logs (`logs`)
@@ -192,7 +192,7 @@ Stores log records from `jarvisd` itself and from nodes, and streams them live t
 Serves the web admin on its own port, 7710, with an `/api` gateway to the other modules.
 
 - Hosts the [setup wizard](../install/setup-wizard.md) for the first run.
-- Every household member can use Chat and Add-ons; every other page is for superusers, and the server enforces it per route.
+- Every household member can use the member pages: Chat, Add-ons, Inbox, Workflows and Recordings. The Admin group is for superusers, and the server enforces it per route.
 - Settings, system information, traces, doctor, logs, connections, restart and signed updates.
 - Replaces: jarvis-admin.
 

@@ -1,184 +1,75 @@
 # Your First Command
 
-You have finished the setup wizard and services are starting. This page walks you through verifying everything works and sending your first command.
+You have installed the server and finished the [setup wizard](../install/setup-wizard.md). This page checks that the server is up, adds a voice node, and sends Jarvis its first request.
 
-## 1. Verify Services Are Running
+`<host>` below is the machine the server runs on, or `localhost` on that machine.
 
-### Via the Admin Dashboard
+## 1. Check the server
 
-Open [http://localhost:7711/dashboard](http://localhost:7711/dashboard) in your browser. The Dashboard page shows every container's status. All core services should show a green "running" status.
+### In the admin
 
-### Via the Command Line
+Open `http://<host>:7710/admin/dashboard` and sign in with the account you made in the wizard. The **Dashboard** shows the server (**System**), its **Health check**, the **Models** it runs and its **Nodes**. Each model you picked in the wizard should show as installed; a large one may still be downloading.
 
-Check container status with Docker Compose:
+### In a terminal
 
-```bash
-cd ~/.jarvis/compose && docker compose ps
-```
-
-You should see containers for at least: `jarvis-postgres`, `jarvis-config-service`, `jarvis-auth`, `jarvis-command-center`, and `jarvis-llm-proxy`.
-
-## 2. Health Check Cheat Sheet
-
-Hit each service's health endpoint to confirm it is responding:
-
-| Service | Command | Expected |
-|---------|---------|----------|
-| Config Service | `curl -s http://localhost:7700/health` | `{"status":"ok"}` |
-| Auth | `curl -s http://localhost:7701/health` | `{"status":"ok"}` |
-| Command Center | `curl -s http://localhost:7703/health` | `{"status":"ok"}` |
-| LLM Proxy | `curl -s http://localhost:7704/health` | `{"status":"ok"}` |
-| TTS | `curl -s http://localhost:7707/health` | `{"status":"ok"}` |
-| Logs | `curl -s http://localhost:7702/health` | `{"status":"ok"}` |
-
-!!! tip
-    The LLM Proxy can take up to two minutes to load the model. If it returns an error, wait and try again.
-
-If any service is not responding, check its logs:
+On the server:
 
 ```bash
-cd ~/.jarvis/compose && docker compose logs <service-name> --tail 50
+jarvisd service status    # is the service running, and does it answer?
+jarvisd doctor            # can phones, nodes and other computers reach it?
 ```
 
-See the [Troubleshooting](../troubleshooting/index.md) guide for common fixes.
+`jarvisd doctor` prints one line per check with its fix; [The jarvisd command](../operate/cli.md) explains both commands, and [Troubleshooting](../troubleshooting/index.md#start-with-jarvisd-doctor) each check.
 
-## 3. Register a Test Node
-
-Nodes authenticate to the command center with an API key. Register a dev node so you can send test commands.
-
-### Find your admin API key
-
-The admin API key was generated during installation. Find it in the compose environment file:
+To ask the server directly:
 
 ```bash
-grep ADMIN_API_KEY ~/.jarvis/compose/.env
+curl -s http://<host>:7700/health             # {"status":"ok"}
+curl -s http://<host>:7700/services/health    # every part of the server, and whether it answers
 ```
 
-Save the value -- you will need it in the next command.
+The server is one program, so there is one log for all of it: see [Read the log](../troubleshooting/index.md#read-the-log), or the admin's **Logs** page.
 
-### Register the node
+## 2. Chat from a browser
 
-```bash
-cd jarvis-node-setup
+The quickest first command needs no hardware. Open the web app's **Chat**:
 
-# List existing households (the installer creates one for your superuser account)
-python utils/authorize_node.py --cc-key <ADMIN_API_KEY> --list
-
-# Register a dev node in your household
-python utils/authorize_node.py \
-  --cc-key <ADMIN_API_KEY> \
-  --household-id <household-uuid> \
-  --room office \
-  --name dev-test \
-  --update-config config.json
+```text
+http://<host>:7710/chat
 ```
 
-Replace `<ADMIN_API_KEY>` with the value from the previous step, and `<household-uuid>` with the household ID from the `--list` output.
+Type a request, such as "what is 5 plus 3", and press Enter. Any member of the household can sign in here, not only the admin. The chat goes through the same steps as a voice request, minus the speech, so it is a good way to check the server before you set up audio.
 
-!!! note "Source installs only"
-    The `authorize_node.py` script is in the `jarvis-node-setup` directory, which is only available if you cloned the repository. If you installed via Docker or the one-line installer, skip to [Chat from a browser](#5-chat-from-a-browser) instead.
+## 3. Add a voice node
 
-## 4. Send Your First Command
+Voice nodes are added from the [mobile app](../install/mobile-app.md), not from the server:
 
-Extract the node credentials from the config file, then send a text command. Voice commands are conversation-scoped, so you start a conversation first (this warms the LLM prompt), then send the command into it:
+1. Install the node software on the Pi: [Voice node](../install/voice-node.md).
+2. In the app, set your server's address (`http://<host>:7700`) and sign in.
+3. Tap **Add Node** and follow the steps. The app joins the node's Wi-Fi hotspot, gives it your Wi-Fi and the server's address, and the node joins your household.
 
-```bash
-# Extract credentials
-NODE_ID=$(python3 -c "import json; print(json.load(open('config.json'))['node_id'])")
-API_KEY=$(python3 -c "import json; print(json.load(open('config.json'))['api_key'])")
+The new node shows on the admin's **Nodes** page and in the app. [Provisioning](../clients/provisioning.md) walks through each step.
 
-# Start a conversation (warms the prompt for this session)
-CONV_ID=$(uuidgen)
-curl -s -X POST http://localhost:7703/api/v0/conversation/start \
-  -H "X-API-Key: ${NODE_ID}:${API_KEY}" \
-  -H "Content-Type: application/json" \
-  -d "{\"conversation_id\": \"${CONV_ID}\"}"
+## 4. Say your first command
 
-# Send a command into the conversation
-curl -s -X POST http://localhost:7703/api/v0/voice/command \
-  -H "X-API-Key: ${NODE_ID}:${API_KEY}" \
-  -H "Content-Type: application/json" \
-  -d "{\"voice_command\": \"what is 5 plus 3\", \"conversation_id\": \"${CONV_ID}\"}"
-```
+Say "Hey Jarvis", wait for the node to show it is listening, then "what is 5 plus 3". The node sends what you said to the server, and the answer comes back as speech.
 
-**Expected response** (abridged — the response also includes fields like `commands` and `tool_calls`):
+Inside the server, the request goes through speech-to-text, the language model, which picks the `calculate` command, the command itself, and text-to-speech. [Voice pipeline](../architecture/voice-pipeline.md) describes each step.
 
-```json
-{
-  "assistant_message": "5 plus 3 equals 8.",
-  "stop_reason": "complete"
-}
-```
+## 5. Add commands and their keys
 
-The exact response text varies depending on your LLM model, but `assistant_message` should include the correct answer (8). If you get `400 Conversation not initialized`, re-run the `conversation/start` call — conversations live in memory and are dropped when command-center restarts.
+Jarvis ships with built-in commands (timers, reminders, lists, jokes and more; see the [home page](../index.md#built-in-commands)). Others, such as weather, news or email, are packages you install from the [Pantry](../mobile/pantry.md) in the mobile app.
 
-### What Happened?
+Some commands need an API key or a sign-in. Set them in the mobile app: open the node on the **Nodes** tab, then its settings, where each command lists the secrets it needs. See [Nodes](../mobile/nodes.md#node-settings).
 
-The request flowed through the full voice pipeline:
+## Something not working?
 
-1. **Command Center** received the text input
-2. **LLM Proxy** classified the intent as `calculate` and extracted parameters
-3. **Calculator command** executed and returned the result
-4. **Command Center** formatted the response
+- **The server doesn't answer:** run `jarvisd service status` and `jarvisd doctor`, then [read the log](../troubleshooting/index.md#read-the-log).
+- **Phones or the node can't connect:** usually the firewall; see [Phones and nodes can't connect](../troubleshooting/index.md#phones-and-nodes-cant-connect-but-it-works-on-the-server).
+- **No answer from the language model:** check on the admin's **Models** page that a language model is installed and in use.
+- **Everything else:** [Troubleshooting](../troubleshooting/index.md).
 
-In a real voice interaction, Whisper (speech-to-text) runs before step 1, and TTS (text-to-speech) runs after step 4.
-
-## 5. Chat from a Browser
-
-Browser chat is the web app built into jarvisd, the single-binary server in [jarvis-server](https://github.com/alexberardi/jarvis-server). If you run jarvisd, open it on port 7710:
-
-```
-http://localhost:7710
-```
-
-Sign in and open **Chat**. Any household member can use it, not only the superuser. Type a message like "what is the capital of France" and press Enter.
-
-The chat sends commands through the same pipeline as voice nodes, so it is a convenient way to test without setting up audio hardware.
-
-!!! note "jarvis-web is retired"
-    The separate Next.js web chat (`jarvis-web`, port 7722) is no longer maintained. Installs that enabled it keep running it, but it gets no fixes; use the jarvisd web app or the mobile app instead.
-
-    On the multi-container Docker stack, port 7710 is the older admin UI, which has no chat. Use the mobile app or the `curl` commands above there.
-
-## 6. Set Up Voice (Optional)
-
-To use voice input from a Pi Zero or other device, see:
-
-- [Node Setup](../clients/node-setup.md) -- configure a Pi Zero as a voice node
-- [Provisioning](../clients/provisioning.md) -- headless WiFi provisioning for Pi Zero nodes
-
-## 7. Install Command Secrets
-
-Some commands need API keys to work. For example, weather commands need an OpenWeather API key, and email commands need OAuth credentials.
-
-List commands and their required secrets:
-
-```bash
-cd jarvis-node-setup
-
-# List all commands and their secrets
-python scripts/install_command.py --list
-
-# Install all commands (registers them in the database)
-python scripts/install_command.py --all
-```
-
-Set a secret:
-
-```bash
-python utils/set_secret.py set --key OPENWEATHER_API_KEY --value <your-key> --scope integration
-```
-
-Secrets can also be managed through the mobile app's Settings screen.
-
-## Something Not Working?
-
-- **Service not responding:** Check its health endpoint and logs (see [Health Check Cheat Sheet](#2-health-check-cheat-sheet))
-- **401 Unauthorized:** Your API key may be wrong -- re-register the node
-- **No response from LLM:** Check that a model is loaded via the admin dashboard Models page
-- **Detailed troubleshooting:** See the [Troubleshooting](../troubleshooting/index.md) guide
-
-## Next Steps
+## Next steps
 
 - [Configure the server: the jarvisd command and its env file](../operate/cli.md#the-data-directory-and-the-env-file)
 - [Build your own command](../commands/tutorial-simple.md)

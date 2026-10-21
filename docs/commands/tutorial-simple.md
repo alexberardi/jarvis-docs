@@ -2,23 +2,32 @@
 
 This tutorial walks you through building a complete command from scratch. By the end, you will have a working `roll_dice` command that responds to voice input like "Roll two dice" or "Roll a d20".
 
-**Prerequisites:** A working jarvis-node-setup installation. See the [Getting Started](../legacy/getting-started/index.md) guide.
+**Prerequisites:**
+
+- A running `jarvisd` with a live model (see [Install](../install/index.md)).
+- A source checkout of [jarvis-node-setup](https://github.com/alexberardi/jarvis-node-setup) set up as a node and paired with that server (see [Node](../clients/node-setup.md)). The checkout bundles the SDK. To write a command outside it, install the SDK from git: `pip install git+https://github.com/alexberardi/jarvis-command-sdk.git` (it is not on PyPI).
+
+This tutorial adds the command to the checkout, which is the quickest loop while you develop. To ship a command to other nodes, package it instead: [`jdt init`](../extending/toolkit/init.md) scaffolds a Pantry package with the same class in `command.py`.
 
 ## Step 1: Create the File
 
-Create a new file at `jarvis-node-setup/commands/dice_command.py`:
+In your jarvis-node-setup checkout, create `commands/dice_command.py`:
 
 ```python
+import random
 from typing import List
 
-from jarvis_command_sdk import IJarvisCommand, CommandExample
-from core.ijarvis_parameter import JarvisParameter
-from core.ijarvis_secret import IJarvisSecret
-from core.command_response import CommandResponse
-from core.request_information import RequestInformation
+from jarvis_command_sdk import (
+    CommandExample,
+    CommandResponse,
+    IJarvisCommand,
+    IJarvisSecret,
+    JarvisParameter,
+    RequestInformation,
+)
 ```
 
-These are the standard imports every command needs.
+Every command imports from `jarvis_command_sdk`, so it runs on any node that has the SDK.
 
 ## Step 2: Define the Class and Required Properties
 
@@ -141,8 +150,6 @@ More examples = better adapter training. Cover casual phrasings, shorthand notat
 This is where the actual logic lives:
 
 ```python
-    import random
-
     def run(self, request_info: RequestInformation, **kwargs) -> CommandResponse:
         sides = int(kwargs.get("sides", 6))
         count = int(kwargs.get("count", 1))
@@ -177,7 +184,7 @@ Key points:
 - Extract parameters from `**kwargs` with defaults
 - Validate inputs and return `error_response` for bad values
 - Return `final_response` because dice rolls don't need follow-up conversation
-- The `context_data["message"]` is what the LLM uses to generate the spoken response
+- The `context_data["message"]` is what the LLM uses to generate the spoken response (on the fast path, with no LLM, it is spoken as written)
 
 ## Complete File
 
@@ -187,11 +194,14 @@ Here is the full `dice_command.py`:
 import random
 from typing import List
 
-from jarvis_command_sdk import IJarvisCommand, CommandExample
-from core.ijarvis_parameter import JarvisParameter
-from core.ijarvis_secret import IJarvisSecret
-from core.command_response import CommandResponse
-from core.request_information import RequestInformation
+from jarvis_command_sdk import (
+    CommandExample,
+    CommandResponse,
+    IJarvisCommand,
+    IJarvisSecret,
+    JarvisParameter,
+    RequestInformation,
+)
 
 
 class DiceCommand(IJarvisCommand):
@@ -282,20 +292,21 @@ class DiceCommand(IJarvisCommand):
 
 ## Step 8: Install the Command
 
-Run the install script to seed the secrets database:
+Run the install script, then restart the node:
 
 ```bash
 cd jarvis-node-setup
 python scripts/install_command.py roll_dice
+sudo systemctl restart jarvis-node   # or stop and start your dev process
 ```
 
-Since this command has no secrets, this just registers it. For commands with secrets, this creates the empty secret rows in the database.
+The script runs the node's database migrations, resolves the command's `required_packages`, creates empty rows for its secrets and records it in the command registry. It does not reach the running node: the node discovers commands only when it starts (or when a Pantry install or a settings push refreshes it), hence the restart. After it, the node sends the new tool to `jarvisd` with its next voice turn, so "roll a d20" works from then on.
 
 ## Step 9: Test It
 
 ### E2E Testing
 
-Add test cases to `test_command_parsing.py` and run:
+Add test cases to `test_command_parsing.py` and run it against your `jarvisd` (the harness reads the server address from the node's config; see [Testing Commands](testing.md#prerequisites)):
 
 ```bash
 # List all tests to find your command
@@ -311,7 +322,7 @@ You can also test `run()` directly:
 
 ```python
 from commands.dice_command import DiceCommand
-from core.request_information import RequestInformation
+from jarvis_command_sdk import RequestInformation
 
 cmd = DiceCommand()
 request = RequestInformation(voice_command="Roll 2d6", conversation_id="test")

@@ -8,7 +8,7 @@ Jarvis Automation is a **pre-release** (release candidate rc18). Builds are on t
 
 Pick one; they all end the same way. In a container (Unraid or Docker), see [In a container](#in-a-container) instead.
 
-- **From the admin.** The admin's **Updates** page offers new releases: click **Update**. The server downloads the release, checks it, restarts on it and the page shows how it went. Nothing to type, on any system.
+- **From the admin.** The admin's **Updates** page offers new releases: click **Update now**. The server downloads the release, checks it, restarts on it and the page shows how it went. Nothing to type, on any system.
 - **From a terminal** on the server:
 
     ```sh

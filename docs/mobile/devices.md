@@ -1,6 +1,6 @@
 # Devices
 
-The Devices tab shows all smart home devices discovered in your household. Devices are found through installed device protocol packages (Kasa, LIFX, Govee, Apple, Nest, Home Assistant).
+The Devices tab shows all smart home devices discovered in your household. Devices are found through the device protocol packages installed from the [Pantry](pantry.md) (for example Kasa, LIFX, Govee, Hue, HomeKit or Nest), or imported from Home Assistant.
 
 ## Device List
 
@@ -31,12 +31,13 @@ Some protocols require a pairing step before a device can be controlled — for 
 4. Tap **Submit**. A "Pairing…" spinner is shown while the handshake is in flight.
 5. Once pairing succeeds, the panel flips automatically to the domain control (e.g. thermostat) — no manual refresh needed.
 
-If pairing fails, an alert is shown with the error. Email + password or another attempt can be retried immediately.
+If pairing fails, a **Pairing Failed** alert shows the error. You can try again right away.
 
 ## Smart Home Setup
 
 Configure your smart home integration from **Settings > Smart Home**. This includes:
 
 - Selecting a primary node for device discovery
-- Enabling external device protocols
-- Connecting to Home Assistant (if available)
+- Showing devices from an external hub (**Use External Devices**)
+
+To connect Home Assistant, use **Set Up Smart Home** at the end of adding a node (see [Nodes](nodes.md#adding-a-node)).

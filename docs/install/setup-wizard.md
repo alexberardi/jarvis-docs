@@ -31,12 +31,18 @@ The wizard saves each step as you go: close the tab and the link opens where you
 1. **Check**: checks that phones, voice nodes and other computers can reach the server. If something is blocked (usually the firewall), it shows the check that failed and its fix.
 2. **Account**: creates the first account, the household's admin.
 3. **Hardware**: shows what the server found on this machine, which decides the models it can run.
-4. **Models**: picks the language model. The wizard suggests one that fits and marks the others **Fits** or not; see [Requirements and choosing a model](requirements.md). Nothing large is downloaded until you choose here.
-5. **Privacy**: asks what may leave the server, such as add-on commands from the Pantry and push notifications to phones.
-6. **This computer** (optional): **Also use Jarvis Automation on this computer** downloads the [desktop agent](../agent/index.md) for the computer you are on, pairs it with the server and, if you tick it, sets up the browser extension. **Skip for now** leaves it for later; the admin's **Add-ons** page has the same download.
-7. **Done**: the wizard hands over to the admin.
+4. **Language model**: understands requests and writes the answers; the biggest download. The wizard suggests one that fits and marks the others **Fits** or not; see [Requirements and choosing a model](requirements.md).
+5. **Speech-to-text**: turns what you say to a voice node into text. Needed for voice.
+6. **Voice**: how Jarvis sounds when it answers. Needed for voice.
+7. **Voice recognition** (optional): tells household members apart by voice.
+8. **Memory & search** (optional): lets Jarvis find related memories and notes. Small, and runs on the CPU.
+9. **Privacy**: asks what may leave the server, such as add-on commands from the Pantry and push notifications to phones.
+10. **This computer** (optional): **Also use Jarvis Automation on this computer** downloads the [desktop agent](../agent/index.md) for the computer you are on, pairs it with the server and, if you tick it, sets up the browser extension. **Skip for now** leaves it for later; the admin's **Add-ons** page has the same download.
+11. **Done**: the wizard hands over to the admin.
 
-After setup, the admin stays on port 7710 (`http://<host>:7710`). Phones and voice nodes connect to `http://<host>:7700`; they also find the server by themselves on your network.
+Steps 4 to 8 each pick the model for one job and suggest one that fits this machine. Nothing large is downloaded until you confirm a step; the download then carries on while you move to the next one. **Install everything recommended**, on the first of them, confirms all five suggestions at once. Each can be skipped (**Skip for now** on the three Jarvis needs, **Skip** on the two optional ones) and set later on the admin's **Models** page.
+
+After setup, the admin stays on port 7710 (`http://<host>:7710`). Phones and voice nodes need the server's address, `http://<host>:7700`: you type it into the [mobile app](mobile-app.md), and the app passes it to a voice node when it sets the node up. Only the [desktop agent](../clients/desktop-agent.md) finds the server on the network by itself.
 
 ## Next
 

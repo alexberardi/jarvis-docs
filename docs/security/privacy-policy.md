@@ -1,8 +1,8 @@
 # Privacy Policy
 
-**Last updated:** October 12, 2026
+**Last updated:** October 21, 2026
 
-This privacy policy describes how Jarvis Automation ("we", "us", "Jarvis") handles information collected through the Jarvis platform, including the **Jarvis Automation** mobile app, the **Jarvis desktop agent** and the **Jarvis Browser Control** browser extension, the self-hosted backend services, and optional cloud services.
+This privacy policy describes how Jarvis Automation ("we", "us", "Jarvis") handles information collected through the Jarvis platform, including the **Jarvis Automation** mobile app, the **Jarvis desktop agent** and the **Jarvis Browser Control** browser extension, the self-hosted **Jarvis Automation server** (one program, `jarvisd`, that you run on your own hardware), and optional cloud services.
 
 Jarvis is **self-hosted by default**. Most data flows in Jarvis never reach servers operated by us — they stay on hardware you own and operate. This policy distinguishes between the two cases.
 
@@ -10,11 +10,12 @@ Jarvis is **self-hosted by default**. Most data flows in Jarvis never reach serv
 
 | Data | Where it goes | When |
 |------|---------------|------|
-| Voice recordings | Your own server (Whisper STT) | Always |
-| Voice transcripts and assistant replies | Your own server (Command Center) | Always |
-| Account credentials (email, password hash) | Your own server (Jarvis Auth) | Always |
+| Voice recordings | Your own Jarvis Automation server (speech to text) | Always |
+| Voice transcripts and assistant replies | Your own Jarvis Automation server | Always |
+| Account credentials (email, password hash) | Your own Jarvis Automation server | Always |
 | Authentication tokens on the mobile app | Encrypted in your device's OS keychain | Always |
 | Pantry package metadata | Jarvis Automation cloud (Pantry service) | Only when you use the package store |
+| Push notification titles and bodies, and device push tokens | Jarvis Automation cloud (push relay), then Expo, Apple and Google | Only when push notifications are turned on |
 | Google account data (Calendar, Drive, Gmail, Nest) | Google, then your own server | Only when you enroll OAuth |
 | Local network scan results (Wi-Fi SSIDs, device IPs) | Your device only | During node provisioning |
 | Camera images (QR codes) | Your device only (transient) | During node pairing |
@@ -26,13 +27,13 @@ We do not sell your data. We do not run analytics on the mobile app, the desktop
 
 ## Information you provide
 
-**Account information.** When you create a Jarvis account, you provide an email address and password. These are stored on the Jarvis Auth service. If you are self-hosting, this is your own server. If you are using a managed Jarvis instance, this is the host you connect the mobile app to.
+**Account information.** When you create a Jarvis account, you provide an email address and password. These are stored on your Jarvis Automation server. If you are self-hosting, this is your own server. If you are using a managed Jarvis instance, this is the host you connect the mobile app to.
 
-**Voice input.** Voice commands you speak to a Jarvis node are recorded, transcribed by the Whisper service, and processed by the Command Center. All of this runs on the server you have configured.
+**Voice input.** Voice commands you speak to a Jarvis node are recorded, transcribed and processed by your Jarvis Automation server. All of this runs on the server you have configured, unless you configure a cloud language-model provider, which then receives your conversations.
 
 **Configuration data.** Node names, room assignments, device pairings, routines, and similar settings are stored on your own server.
 
-**Optional integrations.** If you enroll third-party services (Google Calendar, Gmail, Drive, Nest, Home Assistant, etc.), you authorize Jarvis to access data from those services according to the scopes you grant during OAuth. That data is fetched on demand by your server and is not relayed through Jarvis Automation infrastructure.
+**Optional integrations.** If you enroll third-party services (Google Calendar, Gmail, Drive, Nest, Home Assistant, etc.), you authorize Jarvis to access data from those services according to the scopes you grant during OAuth. That data is fetched on demand by your server or your node and is not relayed through Jarvis Automation infrastructure. If your server's operator sets an OAuth relay (`oauth.relay_url`, empty by default), the provider's sign-in redirect, which carries a one-time authorization code, passes through that relay on its way back to the app.
 
 ## Information the mobile app collects
 
@@ -50,6 +51,7 @@ The mobile app does not include any third-party analytics, advertising, crash re
 
 - Your own Jarvis server (the host you configured)
 - Jarvis Automation cloud services that you have explicitly opted into (Pantry package store)
+- Expo, to get a device push token, only when you turn on push notifications in the app's Settings
 - Third-party OAuth providers (Google, etc.) only when you initiate an OAuth flow
 
 ## Information the desktop agent and browser extension handle
@@ -82,17 +84,20 @@ conversation transcript) follows your server's own retention settings.
 
 If you choose to use a Jarvis Automation cloud service, the following data is sent to and stored on our infrastructure:
 
-**Jarvis Pantry (package store).** When you browse, install, or share community packages, we receive your account identifier and the package identifiers you interact with. We store the packages themselves (which you publish) and download counts.
+**Jarvis Pantry (package store).** When you or your server browse or install packages, the Pantry receives the package names requested and the requesting IP address, which it uses for rate limiting; these requests carry no account identifier. Each install adds to that package's public install count. When you publish or share a package, we receive your Pantry account identifier and store the packages you publish.
+
+**Push relay (optional).** Phone push notifications are off until your server's operator turns them on (the "Phone push notifications" switch in the setup wizard's privacy step, or the `relay.url` setting). When they are on, your server sends each notification to the relay it is set to use; the default is ours, `relay.jarvisautomation.io`. For each notification the relay receives the title and the body, any data attached to it, the push tokens of the devices to deliver it to, and your household's identifier. The relay forwards the notification to Expo's push service, which delivers it through Apple (APNs) or Google (FCM). The relay keeps no database: it does not store titles, bodies or push tokens, and holds only short-lived rate-limit counters in memory. Its logs record your household's identifier and IP address when your server registers with it. Expo, Apple and Google handle the notifications under their own privacy policies. To get a push token, the mobile app also contacts Expo when you turn push notifications on.
 
 **App Store and Google Play.** When you download the Jarvis Automation mobile app, Apple and Google may collect installation and usage telemetry according to their respective privacy policies. We do not receive personally identifying information from these stores beyond aggregate install counts.
 
-We do not operate any other cloud services that receive your data by default.
+We do not operate any other cloud services that receive your data. Neither the Pantry nor the push relay receives anything until you turn it on.
 
 ## How we use information
 
 We use the limited cloud-collected information described above to:
 
 - Operate the Pantry package store and let you share installable packages with other users
+- Deliver your push notifications, if you turn them on
 - Deliver mobile app updates through Apple App Store and Google Play
 - Respond to your direct support requests if you contact us
 
@@ -126,6 +131,7 @@ To avoid disrupting other people who share your setup, you cannot delete your ac
 
 - Pantry account: retained while your account is active. Deleted within 30 days of an account-deletion request.
 - Pantry packages you have published: retained while your account is active. You can delete individual packages at any time.
+- Push relay: notifications pass through and are not stored. Rate-limit counters are kept in memory only and reset when the relay restarts.
 - Mobile app diagnostic logs (if you opt to send them): retained for 30 days.
 
 To delete data held by Jarvis Automation's cloud services (such as the Pantry package store), email <admin@jarvisautomation.io> from the address on file, or remove your individual packages from within the app.
@@ -136,7 +142,11 @@ Jarvis is not directed at children under 13, and we do not knowingly collect per
 
 ## Security
 
-We use industry-standard practices to secure data on our cloud services, including encryption in transit (TLS) and at rest. Mobile app authentication tokens are stored in the platform's secure keychain. Node-level secrets are stored in an AES-256 encrypted database with a key that never leaves the device.
+We use industry-standard practices to secure data on our cloud services, including encryption in transit (TLS) and at rest. Mobile app authentication tokens are stored in the platform's secure keychain.
+
+Secrets for your commands (API keys and account tokens) are encrypted between the mobile app and the node with the node's own key. Your Jarvis Automation server stores and passes on only the encrypted form. On a Raspberry Pi running the Python node software, they are stored in an AES-256 encrypted database (SQLCipher). On a computer with the desktop agent, they are stored, with the node's key, in files only your user account can read (0600), not encrypted. For the desktop agent, and for a node that gets its key without its setup hotspot, the key itself passes once through your server's memory when it is delivered.
+
+Your Jarvis Automation server keeps its data, including any API keys you give it for cloud model providers, phone calls (Twilio) or Hugging Face, in a database in its data directory that only the server's user account can read. This database and its backups are not encrypted at rest.
 
 See [Security](index.md) for a fuller description of the platform's security model.
 

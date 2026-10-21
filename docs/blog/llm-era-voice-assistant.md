@@ -1,9 +1,12 @@
 ---
 title: "Self-hosted voice assistants in the LLM era"
 description: "What we built with Jarvis and why: speaker recognition, an assistant-first architecture, a package store for voice capabilities, and no outbound connections by default."
+date: 2026-06-24
 ---
 
 # Self-hosted voice assistants in the LLM era: what we built, and why
+
+*Published <time datetime="2026-06-24">24 June 2026</time>*
 
 Mycroft shut down in May 2023. That was supposed to be the moment the open-source voice assistant community rallied around something new.
 
@@ -82,6 +85,9 @@ Treat this as an experiment, not a promise. It works, it's genuinely useful, and
 ---
 
 ## Getting started
+
+!!! note "The install below is retired (note added 21 October 2026)"
+    This post describes the old Docker install. Its installer (`jarvis-admin`'s `install.sh`) and the wizard on port 7711 are retired, and Docker is no longer needed: Jarvis Automation is now a single server binary with native installers, and its setup wizard is at `http://<server>:7710/setup`. Text to speech is Kokoro only. To install today, see [Install](../install/index.md); the server's source is [jarvis-server](https://github.com/alexberardi/jarvis-server).
 
 <!-- jarvis:install-cmd:start -->
 ```bash

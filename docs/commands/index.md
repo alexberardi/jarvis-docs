@@ -6,17 +6,35 @@ Commands are the core extension point of Jarvis. Every voice interaction -- "Wha
 
 ## How It Works
 
-When a user speaks a voice command, the pipeline looks like this:
+A command runs on the **node**, the device you talk to. The server, `jarvisd`, runs speech-to-text, the model turn and text-to-speech; it never runs your command's code. When a user speaks:
 
-1. **Speech-to-text** converts audio to text
-2. The **command center** sends the text to the LLM with all registered command schemas
-3. The LLM selects a command and extracts parameters
-4. The **node** executes the command's `run()` method
-5. The response flows back through the command center to the user
+1. The node records the request and `jarvisd` transcribes it.
+2. The node tries each command's `pre_route()` on the text. If one claims it, the node runs that command straight away, with no model turn.
+3. Otherwise the node sends the text to `jarvisd` with the tool schemas of all its commands. `jarvisd` runs the model, which picks a command and fills in its parameters.
+4. `jarvisd` sends the tool call back to the node, which runs the command's `execute()` (validation, then your `run()`) and posts the result to `jarvisd`.
+5. `jarvisd` turns the result into the spoken reply, and the node plays it.
 
-Commands live as Python files in `jarvis-node-setup/commands/`. Drop in a new file, implement the interface, and run `install_command.py` -- that's it.
+[Execution Lifecycle](lifecycle.md) has the full flow.
 
 A command runs on a Pi's Python node or on a computer's desktop agent, not on the server. [Where your code runs](../extending/where-code-runs.md) says which devices run what.
+
+## Getting Started
+
+Commands import everything from `jarvis_command_sdk`. The SDK is not on PyPI; install it from git:
+
+```bash
+pip install git+https://github.com/alexberardi/jarvis-command-sdk.git
+```
+
+The Python node already bundles it. See [jarvis-command-sdk](../libraries/command-sdk.md).
+
+There are two ways to ship a command:
+
+- **As a Pantry package** (the supported way): scaffold it with [`jdt init`](../extending/toolkit/init.md) and install it on a node with [`jdt deploy`](../extending/toolkit/deploy.md) or from the Pantry.
+- **In a source checkout of jarvis-node-setup** (for development): drop a file into `commands/`, run `python scripts/install_command.py <name>` to seed its settings, then restart the node (`sudo systemctl restart jarvis-node`, or restart your dev process). The node discovers commands only when it starts or when a Pantry install or settings push refreshes it, so a new file is not picked up while it runs.
+
+!!! note "`core.*` imports"
+    Older samples import `JarvisParameter`, `CommandResponse` and friends from `core.*`, and read secrets with `services.secret_service`. Those modules exist only inside the Python node (`core.*` re-exports the SDK there for old commands), so such a command fails on a desktop agent. Use `jarvis_command_sdk` for everything.
 
 ## Minimal Skeleton
 
@@ -25,11 +43,14 @@ Every command follows this pattern:
 ```python
 from typing import List
 
-from jarvis_command_sdk import IJarvisCommand, CommandExample
-from core.ijarvis_parameter import JarvisParameter
-from core.ijarvis_secret import IJarvisSecret
-from core.command_response import CommandResponse
-from core.request_information import RequestInformation
+from jarvis_command_sdk import (
+    CommandExample,
+    CommandResponse,
+    IJarvisCommand,
+    IJarvisSecret,
+    JarvisParameter,
+    RequestInformation,
+)
 
 
 class MyCommand(IJarvisCommand):
@@ -63,56 +84,75 @@ class MyCommand(IJarvisCommand):
             ),
         ]
 
+    def generate_adapter_examples(self) -> List[CommandExample]:
+        return self.generate_prompt_examples()
+
     def run(self, request_info: RequestInformation, **kwargs) -> CommandResponse:
         return CommandResponse.final_response(
             context_data={"message": "Hello from my command!"}
         )
 ```
 
+All eight members are required: leave one out and the class can't be instantiated, and the node skips it without loading it.
+
 ## Built-in Commands
 
-These commands ship with Jarvis and are available on every node by default:
+These commands ship with the Python node (`jarvis-node-setup/commands/`):
 
 | Command | Name | Description |
 |---------|------|-------------|
-| `CalculatorCommand` | `calculate` | Two-number arithmetic (add, subtract, multiply, divide) |
-| `ControlDeviceCommand` | `control_device` | Smart home device control (Home Assistant + direct WiFi) |
-| `GetDeviceStatusCommand` | `get_device_status` | Query smart home device state |
-| `ChatCommand` | `chat` | Open-ended conversation with the LLM |
-| `AnswerQuestionCommand` | `answer_question` | Factual Q&A |
-| `TimerCommand` | `set_timer` | Set countdown timers |
-| `CheckTimersCommand` | `check_timers` | List active timers |
+| `ActOnItemsCommand` | `act_on_items` | Acts on items from a list the user was just shown ("mark those as read") |
+| `AnswerQuestionCommand` | `answer_question` | General-knowledge questions |
+| `CalculatorCommand` | `calculate` | Arithmetic on two numbers |
 | `CancelTimerCommand` | `cancel_timer` | Cancel a running timer |
-| `ReminderCommand` | `reminder` | Set, list, delete, and snooze reminders (with recurrence support) |
-| `TellAJokeCommand` | `tell_a_joke` | Random jokes |
+| `ChatCommand` | `chat` | Small talk and greetings |
+| `CheckTimersCommand` | `check_timers` | Time left on running timers |
+| `ControlDeviceCommand` | `control_device` | Smart-home device control (lights, TV, locks, thermostat) |
+| `ControlNodeCommand` | `control_node` | The speaker's own volume and mute |
+| `ExportShoppingListCommand` | `export_shopping_list` | Send the shopping list to a store as a cart link |
+| `ExportTodoListCommand` | `export_todo_list` | Send the to-do list to the user's phone |
 | `MeasurementConversionCommand` | `convert_measurement` | Unit conversions |
-| `TimezoneCommand` | `get_current_time` | Current time in any timezone |
-| `RoutineCommand` | `routine` | Multi-step automations |
-| `WhatsUpCommand` | `whats_up` | Morning briefing (weather + calendar + news) |
+| `ReminderCommand` | `reminder` | Reminders and alarms at a clock time or date; list, delete, snooze |
+| `RoutineCommand` | `routine` | Run a named routine (good morning, good night) |
+| `SendLinkCommand` | `send_link` | Send a link from an earlier result to the user's phone |
+| `ShoppingListCommand` | `shopping_list` | Add to, read, check off or clear the shopping list |
+| `TellAJokeCommand` | `tell_joke` | Tell a joke |
+| `TimerCommand` | `set_timer` | Countdown timers |
+| `TimezoneCommand` | `get_current_time` | Time and date somewhere else |
+| `TodoListCommand` | `todo_list` | Add to, read, complete or clear the to-do list |
+| `WhatsUpCommand` | `check_alerts` | Read out or dismiss pending alerts (news, calendar) |
+
+The experimental Go Pi node runs the same commands except `control_device`, `routine` and `send_link`; the desktop agent has its own tools. See [Where your code runs](../extending/where-code-runs.md).
 
 ## Pantry-Installable Commands
 
-The following commands are available as standalone [Pantry](../pantry/index.md) packages. Install them with `jarvis pantry install <name>`:
+The following commands are available as standalone [Pantry](../pantry/index.md) packages. Install them from the mobile app: open the Pantry, pick a package and the node to install it on. Pantry is off by default; a household admin turns it on in the household settings first (installs are refused until then). On a node source checkout, `python scripts/command_store.py install <name>` does the same from a shell.
 
 | Command | Name | Description |
 |---------|------|-------------|
 | `OpenWeatherCommand` | `get_weather` | Current weather and forecasts via OpenWeather API (requires API key) |
-| `MeteoWeatherCommand` | `get_weather_meteo` | Current weather and forecasts via Open-Meteo — **free, no API key required** |
+| `OpenMeteoWeatherCommand` | `get_weather_meteo` | Current weather and forecasts via Open-Meteo — **free, no API key required** |
 | `NewsCommand` | `get_news` | News headlines via RSS feeds |
-| `SportsCommand` | `get_sports_scores` | Live sports scores via ESPN (NFL, NBA, MLB, NHL, College) |
-| `WebSearchCommand` | `search_web` | Web search with deep research (Bing or DuckDuckGo) |
-| `StoryCommand` | `tell_a_story` | Generate stories |
+| `SportsCommand` | `get_sports` | Live sports scores via ESPN (NFL, NBA, MLB, NHL, College) |
+| `WebSearchCommand` | `search_web` | Live web search for current information |
 | `MusicCommand` | `music` | Play content and control playback via Music Assistant |
 | `PandoraCommand` | `pandora` | Stream Pandora Radio with voice control — skip, thumbs up/down, station listing |
 | `SpotifyCommand` | `spotify` | Stream Spotify with voice control via spotifyd — tracks, artists, albums, playlists |
+| `AudacyCommand` | `audacy` | Live radio from the Audacy network |
 | `EmailCommand` | `email` | List, read, search, send, reply, archive email (Gmail/IMAP) |
-| `ReadCalendarCommand` | `get_calendar_events` | Calendar events (iCloud CalDAV, Google Calendar) |
+| `ReadCalendarCommand`, `AddEventCommand` | `get_calendar_events`, `add_event` | Read and add calendar events (iCloud CalDAV, Google Calendar) |
+| `CheckTextsCommand`, `ReadThreadCommand`, `DraftReplyCommand` | `check_texts`, `read_thread`, `draft_reply` | Check, read and reply to text messages (through a Mac running jarvis-osx-api) |
 | `MedicationCommand` | `medication` | Personal + household medication tracking with dose reminders. Mark doses by voice; add and manage records in the app. Personal med alerts are push-only (not spoken aloud on shared nodes) |
-| `RottenTomatoesCommand` | `get_movie_rating` | Movie and TV ratings, what's in theaters — Tomatometer scores, no API key |
+| `RottenTomatoesCommand` | `rotten_tomatoes` | Movie and TV ratings, what's in theaters — Tomatometer scores, no API key |
+| `EntertainmentKnowledgeCommand` | `entertainment_knowledge` | Look up a movie or TV show and send a rich card to the inbox |
+| `GetBarstoolCommand` | `get_barstool` | Barstool Sports headlines |
+| `GetDriveTimeCommand` | `get_drive_time` | Driving time and distance with live traffic |
 | `DadJokeCommand` | `tell_dad_joke` | Random dad jokes via icanhazdadjoke.com — no configuration required |
 | `GreetingCommand` | `greeting` | Say hello in 10 languages |
 
-Device families (LIFX, Kasa, Govee, Apple, Nest, Hue, and more) are also available as Pantry packages. See [Device Packages](../extending/devices/index.md#available-device-packages).
+The live catalog may list more; browse it in the app.
+
+Device families (LIFX, Kasa, Govee, Apple, Nest, Hue, and more) are also available as Pantry packages, installed the same way. See [Device Packages](../extending/devices/index.md#available-device-packages).
 
 !!! note
     `BluetoothCommand` (jarvis-cmd-bluetooth) has been archived and is no longer maintained. Use a music command (`PandoraCommand`, `SpotifyCommand`, or `MusicCommand`) for audio playback.

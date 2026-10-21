@@ -289,3 +289,77 @@ def test_no_pantry_directory_conflict(built_site):
     mobile = _top_level_section(_top_level_section(_mkdocs_config()["nav"], "Use") or [], "Mobile App")
     assert _nav_leaves(mobile).get("Pantry") == "mobile/pantry.md"
     assert (site_dir / "mobile" / "pantry" / "index.html").exists()
+
+
+# --- Severities match the Pantry (#204 P8-P13) ------------------------------
+# jarvis-pantry app/services/static_analysis.py emits these codes as "warning"
+# (static_analysis.py:256, 271, 321, 352, 413, 457, 579/613/631, 620/638, 655,
+# 700, 747, 761, and repo_missing_readme at 404). Every other code is
+# "error". A warning does not block publication, except the disallowed calls in
+# HARD_FAIL_CALLS (static_analysis.py:93-100, 583-586), which reject while their
+# finding is still labelled "warning".
+WARNING_CODES = {
+    "static_analysis_disallowed_primitive",
+    "static_analysis_raw_db_import",
+    "static_analysis_sql_mutation",
+    "static_analysis_cross_command_access",
+    "static_analysis_shadows_builtin_dir",
+    "static_analysis_transitive_inheritance",
+    "manifest_unknown_category",
+    "manifest_unknown_param_type",
+    "repo_missing_readme",
+    "repo_missing_license",
+    "repo_unknown_component_type",
+    "routine_missing_trigger_phrases",
+    "routine_missing_response_instruction",
+}
+
+HARD_FAIL_CALLS = ("eval", "exec", "os.system", "os.popen", "os.exec", "os.spawn",
+                   "subprocess.run", "subprocess.call", "subprocess.Popen",
+                   "subprocess.check_call", "subprocess.check_output")
+
+
+def _rejections_src_sections():
+    """Map each ``{#code}`` h2 in the Markdown source to its text."""
+    src = (REPO_ROOT / "docs" / "pantry" / "rejections.md").read_text(encoding="utf-8")
+    parts = re.split(r"^## .*\{#([a-z_]+)\}\s*$", src, flags=re.M)
+    return dict(zip(parts[1::2], parts[2::2]))
+
+
+@pytest.mark.parametrize("code", REASON_CODES)
+def test_severity_matches_pantry(code):
+    chunk = _rejections_src_sections()[code]
+    m = re.search(r"\*\*Severity:\*\*\s*(error|warning)", chunk)
+    assert m, f"{code} has no Severity line"
+    want = "warning" if code in WARNING_CODES else "error"
+    assert m.group(1) == want, f"{code} is emitted as {want!r}, page says {m.group(1)!r}"
+
+
+def test_warning_codes_do_not_claim_to_block_publication():
+    sections = _rejections_src_sections()
+    for code in WARNING_CODES - {"static_analysis_disallowed_primitive"}:
+        assert "cannot be published" not in sections[code], code
+
+
+def test_disallowed_primitive_lists_the_calls_that_reject():
+    chunk = _rejections_src_sections()["static_analysis_disallowed_primitive"]
+    for call in HARD_FAIL_CALLS:
+        assert f"`{call}" in chunk, f"{call} missing from the calls that reject"
+    # compile and __import__ (and importing os, subprocess, ...) only warn.
+    assert "`compile`" in chunk and "`__import__`" in chunk
+    assert "importlib" in chunk
+    # getattr is not detected by the analyzer at all.
+    assert "getattr" not in chunk
+
+
+def test_intro_notes_the_disallowed_call_exception():
+    src = (REPO_ROOT / "docs" / "pantry" / "rejections.md").read_text(encoding="utf-8")
+    intro = src.split("\n## ", 1)[0]
+    assert "#static_analysis_disallowed_primitive" in intro
+
+
+def test_manifest_field_names_match_the_analyzer():
+    sections = _rejections_src_sections()
+    assert "`categories`" in sections["manifest_unknown_category"]
+    assert "`param_type`" in sections["manifest_unknown_param_type"]
+    assert "`min_sdk_version`" in sections["manifest_bad_semver"]
