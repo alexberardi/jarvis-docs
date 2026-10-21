@@ -53,13 +53,19 @@ def test_page_says_where_packages_run(built_site):
         "desktop agent",
         "Go voice node",
         "install-pi.sh",
+        "Not supported yet",
+        "not yet checked on a Pi",
         "targets",
         "apt_packages",
         "platforms",
         "made for Pi nodes, not computers",
+        "needs system packages that only a Pi node installs",
         "skipped_components",
     ):
         assert needle in body, f"where-code-runs page is missing {needle!r}"
+    # The Go node runs packages in a Python sidecar (built, not checked on a Pi): never "doesn't run".
+    assert "doesn't run SDK packages" not in body
+    assert "Nothing yet" not in body
 
 
 def test_page_is_linked_from_build_and_commands(built_site):

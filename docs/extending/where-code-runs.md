@@ -10,14 +10,14 @@ Jarvis Automation is a **pre-release** (release candidate rc18), so this changes
 |--------|--------------|-----------|
 | Pi with the Python node | Yes | Commands, agents, device managers and device protocols |
 | Computer with the desktop agent | Yes | Commands only |
-| Pi with the Go voice node | Not yet | Nothing yet |
+| Pi with the Go voice node | Not supported yet | Commands and device managers, in a Python sidecar (built, not yet checked on a Pi) |
 | The server (jarvisd) | No | Nothing: [prompt providers](prompt-providers/index.md) are not supported |
 
 ## On a Pi
 
 The Python node (`jarvis-node-setup`, see [Node Setup](../clients/node-setup.md)) is the supported Pi node. It loads every part of a package and runs the system setup a package asks for (`apt_packages`, `post_install`).
 
-The Go voice node that `install-pi.sh` installs is still being built. It doesn't run SDK packages yet, so keep the Python node on a Pi that needs your packages. The two can be installed side by side; only one runs at a time.
+The Go voice node that `install-pi.sh` installs is still being built. It runs packages in a Python sidecar, and package support is built but not yet checked on a Pi, so it isn't the supported Pi node yet: keep the Python node on a Pi that needs your packages. The two can be installed side by side; only one runs at a time.
 
 ## On a computer
 
@@ -34,7 +34,7 @@ A computer is never offered a package it can't run. A package is **Pi-only** whe
 - has `targets` that leave out `desktop`, or
 - needs `apt_packages` (the desktop agent also refuses `apt_sources` and `post_install`).
 
-For a Pi-only package the mobile app leaves computers out of the node picker. If an install is asked for anyway, the server refuses it ("… is made for Pi nodes, not computers"), and the desktop agent checks the manifest it downloads against the same rules.
+For a Pi-only package the mobile app leaves computers out of the node picker. If an install is asked for anyway, the server refuses it ("… is made for Pi nodes, not computers", or "… needs system packages that only a Pi node installs" for `apt_packages`), and the desktop agent checks the manifest it downloads against the same rules.
 
 A package with **no `targets`** is offered to computers, as long as its `platforms` (if any) include the computer's system. To make the intent explicit, say where it runs in `jarvis_package.yaml`:
 
