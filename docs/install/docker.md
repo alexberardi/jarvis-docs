@@ -61,7 +61,7 @@ Moving from the old Docker install and keeping its data? Don't open the setup wi
 2. Open `http://<host>:7710/` and paste the token. That is the [setup wizard](setup-wizard.md).
 3. Follow the wizard. It downloads a language model (LLM) and a speech-to-text model; text-to-speech is built in.
 
-Phones and voice nodes don't discover a server in a container on their own. Give them its address: `http://<host>:7700`.
+Give phones and voice nodes the server's address: `http://<host>:7700`. They never find a server by themselves, in a container or not.
 
 ## Ports
 

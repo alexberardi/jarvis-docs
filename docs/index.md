@@ -65,8 +65,10 @@ Jarvis ships with these commands out of the box:
 | `cancel_timer` | Cancel a running timer |
 | `reminder` | Set, list, delete, and snooze reminders (with recurrence) |
 | `routine` | Multi-step automations |
-| `tell_a_joke` | Random jokes |
-| `whats_up` | Morning briefing (weather + calendar + news) |
+| `tell_joke` | Random jokes |
+| `check_alerts` | Read out or dismiss pending alerts (news, calendar) |
+| `shopping_list` | Add to, read, check off or clear the shopping list |
+| `todo_list` | Add to, read, complete or clear the to-do list |
 | `convert_measurement` | Unit conversions |
 | `get_current_time` | Current time in any timezone |
 | ... and more | See the full [command list](commands/index.md) |

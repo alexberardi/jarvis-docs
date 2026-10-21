@@ -53,11 +53,11 @@ Older clients that expect the old per-service ports (7701–7712, 7030, 7031) ne
 The template uses **bridge** networking:
 
 - The three ports above are mapped from the container to the server.
-- Phones and voice nodes don't discover the server on their own. Give them its address: `http://<unraid-ip>:7700`.
+- Give phones and voice nodes the server's address: `http://<unraid-ip>:7700`. (Phones and nodes never find the server by themselves.)
 
 **Host** networking (set Network Type to Host in the template) also works:
 
-- Phones and nodes find the server by mDNS discovery.
+- The server's mDNS announcement reaches your network, so [desktop agents](../clients/desktop-agent.md) find the server by themselves. Phones and voice nodes still take the address.
 - There is no port mapping. Ports 7700, 7710 and 1884 must be free on the Unraid server itself; another container or plugin on any of them stops Jarvis from starting.
 
 ## NVIDIA GPU
@@ -83,7 +83,7 @@ Everything Jarvis keeps (the database, models and engines) is under `/mnt/user/a
 
 Update from the **Docker** tab: **Check for Updates**, then **apply update** on Jarvis. Your data in appdata is kept.
 
-The admin's **Updates** page tells you when a new release exists, but in the container it doesn't install it; it points you to the Docker tab. Pre-releases are not offered as updates.
+The admin's **Updates** page tells you when a new release exists, but in the container it doesn't install it; it points you to the Docker tab. While you run a pre-release, it tells you about the next pre-release too.
 
 With a release tag in **Repository**, Check for Updates only finds a rebuild of that tag; to move to a newer release, put its tag in **Repository**. More: [Upgrade: In a container](upgrade.md#in-a-container).
 

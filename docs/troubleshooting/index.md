@@ -40,6 +40,7 @@ If a check can't read what it needs (a firewall's rules, a data directory that b
 | **sleep** (macOS) | The Mac sleeps when idle, and a sleeping server doesn't answer. | `sudo pmset -a sleep 0`, or prevent sleep in System Settings. |
 | **data directory** (Linux, macOS) | Other accounts on the machine can read the data directory, or some of its files belong to another account. | Follow the `fix:` line. See [Data and backups](../operate/data-and-backups.md#where-the-data-lives). |
 | **legacy stack** | The old Docker install is running and uses the server's ports or the GPU. | The `fix:` line stops it and keeps it from starting at boot; its data is kept. To bring its data over: [Migrating from the old install](../install/migrating-from-docker.md). |
+| **gpu memory** (Linux, NVIDIA) | Never fails: it reports which programs hold GPU memory, the old stack or others, since jarvisd's models only get what is left. | If a model doesn't fit, stop the program it names, or pick a smaller model. The old stack is stopped by the **legacy stack** fix. |
 | **mqtt anonymous** | `JARVIS_MQTT_ALLOW_ANONYMOUS=1` lets anyone on your network read every message. | Remove it from `jarvisd.env` and restart. |
 | **env file** | `jarvisd.env` can't be read, so the checks used the default ports. | Run `sudo jarvisd doctor`. |
 
@@ -80,7 +81,7 @@ Where the server writes its log depends on the system:
 
 Once the server is running, the admin web app's **Logs** page shows the same messages and lets you filter them. The log file matters most when the server doesn't start, because that page can't open then.
 
-For more detail, add `JARVIS_LOG_LEVEL=debug` to `jarvisd.env` and restart (`jarvisd service restart`). Remove it when you're done.
+For more detail, add `JARVIS_LOG_LEVEL=debug` to `jarvisd.env` and restart (`sudo jarvisd service restart`). Remove it when you're done.
 
 ## The server doesn't start
 
@@ -105,7 +106,7 @@ This is almost always the firewall.
 3. On Windows, make sure the network is **Private**. On macOS, turn off **Block all incoming connections**.
 4. Check the device is on the same network: guest Wi-Fi and Wi-Fi with "client isolation" keep devices apart.
 
-If the mobile app doesn't find the server by itself, type the address (`http://<server-ip>:7700`): mDNS doesn't cross networks or VLANs. See [mDNS discovery](../operate/network.md#mdns-discovery).
+The mobile app never finds the server by itself: type its address (`http://<server-ip>:7700`) at **Set Server URL**. Only the desktop agent looks for the server on the network, and mDNS doesn't cross networks or VLANs, so on another network type the address there too. See [mDNS discovery](../operate/network.md#mdns-discovery).
 
 ## An older node or app can't reach a service
 

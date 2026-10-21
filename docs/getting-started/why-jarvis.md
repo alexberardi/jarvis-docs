@@ -28,7 +28,7 @@ Every mainstream voice assistant -- Alexa, Google Home, Siri -- works the same w
 
 ### What Jarvis Does Differently
 
-Jarvis runs entirely on hardware you own. A small Pi Zero with a microphone sits in your kitchen or office. When you speak, your voice travels across your home WiFi to a server in your closet (or just your laptop). Everything -- the speech recognition, the AI that understands what you asked, the text-to-speech that responds -- runs locally.
+Jarvis runs entirely on hardware you own. A Raspberry Pi Zero 2 W with a microphone and speaker sits in your kitchen or office. When you speak, your voice travels across your home WiFi to a server in your closet (or just your laptop). Everything -- the speech recognition, the AI that understands what you asked, the text-to-speech that responds -- runs locally.
 
 **Nothing leaves your network unless you want it to.**
 
@@ -49,15 +49,15 @@ Out of the box:
 
 **It's extensible.** If you can write a few lines of Python, you can teach Jarvis anything. There's a single interface to implement, and the community [Pantry](../pantry/index.md) has a growing library of ready-made packages you can install with one click.
 
-**Use it however you want.** Talk to a Pi Zero node on your counter. Text from the [mobile app](../mobile/index.md) on your phone. Chat from a [web browser](../legacy/services/admin.md) on your laptop. They all connect to the same backend -- same commands, same memories, same smart home controls.
+**Use it however you want.** Talk to a [voice node](../install/voice-node.md) on your counter. Text from the [mobile app](../mobile/index.md) on your phone. Chat from the [web app](first-command.md#2-chat-from-a-browser) in a browser on your laptop, or let the [desktop agent](../agent/index.md) work on your computer. They all connect to the same backend -- same commands, same memories, same smart home controls.
 
-**It runs on modest hardware.** The Pi Zero nodes cost about $50 each (board + mic + speaker). The server can be any computer with a decent GPU. Jarvis was developed and tested on a machine with a 3080 Ti and gets responsive voice interactions -- you don't need cutting-edge hardware.
+**It runs on modest hardware.** A Pi Zero 2 W voice node costs about $50 (board + mic + speaker). The server can be a Mac with Apple silicon and 16 GB or more, or a Windows or Linux PC with a GPU; a machine without a GPU works too, with a small model, but answers slowly (see [Requirements](../install/requirements.md)). Jarvis was developed and tested on a machine with a 3080 Ti and gets responsive voice interactions -- you don't need cutting-edge hardware.
 
 **Your server, their home.** One Jarvis installation serves multiple households. Share your server URL with whoever you want -- they open the mobile app, add the URL, create an account, and get a fully isolated assistant running on your existing hardware. No cloud. No per-household subscription. No setup on their end beyond the app.
 
 ### Do I Need to Be Technical?
 
-**To install it?** No. The [setup wizard](../legacy/getting-started/installation.md) walks you through everything in a browser. Pick your services, download a model, create an account -- it handles Docker, databases, and networking for you.
+**To install it?** No. The server is one program with an installer for macOS, Windows and Linux. When it is installed, the [setup wizard](../install/setup-wizard.md) opens in your browser: it checks that your network can reach the server, creates your account, and picks and downloads the models that fit your hardware. There is no Docker and no database to set up.
 
 **To use it day-to-day?** Absolutely not. It's a voice assistant. You talk to it.
 
@@ -75,20 +75,17 @@ The software is free and open source. Your costs are just hardware:
 
 | What | Cost | Notes |
 |------|------|-------|
-| Pi Zero node (per room) | ~$50 | Pi Zero W + USB microphone + speaker |
+| Voice node (per room) | ~$50 | Raspberry Pi Zero 2 W + ReSpeaker 2-Mics HAT (or a USB microphone and speaker) |
 | Mobile app | Free | iOS/Android -- voice and text from your phone |
-| Web chat | Free | Browser-based, works from any device |
-| Server | $0 - $500 | Any computer works; an old PC with a GPU is ideal |
+| Web chat | Free | The server's web app, in a browser on any device on your network |
+| Server | $0 - $500 | A Mac with Apple silicon and 16 GB or more, or a PC or Linux box with a GPU; without a GPU it works, slowly |
 | Electricity | ~$5-10/mo | Running a small server 24/7 |
 
 No subscriptions. No cloud fees. No one selling your data.
 
 ### I'm Convinced. How Do I Start?
 
-Head to the [Installation guide](../legacy/getting-started/installation.md). The one-liner gets you up and running in about 10 minutes:
-
-<!-- jarvis:install-cmd:start -->
-```bash
-curl -fsSL https://raw.githubusercontent.com/alexberardi/jarvis-admin/main/install.sh | sh
-```
-<!-- jarvis:install-cmd:end -->
+1. Check the [requirements](../install/requirements.md) and pick a model for your machine.
+2. [Install the server](../install/index.md) on macOS, Windows or Linux.
+3. Finish in the [setup wizard](../install/setup-wizard.md).
+4. Add a [voice node](../install/voice-node.md), the [mobile app](../install/mobile-app.md) or the [desktop agent](../agent/index.md), then [send your first command](first-command.md).
