@@ -92,6 +92,7 @@ def test_page_covers_install_pairing_and_permissions(built_site):
         "install-agent.sh",
         "SHA256SUMS",
         "Run anyway",
+        "Put a shortcut on the desktop",
         "Show a pairing code",
         "Pending pairings",
         "Approve",

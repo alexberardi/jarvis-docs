@@ -21,7 +21,7 @@ Install it as yourself, on the computer you want Jarvis to use. In the file name
 
     1. Download `Jarvis-Automation-Agent-Setup-<version>.exe` and run it. It installs for your account only and needs no admin rights.
     2. The installer isn't signed yet, so Windows may say **Windows protected your PC**. Click **More info**, then **Run anyway**.
-    3. Leave **Create a desktop shortcut** ticked if you want one.
+    3. Leave **Put a shortcut on the desktop** ticked if you want one.
 
     The agent starts at login from then on and shows a shield icon in the notification area.
 
