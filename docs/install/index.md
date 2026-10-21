@@ -13,4 +13,4 @@ Later: [upgrade](upgrade.md) or [uninstall](uninstall.md).
 
 ## Coming from the old Docker install
 
-The old Docker/microservice install is retired for new users: it no longer installs out of the box (MinIO is gone). Its pages are kept, frozen, under [Legacy](../legacy/index.md). To move an existing install over, see [Migrating from the old install](migrate.md).
+The old Docker/microservice install is retired for new users: it no longer installs out of the box (MinIO is gone). Its pages are kept, frozen, under [Legacy](../legacy/index.md). To move an existing install over, see [Migrating from the old install](migrating-from-docker.md).

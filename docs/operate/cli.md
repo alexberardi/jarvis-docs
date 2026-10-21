@@ -167,7 +167,7 @@ Shows each module's database migration state. Useful when an upgrade or a downgr
 jarvisd import-legacy (--compose DIR | --from postgres://USER:PASS@HOST:PORT) [--apply] [--accept-head DB=HEAD]...
 ```
 
-Copies an old Docker install's users, households, nodes, rooms, devices, settings, memories, routines, contacts and inbox into jarvisd, keeping their ids so nodes and phones carry on. It reads the old PostgreSQL database read-only. Run it once, with jarvisd stopped, before the setup wizard. Without `--apply` it is a dry run that checks every row and writes nothing. The steps: [Migrating from the old install](../install/migrate.md).
+Copies an old Docker install's users, households, nodes, rooms, devices, settings, memories, routines, contacts and inbox into jarvisd, keeping their ids so nodes and phones carry on. It reads the old PostgreSQL database read-only. Run it once, with jarvisd stopped, before the setup wizard. Without `--apply` it is a dry run that checks every row and writes nothing. The steps: [Migrating from the old install](../install/migrating-from-docker.md).
 
 | Option | Meaning |
 |---|---|
