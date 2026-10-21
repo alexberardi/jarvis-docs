@@ -123,3 +123,10 @@ def test_no_current_page_links_a_moved_page():
 def test_first_command_is_under_build(config):
     assert "getting-started/first-command.md" in set(_nav_paths(_section(config["nav"], "Build")))
     assert "getting-started/first-command.md" not in set(_nav_paths(_section(config["nav"], "Operate")))
+
+
+def test_extending_index_says_prompt_providers_are_legacy():
+    text = (DOCS / "extending" / "index.md").read_text(encoding="utf-8")
+    assert "`llm.prompt_provider`" in text
+    assert "(../legacy/extending/prompt-providers/index.md)" in text
+    assert "and prompt providers." not in text

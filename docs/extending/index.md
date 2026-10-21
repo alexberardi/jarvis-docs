@@ -68,9 +68,11 @@ The wordsmith runs on the command center, not the node. They craft the system pr
 
 "Node" here is a Pi running the Python node. A computer's desktop agent runs commands only, and some packages are kept off computers: see [Where your code runs](where-code-runs.md).
 
+Prompt providers belong to the old Docker install's Command Center. Jarvis Automation (jarvisd) has its prompt formats built in (an admin picks one with the `llm.prompt_provider` setting) and loads no Python prompt providers; their pages are under [Legacy](../legacy/extending/prompt-providers/index.md).
+
 ## How It Works
 
-Under the hood, Jarvis uses Python's `pkgutil` and `importlib` to scan package directories at startup. It finds every class that implements the expected interface, instantiates it, validates any required secrets, and registers it. This happens automatically for commands, agents, device managers, device families, and prompt providers.
+Under the hood, Jarvis uses Python's `pkgutil` and `importlib` to scan package directories at startup. It finds every class that implements the expected interface, instantiates it, validates any required secrets, and registers it. This happens automatically for commands, agents, device managers and device families.
 
 For STT, TTS, and wake response providers, discovery is manual --- you specify the provider in your node's config file. But the implementation pattern is identical: subclass the ABC, implement the required methods, and you are done.
 
