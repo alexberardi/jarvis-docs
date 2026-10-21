@@ -6,6 +6,8 @@ it carries the exact permission steps for Firefox and Chrome, and the install ov
 and troubleshooting pages link to it.
 """
 
+import html as htmllib
+import re
 import subprocess
 import sys
 from pathlib import Path
@@ -70,3 +72,49 @@ def test_page_is_linked_from_install_clients_and_troubleshooting(built_site):
     ):
         body = _article(_read(built_site, *parts))
         assert link in body, f"{'/'.join(parts)} doesn't link the page"
+
+
+def test_page_covers_install_pairing_and_permissions(built_site):
+    """Loop item #379: the page is the agent's whole user guide, not only the extension.
+
+    Installers per OS from the (pre-)release page, the setup page and its pairing code, the macOS
+    permissions, Wayland dictation, both browser extensions, sign-out and self-update, and what is
+    still in progress said as such.
+    """
+    body = _article(_read(built_site, *PAGE))
+    # The words as a reader sees them: code highlighting splits a command into spans.
+    text = htmllib.unescape(re.sub(r"<[^>]+>", "", body))
+    for needle in (
+        "pre-release",
+        "Jarvis-Automation-Agent-",
+        "Jarvis-Automation-Agent-Setup-",
+        "jarvis-automation-agent_",
+        "install-agent.sh",
+        "SHA256SUMS",
+        "Run anyway",
+        "Put a shortcut on the desktop",
+        "Show a pairing code",
+        "Pending pairings",
+        "Approve",
+        "Yes, add it",
+        "Microphone",
+        "Accessibility",
+        "Screen Recording",
+        "Automation (System Events)",
+        "Input Monitoring",
+        "restart Jarvis to apply",
+        "Wayland",
+        "jarvis-agent dictation allow",
+        "Firefox",
+        "Chrome Web Store",
+        "Load unpacked",
+        "Sign out of Jarvis Automation",
+        "updates itself",
+        "In progress",
+    ):
+        assert needle in text, f"desktop agent page is missing {needle!r}"
+    assert 'href="https://github.com/alexberardi/jarvis-server/releases"' in body
+    # Only prereleases exist, so GitHub's releases/latest/download/... links 404.
+    assert "releases/latest/download" not in body
+    for anchor in ("install", "pair-this-computer", "macos-permissions", "turn-on-website-access", "troubleshooting"):
+        assert f'id="{anchor}"' in body, f"desktop agent page has no #{anchor}"
