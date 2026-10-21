@@ -214,7 +214,7 @@ The separate Next.js web chat (`jarvis-web`, port 7722) is retired and no longer
 
 > The contract. A pure-Python library that defines every interface a Pantry package can implement.
 
-**Package:** `jarvis-command-sdk` | **Install:** `pip install jarvis-command-sdk`
+**Package:** `jarvis-command-sdk` | **Install:** `pip install git+https://github.com/alexberardi/jarvis-command-sdk.git` (it is not on PyPI)
 
 The SDK contains the abstract base classes for all plugin types. Community packages import from the SDK rather than from `jarvis-node-setup` directly, keeping the dependency lightweight and stable.
 

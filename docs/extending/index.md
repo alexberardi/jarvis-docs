@@ -50,7 +50,7 @@ The greeter handles the first moment of interaction --- the acknowledgment when 
 
 ### The Wordsmith --- `IJarvisPromptProvider`
 
-The wordsmith runs on the command center, not the node. They craft the system prompts that shape how the LLM interprets voice commands --- choosing the right framing, formatting tool schemas, and tuning the prompt for the specific model being used. Different wordsmiths optimize for different LLMs.
+The wordsmith runs on the command center, not the node. They craft the system prompts that shape how the LLM interprets voice commands --- choosing the right framing, formatting tool schemas, and tuning the prompt for the specific model being used. Different wordsmiths optimize for different LLMs. They belong to the legacy Command Center and are not supported on jarvisd.
 
 ## Extension Points
 
@@ -65,6 +65,8 @@ The wordsmith runs on the command center, not the node. They craft the system pr
 | STT Providers | `IJarvisSpeechToTextProvider` | The Scribe | `stt_providers/` | Node | Manual config |
 | TTS Providers | `IJarvisTextToSpeechProvider` | The Orator | `tts_providers/` | Node | Manual config |
 | Wake Response Providers | `IJarvisWakeResponseProvider` | The Greeter | `wake_response_providers/` | Node | Manual config |
+
+"Node" here is a Pi running the Python node. A computer's desktop agent runs commands only, and some packages are kept off computers: see [Where your code runs](where-code-runs.md).
 
 ## How It Works
 

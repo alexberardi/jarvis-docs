@@ -137,6 +137,7 @@ nav:
       - Privacy Policy: security/privacy-policy.md
   - Build:
     - extending/index.md
+    - Where Your Code Runs: extending/where-code-runs.md
     - Developer Toolkit:
       - extending/toolkit/index.md
       - Development Workflow: extending/toolkit/workflow.md

@@ -1,5 +1,8 @@
 # Prompt Provider Reference
 
+!!! warning "Not supported on jarvisd"
+    This interface belongs to the [legacy Docker install](../../legacy/index.md)'s Command Center; Jarvis Automation (jarvisd) loads no prompt providers. See [Prompt Providers](index.md).
+
 Complete interface reference for `IJarvisPromptProvider`, defined in `jarvis-command-center/app/core/interfaces/ijarvis_prompt_provider.py`.
 
 ## Interface Summary
