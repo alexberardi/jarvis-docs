@@ -10,13 +10,20 @@ The `jarvis-command-sdk` Python package is the foundation for building Jarvis vo
 
 ### `IJarvisCommand`
 
-All commands extend `IJarvisCommand`. Required overrides:
+All commands extend `IJarvisCommand`. These members are abstract: a command class that leaves one out cannot be instantiated.
 
 | Method / property | Type | Notes |
 |---|---|---|
 | `command_name` | `str` (property) | Unique snake_case identifier |
-| `description` | `str` (property) | One-line natural-language description for the LLM |
-| `run(**kwargs)` | `CommandResponse` | Executes the command |
+| `description` | `str` (property) | Natural-language description for the LLM |
+| `generate_prompt_examples()` | `List[CommandExample]` | Short examples for the tool definition and prompt |
+| `generate_adapter_examples()` | `List[CommandExample]` | Larger, varied examples for adapter training |
+| `parameters` | `List[IJarvisParameter]` (property) | The parameters the command accepts |
+| `required_secrets` | `List[IJarvisSecret]` (property) | Secrets the command needs (API keys, credentials) |
+| `keywords` | `List[str]` (property) | Words that identify the command, for fuzzy matching |
+| `run(self, request_info: RequestInformation, **kwargs)` | `CommandResponse` | Does the work |
+
+Hosts call `execute()`, not `run()`: `execute()` is the concrete, validated entry point that checks secrets and parameters and then calls your `run()`. The node calls it when the server picks the command. See [Interface Reference](../commands/interface-reference.md) for the optional members (`rules`, `critical_rules` and others).
 
 For commands that expose structured data records to the mobile app, see [Data Browser Hooks](#data-browser-hooks).
 
@@ -29,8 +36,9 @@ from jarvis_command_sdk import FieldSpec
 
 FieldSpec(
     name: str,
-    type: str,               # "string" | "bool" | "int" | "datetime" | "date" | "time"
-                             # | "array" | "enum" | "user_ref" | "id"
+    type: str,               # "string" | "text" | "int" | "float" | "bool" | "enum"
+                             # | "datetime" | "date" | "time" | "duration" | "array"
+                             # | "object" | "id" | "user_ref" (unknown types render as text)
     label: str | None = None,
     description: str | None = None,
     editable: bool = True,
@@ -121,6 +129,17 @@ Marks a field as settable at record creation but immutable on edit (e.g. record 
 
 | Version | What changed |
 |---------|-------------|
-| 0.5.0 | `IJarvisDeviceProtocol.get_stream_source` optional async camera-streaming hook — see [Device Protocols](../extending/devices/protocols.md#get_stream_source--camera-streaming-hook-sdk-v050) |
+| 0.13.0 | Attachments on `JarvisInbox.post` |
+| 0.12.0 | Timer, audio-control, alert-queue and command-invoker backends |
+| 0.11.0 | Logger, LLM and command-center HTTP backends |
+| 0.10.0 | Image parameters: `JarvisImage` and `param_type="image"` |
+| 0.9.0 | Household `home_context`: a `RequestInformation` field and a ContextVar |
+| 0.8.0 | `JarvisSignals` producer API and `listening_signal_types` |
+| 0.7.0 | Proposable-action contract; `is_risky` on `IJarvisCommand` |
+| 0.6.0 | Context-provider capability: typed plan-time queries |
+| 0.5.1 | Additive `Alert` fields for the attention broker |
+| 0.5.0 | `IJarvisDeviceProtocol.get_stream_source` optional async camera-streaming hook — see [Device Protocols](../extending/devices/protocols.md#get_stream_source-camera-streaming-hook-sdk-v050) |
 | 0.4.1 | `data_browser_supports_create`, `data_browser_create`, `FieldSpec.create_only` |
 | ≤ 0.3.x | `FieldSpec`, `JarvisStorage`, `data_browser_mode`, `display_summary` |
+
+The full history is in the [jarvis-command-sdk commits](https://github.com/alexberardi/jarvis-command-sdk/commits/main).

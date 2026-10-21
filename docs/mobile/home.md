@@ -12,28 +12,28 @@ When the conversation is empty, quick action chips appear with common commands. 
 
 ### Node Selector
 
-The node selector at the top left shows which Pi Zero node is active. Tap it to switch between nodes in your household.
+The node selector at the top left shows which node is active. Tap it to switch between nodes in your household.
 
 ### Text Input
 
-Type a message in the input field and tap the send arrow. Jarvis processes it through the command center, which routes it to the appropriate command on the selected node.
+Type a message in the input field and tap the send arrow. Your server works out what you asked for and runs the right command on the selected node.
 
 The composer (text field, microphone, and send button) stays disabled until the selected node is confirmed online in your household **and** its tools have finished loading. The placeholder text walks you through the states:
 
 | Placeholder | Meaning |
-|||
+|---|---|
 | *Select a node first* | No node selected yet |
-| *Waiting for node…** | Node selected but not yet confirmed as an online member of this household |
-| Loading tools…** | Node is online but tools haven't reported yet |
+| *Waiting for node…* | Node selected but not yet confirmed as an online member of this household |
+| *Loading tools…* | Node is online but tools haven't reported yet |
 | *Message Jarvis...* | Ready to chat |
 
 ### Voice Input
 
-Tap the microphone icon to record a voice message. The audio is transcribed by the Whisper service and processed as text.
+Tap the microphone icon to record a voice message. Your server transcribes it and handles it as text.
 
 ### Auto-Play TTS
 
-When enabled in Settings, Jarvis responses are automatically spoken aloud via the TTS service. A speaker icon appears on responses that have been played.
+When enabled in Settings, Jarvis's responses are spoken aloud automatically. A speaker icon appears on responses that have been played.
 
 ## Empty State
 

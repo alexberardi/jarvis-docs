@@ -1,16 +1,17 @@
 # Headless Provisioning
 
-Pi Zero nodes run headless (no screen, no keyboard). The provisioning system allows the mobile app to bootstrap a fresh node over WiFi -- configuring network credentials, exchanging encryption keys, and registering with the command center.
+Pi nodes run headless (no screen, no keyboard). The provisioning system lets the mobile app bootstrap a fresh node over Wi-Fi: it gives the node your network's credentials, exchanges an encryption key with it and registers it with your server.
 
 ## How It Works
 
 When `main.py` starts on an unprovisioned node, it automatically enters provisioning mode:
 
-1. **AP mode** -- The node creates a WiFi access point named `jarvis-XXXX` (where XXXX is derived from the device MAC address).
+1. **AP mode** -- The node creates a Wi-Fi access point named `jarvis-` followed by 8 characters from its MAC address (the last 8 characters of its node id, which on a fresh node is `jarvis-` plus the last 8 hex digits of the MAC). The app calls it "Jarvis-XXXX".
 2. **Provisioning API** -- A lightweight FastAPI server starts on port 8080.
-3. **Mobile app connects** -- The user connects their phone to the `jarvis-XXXX` network and opens the Jarvis mobile app.
-4. **K2 exchange** -- The mobile app sends a shared encryption key (K2) for future settings sync.
-5. **WiFi + registration** -- The mobile app sends home WiFi credentials and the command center URL. The node connects to WiFi, registers with the command center, and transitions to normal operation.
+3. **Prepare** -- While still on home Wi-Fi, the user taps **Add Node** and then **Prepare** in the mobile app. The app fetches a short-lived provisioning token from the server. A phone that joins the node's hotspot first cannot fetch it.
+4. **Connect to Node** -- The user joins the node's hotspot in the phone's Wi-Fi settings and taps **Connect to Node**. The app reads the node's info, lists the networks it can see, and asks for the Wi-Fi password and the room.
+5. **K2 exchange** -- The mobile app sends a shared encryption key (K2) for future settings sync.
+6. **Wi-Fi + registration** -- The mobile app sends the home Wi-Fi credentials, the room, the server's address (`http://<server>:7700`, the one the app itself uses), the household, the node id and the provisioning token. The node connects to Wi-Fi, registers with the server, and transitions to normal operation.
 
 No manual SSH, no config files, no typing on the Pi.
 
@@ -22,7 +23,7 @@ stateDiagram-v2
     AP_MODE --> CONNECTING: Receives WiFi credentials
     CONNECTING --> REGISTERING: WiFi connected
     CONNECTING --> ERROR: WiFi failed
-    REGISTERING --> PROVISIONED: Registered with CC
+    REGISTERING --> PROVISIONED: Registered with the server
     REGISTERING --> ERROR: Registration failed
     PROVISIONED --> [*]: Restarts in normal mode
     ERROR --> AP_MODE: Retry
@@ -32,7 +33,7 @@ stateDiagram-v2
 |-------|-------------|
 | `AP_MODE` | Access point active, waiting for mobile app |
 | `CONNECTING` | Attempting to connect to the home WiFi network |
-| `REGISTERING` | Connected to WiFi, registering with the command center |
+| `REGISTERING` | Connected to Wi-Fi, registering with the server |
 | `PROVISIONED` | Registration complete, ready for normal operation |
 | `ERROR` | Something went wrong (WiFi failed, registration failed) |
 
@@ -40,12 +41,12 @@ stateDiagram-v2
 
 The provisioning server runs on port 8080 and exposes:
 
-| Endpoint | Path | Method | Description |
+| Path | Method | Description |
 |------|--------|-------------|
 | `/api/v1/info` | GET | Node info: id, firmware version, MAC address, capabilities, current state |
 | `/api/v1/scan-networks` | GET | List available WiFi networks with signal strength |
 | `/api/v1/provision/k2` | POST | Send the K2 encryption key for settings sync |
-| `/api/v1/provision` | POST | Send WiFi credentials, room name, and command center URL |
+| `/api/v1/provision` | POST | Send the Wi-Fi credentials, room, server address, household, node id and provisioning token |
 | `/api/v1/status` | GET | Current provisioning state and progress |
 | `/api/v1/factory-reset` | POST | Wipe credentials and return the node to AP/provisioning mode |
 
@@ -76,7 +77,7 @@ After successful provisioning, these files exist in `~/.jarvis/` on the node:
 provisioning/
 ├── api.py              # FastAPI endpoints
 ├── models.py           # Pydantic request/response models
-├── registration.py     # Command center registration logic
+├── registration.py     # Registration with the server
 ├── factory_reset.py    # Factory-reset handling (wipe credentials, re-enter AP mode)
 ├── recovery_watcher.py # Watches for recovery triggers on a provisioned node
 ├── startup.py          # Provisioning detection (check .provisioned marker)
