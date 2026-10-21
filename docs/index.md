@@ -45,8 +45,8 @@ New to this? Read **[Why Jarvis?](getting-started/why-jarvis.md)** for the full 
 |---|---|
 | **[Install](install/index.md)** | Install the server, finish the setup wizard, and add the desktop agent, a voice node and the mobile app. |
 | **[Build](extending/index.md)** | The plugin system — commands, agents, device adapters, prompt providers, and more. |
-| **[Architecture](architecture/index.md)** | Understand the voice pipeline, service discovery, and authentication patterns. |
-| **[Cloud Services](architecture/cloud.md)** | Pantry (command store), Notifications Relay, and the Command SDK. |
+| **[Architecture](architecture/index.md)** | How `jarvisd` is built: its modules, the voice pipeline, authentication and security. |
+| **[Pantry](pantry/index.md)** | The command store: install packages, or run your own. |
 | **[Legacy](legacy/index.md)** | The old Docker/microservice install, kept frozen for existing installs. |
 
 ## Built-in Commands
@@ -71,4 +71,4 @@ Jarvis ships with these commands out of the box:
 | `get_current_time` | Current time in any timezone |
 | ... and more | See the full [command list](commands/index.md) |
 
-Many commands that were previously built-in have been extracted to installable **[Pantry](architecture/cloud.md#pantry-command-store)** packages, including: `get_weather`, `get_news`, `get_sports_scores`, `search_web`, `tell_a_story`, `bluetooth`, `music`, `email`, `get_calendar_events`, and device families (Kasa, LIFX, Govee, Apple, Nest). Install them from the Pantry tab in the [mobile app](mobile/pantry.md).
+Many commands that were previously built-in have been extracted to installable **[Pantry](pantry/index.md)** packages, including: `get_weather`, `get_news`, `get_sports_scores`, `search_web`, `tell_a_story`, `bluetooth`, `music`, `email`, `get_calendar_events`, and device families (Kasa, LIFX, Govee, Apple, Nest). Install them from the Pantry tab in the [mobile app](mobile/pantry.md).

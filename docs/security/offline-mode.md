@@ -100,4 +100,4 @@ Updates are off by default so a local-only server never phones home.
 !!! warning "Updates require internet"
     Any update path connects to GitHub. Leave them off for an air-gapped install and upgrade by hand instead.
 
-See also: [Cloud Services](../architecture/cloud.md) for the optional cloud components (Pantry, Relay, Web) and how they stay opt-in.
+See also: [Security model: what leaves your network](../architecture/security.md#what-leaves-your-network) for every outbound connection and its default.

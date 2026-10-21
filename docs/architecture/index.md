@@ -1,154 +1,203 @@
-# Architecture Overview
+# Architecture
 
-Jarvis is a distributed voice assistant built from small, focused microservices. Pi Zero nodes capture voice input, a central command center orchestrates processing, and specialized services handle speech-to-text, LLM inference, text-to-speech, and more.
+Jarvis Automation is one server program, `jarvisd`, plus the clients you talk to Jarvis through: voice nodes, the desktop agent and the mobile app. This section describes how `jarvisd` is put together. It is written for people who extend Jarvis, run it on their own hardware or want to know where their data goes.
 
-## System Diagram
+!!! note "Pre-release"
+    Jarvis Automation is a **pre-release** (release candidate rc18). Builds are on the [releases page](https://github.com/alexberardi/jarvis-server/releases). Details on these pages can change before the first full release.
+
+The old Docker install ran each part as its own container with its own database. Its architecture pages are kept, frozen, under [Legacy](../legacy/architecture/index.md).
+
+## One process
+
+`jarvisd` is a single executable with no separate database, broker, queue or object store. Each part of the old install became a **module** inside it. Modules call each other through Go interfaces, not over HTTP. Only the inference engines run as separate processes, which `jarvisd` starts and watches.
 
 ```mermaid
 graph TD
-    Node["Pi Zero Node"] --> CC["Command Center<br/>:7703"]
-    CC --> Auth["Auth<br/>:7701"]
-    CC --> Config["Config Service<br/>:7700"]
-    CC --> Logs["Logs<br/>:7702"]
-    CC --> LLM["LLM Proxy<br/>:7704"]
-    CC --> Whisper["Whisper API<br/>:7706"]
-    CC --> TTS["TTS<br/>:7707"]
-    CC --> Notify["Notifications<br/>:7712"]
-    CC --> Scraper["Web Scraper"]
-
-    LLM -.->|"Metal/MLX (macOS)<br/>CUDA (Linux)"| GPU["GPU"]
-
-    Auth --> PG["PostgreSQL"]
-    CC --> PG
-    Config --> PG
-    Notify --> PG
-
-    subgraph "Tier 0 — Foundation"
-        Config
-        PG
-    end
-
-    subgraph "Tier 1 — Infrastructure"
-        Auth
-        Logs
-    end
-
-    subgraph "Tier 2 — Core"
-        CC
-        LLM
-    end
-
-    subgraph "Tier 3 — Specialized"
-        Whisper
-        TTS
-        Notify
-        OCR["OCR Service<br/>:7031"]
-        Recipes["Recipes<br/>:7030"]
-    end
-
-    subgraph "Cloud — Optional"
-        Pantry["Pantry<br/>:7721"]
-        Relay["Relay"]
-    end
-
-    Notify -->|push delivery| Relay
-    CC -->|browse/install| Pantry
+    Clients["Voice nodes, desktop agents,<br/>mobile app"] -->|"HTTP 7700, MQTT 1884"| J
+    Browser["Browser"] -->|"HTTP 7710"| J
+    J["jarvisd<br/>11 modules, one process"] --> Data[("Data directory<br/>jarvis.db, blobs")]
+    J -->|"subprocess"| Engines["llama-server,<br/>whisper-server"]
 ```
 
-## Dependency Tiers
+### Ports
 
-Services are organized into tiers based on how many other services depend on them. Lower tiers must start first.
+A fresh install listens on three ports:
 
-| Tier | Name | Services | Role |
-|------|------|----------|------|
-| **0** | Foundation | Config Service (7700), PostgreSQL | Service discovery and persistent storage. Every other service depends on these. |
-| **1** | Infrastructure | Auth (7701), Logs (7702) | Authentication and observability. Most services require auth; logs degrade gracefully if unavailable. |
-| **2** | Core | Command Center (7703), LLM Proxy (7704/7705) | Voice command orchestration and LLM inference. The main processing pipeline. |
-| **3** | Specialized | Whisper (7706), TTS (7707), OCR (7031), Recipes (7030), Notifications (7712) | Domain-specific services called by the command center as needed. |
-| **4** | Management | Settings Server (7708), MCP (7709), Admin UI (7710) | Developer and admin tooling. No runtime services depend on these. |
-| **Cloud** | Cloud (optional) | Pantry (7721), Notifications Relay | Services that benefit from public internet access. Can run self-hosted or on cloud infrastructure. See [Cloud Services](cloud.md). |
-| **5** | Clients | Pi Zero nodes, mobile app | End-user devices that connect to the command center. |
+| Port | What |
+|---|---|
+| 7700 | The API. Every module is served under its own path: `/auth`, `/cc`, `/llm`, `/stt`, `/tts`, `/ocr`, `/recipes`, `/notifications`, `/logs`. The config module answers at the root. |
+| 7710 | The web admin, including the setup wizard at `http://<host>:7710/setup`. |
+| 1884 | The MQTT broker that nodes connect to. |
 
-## Critical Path for Voice Commands
+The path prefix is stripped before a module sees the request, so every route keeps the path it had in the old install. The config module's own routes (`/info`, `/health`, `/services`, `/settings`) stay at the root.
 
-For a voice command to flow from microphone to speaker, these services must be running:
+Clients do not hard-code these paths: they ask the config module's `/services` endpoint. Each entry has a `path` (null for a service on its own port), and its `url` already includes the path, with no trailing slash:
 
-```mermaid
-graph LR
-    CS["Config Service"] --> Auth["Auth"]
-    Auth --> CC["Command Center"]
-    CC --> LLM["LLM Proxy"]
-    LLM --> Response["Response"]
-
-    CC -.->|"optional"| W["Whisper API"]
-    CC -.->|"optional"| TTS["TTS"]
-    CC -.->|"optional"| Logs["Logs"]
+```json
+{
+  "name": "jarvis-command-center",
+  "host": "localhost",
+  "port": 7700,
+  "path": "/cc",
+  "url": "http://localhost:7700/cc"
+}
 ```
 
-| Service | Required? | Impact if Down |
-|---------|-----------|----------------|
-| Config Service | Yes | No service can discover other services |
-| Auth | Yes | No authentication, all requests rejected |
-| Command Center | Yes | No voice command processing |
-| LLM Proxy | Yes | No intent classification or response generation |
-| Whisper API | Conditional | No speech-to-text (needed if nodes send audio) |
-| TTS | Conditional | No spoken responses (text responses still work) |
-| Logs | No | Services continue; logs fall back to console |
+Clients use the entry's `url` as the base and append their routes, for example `http://<host>:7700/cc/health`.
 
-## Architectural Principles
+An install upgraded from the old Docker stack also keeps the old per-service ports (7701-7712, 7030, 7031, and the MQTT WebSocket on 9883), and `/services` keeps answering with them, so clients that were set up against them keep working. The setting is `server.legacy_ports`: on for an upgraded install, off for a fresh one. It applies after jarvisd restarts. The environment variable `JARVIS_LEGACY_PORTS` (`1` or `0`) overrides it.
 
-### FastAPI + Uvicorn Everywhere
+### Storage
 
-Every Python service uses [FastAPI](https://fastapi.tiangolo.com/) with Uvicorn as the ASGI server. This provides:
+| What | Where |
+|---|---|
+| All data | One SQLite file, `jarvis.db`, in the data directory. Each module prefixes its tables (`auth_users`, `cc_routines`, ...). Migrations are built in and run at startup. |
+| Background work | A job queue in the same database, with leases, retries and priorities. Jobs are capped per type (for example one background LLM job at a time), so slow hardware keeps the voice path responsive. |
+| Files (images, recipe photos, OCR input) | A blob store on the local disk, under the data directory. |
+| Logs | A table in the database with a retention period. |
 
-- Automatic OpenAPI documentation at `/docs`
-- Async request handling
-- Pydantic validation on all request/response models
+The data directory is `~/.jarvisd/` by default. The Linux system service uses `/var/lib/jarvisd`. You can set it with `--home` or `JARVIS_HOME`.
 
-### PostgreSQL for Persistent Data
+### Inference
 
-Auth, Command Center, Config Service, Recipes, and Notifications all use PostgreSQL. Schema migrations are managed with [Alembic](https://alembic.sqlalchemy.org/).
+The models run on your hardware. Model weights and GPU engines are not in the binary: the model manager in the web admin downloads them, and nothing is downloaded until you pick a model.
 
-### JWT Authentication
+| Capability | How it runs |
+|---|---|
+| Language model | `llama-server` subprocesses, one per slot: a **live** slot for conversations and a **background** slot for jobs such as memory and summaries. Remote providers (OpenAI, Anthropic, Ollama, LM Studio) can stand in. |
+| Speech to text | whisper.cpp's `whisper-server`, as a subprocess. |
+| Text to speech | Kokoro, inside the binary (sherpa-onnx). |
+| Speaker identification | ERes2Net voiceprints, inside the binary (sherpa-onnx). Off by default. |
+| Embeddings (memory) | `llama-server` in embedding mode. |
 
-Three auth patterns cover all communication needs:
+`jarvisd` detects GPUs (NVIDIA, AMD, Vulkan, Apple Metal) and proposes which engine runs where. The assignment can always be changed in the web admin, including pinning engines to different GPUs or running on the CPU only. On a Mac the engines use Metal.
 
-- **Node auth**: API keys (`X-API-Key` header)
-- **App-to-app auth**: Service credentials (`X-Jarvis-App-Id` + `X-Jarvis-App-Key` headers)
-- **User auth**: JWT bearer tokens (`Authorization: Bearer <token>`)
+### Discovery
 
-See [Authentication](authentication.md) for details.
+`jarvisd` advertises itself on the local network over mDNS (`_jarvis-config._tcp`), so the mobile app can find the server without typing an address. Set `JARVIS_MDNS=0` to turn it off.
 
-### Docker Containers
+## Modules
 
-All services run in Docker containers orchestrated by Docker Compose. GPU-dependent services may run locally on macOS to access Metal/MLX. See [Deployment](deployment.md) for platform-specific details.
+Each module is a Go package in [`internal/modules/`](https://github.com/alexberardi/jarvis-server/tree/main/internal/modules) of jarvis-server, and replaces one service of the old install.
 
-### Centralized Logging
+| Module | Path on 7700 | Does |
+|---|---|---|
+| [`config`](#service-registry-config) | `/` | Tells clients where everything is |
+| [`auth`](#accounts-and-access-auth) | `/auth` | Users, households, nodes, tokens |
+| [`cc`](#command-center-cc) | `/cc` | The assistant itself: voice, chat, tools, nodes |
+| [`llm`](#language-models-llm) | `/llm` | Runs and routes language models |
+| [`stt`](#speech-to-text-stt) | `/stt` | Transcription and speaker identification |
+| [`tts`](#text-to-speech-tts) | `/tts` | Speech synthesis |
+| [`ocr`](#text-recognition-ocr) | `/ocr` | Reads text from images |
+| [`recipes`](#recipes-recipes) | `/recipes` | Recipe box, meal plans, shopping list |
+| [`notifications`](#notifications-notifications) | `/notifications` | Inbox and push |
+| [`logs`](#logs-logs) | `/logs` | Log storage and live tail |
+| [`admin`](#web-admin-admin) | port 7710 | Web admin and setup wizard |
 
-All services use `jarvis-log-client` to send structured logs to `jarvis-logs` (backed by Loki + Grafana). No `print()` statements in production code.
+### Service registry (`config`)
 
-### Service Discovery
+The first thing every client talks to. The mobile app finds the server over mDNS, checks `GET /info`, then reads `GET /services` for the URL of every other module.
 
-Services register with and discover each other through `jarvis-config-service`. No hardcoded URLs between services. See [Service Discovery](service-discovery.md) for details.
+- At startup `jarvisd` registers its own modules in the registry.
+- Entries for things outside the process (a remote GPU machine, for example) can be added and edited.
+- Owns the `server.legacy_ports` setting.
+- Replaces: jarvis-config-service.
 
-## Service Inventory
+### Accounts and access (`auth`)
 
-| Service | Port | Description |
-|---------|------|-------------|
-| Config Service | 7700 | Service discovery and registration |
-| Auth | 7701 | JWT authentication, node registration, app credentials |
-| Logs | 7702 | Centralized structured logging (Loki + Grafana) |
-| Command Center | 7703 | Voice command orchestration, tool routing, memory |
-| LLM Proxy | 7704/7705 | LLM inference (MLX on macOS, llama.cpp/vLLM on Linux) |
-| Whisper API | 7706 | Speech-to-text via whisper.cpp with speaker identification |
-| TTS | 7707 | Text-to-speech via pluggable providers (Piper default, Kokoro optional) |
-| Settings Server | 7708 | Runtime settings aggregation |
-| MCP | 7709 | Claude Code tool integration |
-| Admin UI | 7710 | Web administration interface |
-| Notifications | 7712 | Push notifications, inbox, device tokens |
-| Recipes | 7030 | Recipe CRUD, meal planning, OCR import |
-| OCR Service | 7031 | Image-to-text (Apple Vision on macOS, Tesseract on Linux) |
-| Pantry | 7721 | Community package store (commands, agents, device adapters, routines) |
-| Notifications Relay | --- | Stateless Expo Push API proxy for push delivery |
+Users, households and memberships, invites, nodes and what each node may call, app credentials for external callers, and access and refresh tokens.
 
-The old web chat (`jarvis-web`, 7722) is retired. Browser chat is the web app built into jarvisd ([jarvis-server](https://github.com/alexberardi/jarvis-server)) on port 7710.
+- Tokens are RS256 JWTs signed with a key `jarvisd` generates on first start.
+- Other modules check callers in process, not over HTTP.
+- Deleting an account or a household runs every module's clean-up in one transaction.
+- Replaces: jarvis-auth. See [Authentication](authentication.md).
+
+### Command center (`cc`)
+
+The assistant. It runs the voice loop and chat, the tool loop on the language model, and everything Jarvis knows and does:
+
+- **Voice and chat:** conversation start and end, voice commands, follow-ups, mobile chat. See [Voice pipeline](voice-pipeline.md).
+- **Tools:** the tool loop that decides which commands to run, on the server or on the node.
+- **Memory and knowledge:** memories, transcripts, quick search and deep research.
+- **Nodes:** registration, pairing, heartbeats, settings, updates, and the MQTT broker with a login per node.
+- **Smart home:** rooms, devices, cameras and provider sign-ins.
+- **Routines, schedules, errands and workflows.**
+- **Signals, attention and proposals:** what Jarvis notices and offers to do.
+- **Phone:** calls through Twilio.
+- **Packages:** installing [Pantry](../pantry/index.md) packages onto nodes and desktop agents, and the data commands store.
+- **Desktop agent:** computer control, recordings and watches on a computer running the [desktop agent](../clients/desktop-agent.md).
+
+The design notes for each area are in jarvis-server's [`docs/cc/`](https://github.com/alexberardi/jarvis-server/tree/main/docs/cc). Replaces: jarvis-command-center.
+
+### Language models (`llm`)
+
+Starts and supervises `llama-server` engines and routes requests to them, or to a remote provider.
+
+- Endpoints: chat completions (Jarvis's own stream format and an OpenAI-compatible one), cancel, embeddings, and a queue for background requests.
+- Engines are picked by label ("live", "background", ...), so a module asks for a role, not a model.
+- The model manager (hardware, downloads) is for superusers only.
+- Replaces: jarvis-llm-proxy-api.
+
+### Speech to text (`stt`)
+
+Transcribes audio on a supervised `whisper-server`, and identifies speakers.
+
+- Speaker identification uses ERes2Net voiceprints, matched against each household member's enrolled voice. It is off by default per household and stores voiceprints only, never recordings.
+- The command center calls it in process; nodes and the mobile app reach it through the command center.
+- Replaces: jarvis-whisper-api.
+
+### Text to speech (`tts`)
+
+Speaks with Kokoro inside the binary. The default voice is `bm_george` at speed 1.25.
+
+- `POST /speak` returns a WAV file; `POST /speak/stream` streams raw PCM one sentence at a time.
+- The model loads on first use.
+- Replaces: jarvis-tts. Piper is no longer offered.
+
+### Text recognition (`ocr`)
+
+Reads text from images, through a chain of engines: an LLM with vision, `tesseract` if it is installed, and Apple Vision on a Mac.
+
+- Synchronous batch requests and queued jobs, with an optional callback when a job finishes.
+- Images and job state are in the blob store.
+- Used by recipes (photo import) and by the command center when the live model cannot read images.
+- Replaces: jarvis-ocr-service.
+
+### Recipes (`recipes`)
+
+The household's recipe box, meal planner and shopping list, and recipe import from a web page or a photo.
+
+- Recipes are shared within a household.
+- Imports run as queued jobs that call `ocr` and `llm` in process.
+- Its client is the Jarvis Recipes mobile app.
+- Replaces: jarvis-recipes-server and its worker.
+
+### Notifications (`notifications`)
+
+The mobile app's inbox, device push tokens and push sends.
+
+- Push sends are queued jobs with retries.
+- Push goes through a relay, which is **off by default**: the setup wizard's privacy step turns it on. Until then, notifications stay in the inbox.
+- Replaces: jarvis-notifications.
+
+### Logs (`logs`)
+
+Stores log records from `jarvisd` itself and from nodes, and streams them live to the web admin.
+
+- Records are kept for 7 days by default (`logs.retention_days`).
+- Replaces: jarvis-logs (and the Loki and Grafana it needed).
+
+### Web admin (`admin`)
+
+Serves the web admin on its own port, 7710, with an `/api` gateway to the other modules.
+
+- Hosts the [setup wizard](../install/setup-wizard.md) for the first run.
+- Every household member can use Chat and Add-ons; every other page is for superusers, and the server enforces it per route.
+- Settings, system information, traces, doctor, logs, connections, restart and signed updates.
+- Replaces: jarvis-admin.
+
+## Read next
+
+- [Voice pipeline](voice-pipeline.md): what happens between "Jarvis" and the answer.
+- [Authentication](authentication.md): households, nodes and tokens.
+- [Security model](security.md): what is exposed, what is stored and what leaves your network.

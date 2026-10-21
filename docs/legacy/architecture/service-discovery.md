@@ -49,40 +49,6 @@ The `./jarvis` CLI supports three network modes:
 | **Host** | `--no-network` | No shared Docker network. Services use `host.docker.internal`. |
 | **Standalone** | `--standalone` | Single service with its own PostgreSQL container. For isolated development. |
 
-## One API port
-
-jarvisd serves every service on the API port, 7700, each under its own path. The config service's own routes (`/info`, `/health`, `/services`, `/settings`) stay at the root.
-
-| Service | Path on 7700 |
-|---------|--------------|
-| `jarvis-auth` | `/auth` |
-| `jarvis-logs` | `/logs` |
-| `jarvis-command-center` | `/cc` |
-| `jarvis-llm-proxy-api` | `/llm` |
-| `jarvis-whisper-api` | `/stt` |
-| `jarvis-tts` | `/tts` |
-| `jarvis-notifications` | `/notifications` |
-| `jarvis-recipes-server` | `/recipes` |
-| `jarvis-ocr-service` | `/ocr` |
-
-The admin (7710) and MQTT (1884) keep their own ports.
-
-`/services` hands out those URLs. Each entry has a `path` (null for a service on its own port), and `url` already includes it, with no trailing slash:
-
-```json
-{
-  "name": "jarvis-command-center",
-  "host": "localhost",
-  "port": 7700,
-  "path": "/cc",
-  "url": "http://localhost:7700/cc"
-}
-```
-
-Clients use the entry's `url` as the base and append their routes (`http://localhost:7700/cc/health`).
-
-A fresh install listens only on 7700, 7710 and 1884. An upgraded install keeps the old per-service ports (7701–7712, 7030, 7031, and the MQTT WebSocket on 9883), and `/services` keeps answering them, until the `server.legacy_ports` setting is turned off. The setting applies after jarvisd restarts, and `JARVIS_LEGACY_PORTS` (`1` or `0`) overrides it.
-
 ## Client Library
 
 Services use `jarvis-config-client` to interact with config-service:

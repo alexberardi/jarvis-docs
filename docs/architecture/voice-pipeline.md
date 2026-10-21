@@ -1,149 +1,130 @@
-# Voice Pipeline
+# Voice pipeline
 
-The voice pipeline is the core interaction flow -- from microphone to speaker.
+What happens between "Jarvis" and the answer. A voice turn runs between a node (a voice node or a computer with the [desktop agent](../clients/desktop-agent.md)) and the command center module (`cc`) in `jarvisd`, which calls speech to text, the language model and text to speech in process.
 
-## Sequence
+Most of the design serves one goal: keep the time to the first spoken word short. The language model's prompt is kept byte-stable so `llama-server` can reuse its cache, the model is warmed up while you are still speaking, and the answer is spoken while the rest of it is still being synthesised.
+
+## One turn
 
 ```mermaid
 sequenceDiagram
-    participant Node as Pi Zero Node
-    participant CC as Command Center
-    participant W as Whisper API
-    participant LLM as LLM Proxy
-    participant CMD as Command (Node)
-    participant TTS as TTS Service
-
-    Node->>Node: Wake word detected (Porcupine)
-    Node->>Node: Record audio until silence
-    Node->>CC: POST /api/v0/command (audio)
-    CC->>W: POST /transcribe (audio)
-    W-->>CC: {text, speaker: {user_id, confidence}}
-    CC->>CC: Resolve speaker → display name
-    CC->>CC: Load user memories
-    CC->>CC: Build system prompt + tool schemas
-    CC->>LLM: POST /v1/chat/completions
-    LLM-->>CC: Tool call: calculate(num1=5, num2=3, op="add")
-    CC->>CMD: execute(request_info, num1=5, num2=3, operation="add")
-    CMD-->>CC: CommandResponse {result: 8}
-    CC->>LLM: Tool result → generate spoken response
-    LLM-->>CC: "5 plus 3 equals 8"
-    CC->>TTS: POST /synthesize (text)
-    TTS-->>Node: Audio (via MQTT or direct)
-    Node->>Node: Play audio
+    participant N as Node
+    participant CC as jarvisd
+    participant LLM as llama-server
+    N->>N: Wake word
+    N->>CC: Start conversation
+    CC->>LLM: Warm up
+    N->>CC: Upload audio
+    CC-->>N: Text, speaker
+    N->>CC: Command
+    CC->>LLM: Tool loop
+    alt Answer
+        CC-->>N: 200 audio stream
+    else
+        CC-->>N: 202 tool calls
+        N->>N: Run commands
+        N->>CC: Continue
+        CC-->>N: 200 audio stream
+    end
+    N->>CC: End conversation
 ```
 
-## Pipeline Stages
+The steps below give each request's path. All paths are under the command center's prefix, `http://<host>:7700/cc/api/v0/...`. Every request from a node carries the node's credential (`X-API-Key: node_id:node_key`; see [Authentication](authentication.md#nodes)). Voice turns use HTTP only; MQTT carries commands to the node, not audio.
 
-### 1. Wake Word Detection
+### 1. Wake word
 
-Local on the Pi Zero using [Porcupine](https://picovoice.ai/platform/porcupine/). No audio leaves the device until the wake word is detected. This is a core privacy guarantee -- the node only starts recording after hearing the configured wake word.
+The wake word is detected **on the node**, never on the server. The desktop agent and the Go Pi node use an openWakeWord model. Nothing is sent to `jarvisd` until the wake word is heard.
 
-### 2. Speech-to-Text (Whisper)
+### 2. Conversation start
 
-Audio is sent to `jarvis-whisper-api` which runs [whisper.cpp](https://github.com/ggerganov/whisper.cpp). Returns transcription text plus optional speaker identification with a confidence score.
+The node creates a conversation ID and calls `POST /conversation/start` in the background while it records your command. `jarvisd` builds the system prompt for that node and household and runs a one-token warm-up on the live language-model slot, so the model's prompt cache is ready when the command arrives. This happens while you speak, off the critical path.
 
-Key files:
+### 3. Speech to text
 
-- Node: `stt_providers/jarvis_whisper_client.py` (`TranscriptionResult` with speaker data)
-- Whisper: `app/api/voice_profiles.py` (enrollment endpoints)
+The node uploads the recording in one request (`POST /media/whisper/transcribe`, multipart), not as a stream. Along with the command it can send a slightly longer clip that includes the wake word, for the speaker check.
 
-### 3. Speaker Resolution
+`jarvisd` transcribes it on `whisper-server` and answers with the text and, if recognised, the speaker.
 
-Command Center resolves the speaker's `user_id` to a display name via `jarvis-auth`. Names are cached for 5 minutes to avoid repeated lookups.
+- **Vocabulary.** The household setting `voice.stt_prompt` gives whisper words to expect (names, rooms). A desktop agent can add its own vocabulary when it starts a conversation.
+- **Speaker identification.** With `voice.recognition_enabled` on (it is off by default), the clip is compared with each household member's voiceprint. A speaker counts only above `voice.similarity_threshold` and clearly ahead of the next candidate (`voice.min_speaker_margin`). The speaker belongs to the **conversation**, never to the node.
+- **Wake check.** `voice.wake_verification_mode` (`off`, `bias` or `enforce`; default `off`) checks that the clip really starts with the wake phrase.
 
-Key file: `jarvis-command-center/app/core/utils/speaker_resolver.py`
+### 4. The command
 
-### 4. Memory Injection
+The node sends the text to `POST /voice/command/stream`. `jarvisd`:
 
-User-specific memories are loaded from PostgreSQL and injected into the system prompt. The LLM sees context like:
+1. drops noise and empty transcriptions,
+2. adds this turn's context (the speaker, per-turn hints) after the fixed system prompt, so the cached part of the prompt does not change,
+3. runs the **tool loop** on the live `llama-server` slot.
 
-> About Alex: likes black coffee, morning person
+Tools come in two kinds:
 
-Users can manage memories through voice commands ("remember that I like black coffee") or the REST API.
+| Kind | Runs on | Examples |
+|---|---|---|
+| Server tools | `jarvisd` | answer a question, search, remember something, identify the speaker |
+| Client tools | The node | the node's own commands: its devices, its media, the computer it runs on |
 
-Key files:
+If the model decides the speech was not meant for Jarvis, the turn ends silently.
 
-- `jarvis-command-center/app/services/memory_service.py` (memory CRUD + prompt formatting)
-- `jarvis-command-center/app/core/tools/remember_tool.py` (remember tool)
-- `jarvis-command-center/app/core/tools/forget_tool.py` (forget tool)
-- `jarvis-command-center/app/api/memories.py` (REST CRUD API)
+### 5. The answer
 
-### 5. Intent Classification (LLM)
+`/voice/command/stream` answers in one of two ways:
 
-The LLM receives the transcribed text along with all registered command schemas (tool definitions). It selects the appropriate command and extracts parameters.
+- **200, audio.** A spoken answer comes back as raw PCM (16-bit, mono, 24 kHz), streamed as it is synthesised. Headers carry the format (`X-Audio-Sample-Rate`, `X-Audio-Channels`, `X-Audio-Sample-Width`) and the text of the answer (`X-Assistant-Message`).
+- **202, JSON.** When the node has to run client tools, the answer lists the tool calls. The node runs them and posts the results to `POST /voice/command/continue/stream`, which answers with audio again. A turn can go round this loop several times.
 
-The command center builds a system prompt containing:
+Kokoro synthesises in process. A short answer is spoken one sentence at a time; a longer one in groups of sentences, with the next group synthesised while the current one plays. The first audio is ready about 200 ms after the text. If the node disconnects, synthesis stops.
 
-- Current date/time context
-- Speaker identity and memories
-- All available tool schemas (command definitions with parameter types)
+The node plays the audio as it arrives. If the stream fails it falls back to a complete WAV from `POST /media/tts/speak`.
 
-The LLM responds with a tool call specifying the command name and extracted arguments.
+### 6. Follow-ups
 
-### 6. Command Execution
+After an answer the node keeps listening for a short while, so you can reply without the wake word. Each follow-up goes to `POST /voice/command` with the same conversation ID. The conversation's history stays in memory for 10 minutes of silence, or until the node calls `POST /conversation/end`.
 
-The selected command's `execute()` method runs. Commands implement the `IJarvisCommand` interface:
+The **follow-up gate** (`voice.follow_up_gate`, on by default) keeps the conversation from picking up the room:
 
-```python
-class IJarvisCommand:
-    def execute(self, request_info, **kwargs) -> CommandResponse:
-        ...
-```
+- a follow-up the model judges not meant for Jarvis is ignored, and the node keeps listening;
+- a different, quieter voice than the one that started the conversation is dropped before it reaches the model.
 
-Commands validate secrets and parameters, then call `run()` with the extracted arguments.
+## The mobile app
 
-### 7. Response Generation
+The mobile app uses the same pipeline without a wake word:
 
-The command's result (`CommandResponse`) is sent back to the LLM to generate a natural language spoken response. This second LLM call turns structured data into conversational speech.
+| Step | Endpoint | Notes |
+|---|---|---|
+| Push to talk | `POST /mobile/stt` | Transcribes only. The speaker is the signed-in user; no voiceprint check. |
+| The turn | `POST /mobile/chat` | The same tool loop, streamed to the app as server-sent events. |
+| Read aloud | `POST /mobile/tts` | A complete WAV file. |
 
-### 8. Text-to-Speech
+## Voice profiles
 
-The spoken response text is sent to `jarvis-tts`, which delegates to a selectable provider: [Piper TTS](https://github.com/rhasspy/piper) for fast/lightweight output (the default, baked into the image) or [Kokoro TTS](https://github.com/hexgrad/kokoro) for more natural prosody. The provider is chosen at runtime via the `tts.provider` setting; see the [TTS service docs](../legacy/services/tts.md) for voices and caching. Audio is streamed back to the node as raw 16-bit PCM; the format is carried in `X-Audio-*` response headers so the node plays whatever the provider emits.
+Speaker identification needs each person to enroll. Enrollment uses a **node's microphone**, so the voiceprint matches the microphone it will be heard on:
 
-## Pre-Routing (Fast Path)
+1. In the mobile app you pick a node and start enrollment.
+2. `jarvisd` sends `enroll_voice` to that node over MQTT. The node pauses wake detection, plays a cue and records about 8 seconds.
+3. The node uploads the take; `jarvisd` turns it into a voiceprint. You record three takes. A take with too little speech, or one that does not match your other takes, is rejected and you record it again.
+4. Verification works the same way, with a shorter take.
 
-Commands can implement `pre_route()` to claim short, unambiguous utterances without LLM inference:
+Only voiceprints are stored, never the recordings. They belong to a person in a household, not to a node, and are deleted with the account. Changing the speaker model means enrolling again. Enrolling does not turn recognition on: that is the separate household setting `voice.recognition_enabled`.
 
-```python
-def pre_route(self, voice_command: str) -> PreRouteResult | None:
-    if voice_command.strip().lower() == "pause":
-        return PreRouteResult(arguments={}, spoken_response="Paused.")
-    return None
-```
+When nobody is recognised, tools that act for one person refuse, and household tools keep working. A desktop agent is the exception: its voice turns act as the computer's owner.
 
-This skips steps 5-7 entirely, reducing latency to near-zero for simple commands like "pause", "stop", or "nevermind".
+## Settings
 
-## Speaker ID and Memory Flow
+Household settings, in the web admin or the mobile app:
 
-```
-Node (mic) --> Whisper --> {text, speaker: {user_id, confidence}}
-                               |
-                               v
-             Command Center receives transcription
-               |
-               +-- Extracts speaker_user_id from whisper response
-               +-- Resolves user_id -> display name via jarvis-auth (cached 5min)
-               +-- Loads user memories from PostgreSQL (MemoryService)
-               +-- Injects speaker name + memories into system prompt
-               |
-               +-->  LLM sees: "About Alex: - Likes black coffee - Morning person"
-                     LLM can call: remember({content: "..."}) / forget({content_match: "..."})
-```
+| Setting | Default | What it does |
+|---|---|---|
+| `voice.recognition_enabled` | off | Speaker identification |
+| `voice.similarity_threshold`, `voice.min_speaker_margin` | calibrated | How sure a speaker match must be |
+| `voice.stt_prompt` | empty | Words whisper should expect |
+| `voice.stt_preprocess` | off | Normalise level and trim silence before transcription |
+| `voice.wake_verification_mode` | `off` | Check the wake phrase in the clip: `off`, `bias`, `enforce` |
+| `voice.wake_verification_phrase` | `jarvis` | The phrase it checks for |
+| `voice.follow_up_gate` | on | Ignore follow-ups not meant for Jarvis |
 
-## Performance
+The voice Jarvis speaks with is chosen in the setup wizard and the web admin. Which GPU runs `whisper-server` and each `llama-server` slot is set in the web admin.
 
-A full turn — you stop talking → Jarvis starts talking — runs in **~2.4 seconds** on a node co-located with the server, fully local (a 14B live model), no cloud inference. Where the time goes on that path:
+## Where it lives
 
-| Stage | Time |
-|-------|------|
-| Endpointing (silence detection) | ~0.5s |
-| Transcription (audio upload + Whisper) | ~0.6s |
-| First LLM call (tool decision, KV-cache hit) | ~0.3s |
-| Act + speak (tool execution + TTS start) | ~0.7s |
-
-Two things dominate a *slow* turn, and neither is the model:
-
-- **Routing.** A node round-tripping audio through the cloud relay instead of the LAN adds ~2s per turn. Co-located nodes override to the LAN directly with `JARVIS_COMMAND_CENTER_LAN_URL` (see [node setup](../clients/node-setup.md)).
-- **Prefix-cache eviction.** The heavy static prompt (system prompt + tool definitions) is warmed into llama.cpp's KV cache; any interleaved LLM call on the single slot evicts it and forces a cold reprefill (~2.4s vs ~0.3s). Keep throwaway calls (wake greetings, background acks) off the critical path.
-
-Whisper itself transcribes a command in ~70ms — the transcription cost is almost entirely transport, not the model. Swapping to a smaller model saves nothing.
+In [jarvis-server](https://github.com/alexberardi/jarvis-server): `internal/modules/cc` (`voice_routes.go`, `voice.go`, `turn.go`, `continue.go`, `media.go`, `voice_profiles.go`), `internal/modules/stt`, `internal/modules/tts`, and the design notes [`docs/cc/01-voice-pipeline.md`](https://github.com/alexberardi/jarvis-server/blob/main/docs/cc/01-voice-pipeline.md), [`05-nodes.md`](https://github.com/alexberardi/jarvis-server/blob/main/docs/cc/05-nodes.md) and [`06-media-and-voice-identity.md`](https://github.com/alexberardi/jarvis-server/blob/main/docs/cc/06-media-and-voice-identity.md).

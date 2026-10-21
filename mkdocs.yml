@@ -194,11 +194,9 @@ nav:
       - Running Your Own Pantry: pantry/self-hosting.md
   - Architecture:
     - architecture/index.md
-    - Voice Pipeline: architecture/voice-pipeline.md
-    - Service Discovery: architecture/service-discovery.md
+    - Voice pipeline: architecture/voice-pipeline.md
     - Authentication: architecture/authentication.md
-    - Cloud Services: architecture/cloud.md
-    - Deployment: architecture/deployment.md
+    - Security model: architecture/security.md
   - Contributing:
     - contributing/index.md
     - Coding Standards: contributing/coding-standards.md
@@ -238,6 +236,14 @@ nav:
       - Pantry Runner: legacy/services/pantry-runner.md
       - Pantry Store: legacy/services/pantry-store.md
       - Pantry Web: legacy/services/pantry-web.md
+    - Architecture:
+      - legacy/architecture/index.md
+      - Voice Pipeline: legacy/architecture/voice-pipeline.md
+      - Service Discovery: legacy/architecture/service-discovery.md
+      - Authentication: legacy/architecture/authentication.md
+      - Cloud Services: legacy/architecture/cloud.md
+      - Deployment: legacy/architecture/deployment.md
+    - Security: legacy/security/index.md
     - Libraries:
       - Log Client: legacy/libraries/log-client.md
       - Config Client: legacy/libraries/config-client.md

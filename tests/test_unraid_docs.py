@@ -52,6 +52,22 @@ def test_page_has_ports_data_gpu_and_updates(built_site):
         assert needle in html, f"Unraid page is missing {needle!r}"
 
 
-def test_service_discovery_explains_legacy_ports():
-    text = (REPO_ROOT / "docs" / "architecture" / "service-discovery.md").read_text(encoding="utf-8")
-    assert "server.legacy_ports" in text
+def test_architecture_explains_one_api_port_and_legacy_ports():
+    text = (REPO_ROOT / "docs" / "architecture" / "index.md").read_text(encoding="utf-8")
+    for needle in (
+        "server.legacy_ports",
+        "JARVIS_LEGACY_PORTS",
+        '"path"',
+        "no trailing slash",
+        "http://<host>:7700/cc/health",
+        "`/info`, `/health`, `/services`, `/settings`",
+        "7701-7712, 7030, 7031",
+        "9883",
+        "restarts",
+    ):
+        assert needle in text, f"architecture/index.md#ports is missing {needle!r}"
+
+
+def test_legacy_service_discovery_has_no_jarvisd_section():
+    text = (REPO_ROOT / "docs" / "legacy" / "architecture" / "service-discovery.md").read_text(encoding="utf-8")
+    assert "## One API port" not in text

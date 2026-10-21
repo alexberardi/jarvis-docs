@@ -61,7 +61,7 @@ The config service returns URLs based on the network mode:
 - **Bridge**: `http://jarvis-auth:7701`
 - **Host**: `http://host.docker.internal:7701`
 
-See [Service Discovery](../../architecture/service-discovery.md) for details.
+See [Service Discovery](../architecture/service-discovery.md) for details.
 
 ## Runtime Settings
 

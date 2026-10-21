@@ -1,167 +1,24 @@
 # Security
 
-Jarvis is designed with privacy and security as core principles. All data stays on your network by default, with no cloud dependencies required.
+Jarvis Automation runs on your own hardware, and nothing that needs the internet is on by default. This page is the short version for running a server; the details are in the [security model](../architecture/security.md).
 
 !!! tip "Staying fully local"
-    Every outbound-internet capability is opt-in and defaults to off. See [Network Egress & Offline Mode](offline-mode.md) for the complete list of toggles and how to run air-gapped --- or how to enable updates.
+    Every outbound-internet capability is opt-in and defaults to off. See [Network Egress & Offline Mode](offline-mode.md) for the toggles.
 
-## Zero-Trust Architecture
+## What to know as an operator
 
-Jarvis follows a **zero-trust security model** --- no service, node, or client is implicitly trusted, regardless of network location. Every request is authenticated and verified independently at every boundary.
+- **Three ports.** A fresh install listens on 7700 (the API), 7710 (the web admin) and 1884 (MQTT for nodes). Keep them on your home network. To reach Jarvis from outside, use a tunnel or reverse proxy with TLS instead of opening the ports.
+- **Finish setup promptly.** Until the first account exists, the [setup wizard](../install/setup-wizard.md) asks for the one-time setup token from the server's data directory, so nobody else on the network can claim the server. After that, people join with an invite code.
+- **Every caller is authenticated.** People sign in with a password and get short-lived RS256 tokens; each node has its own key and its own MQTT login. See [Authentication](../architecture/authentication.md).
+- **Protect the data directory.** `~/.jarvisd/` (or `/var/lib/jarvisd` for the Linux service) holds the database and the token signing key, readable only by the service user. Backups contain the signing key too.
+- **Command secrets stay on the node.** API keys and account tokens for commands are encrypted end to end between the mobile app and the node; the server cannot read them.
+- **Updates are signed.** `jarvisd upgrade` and Update in the web admin refuse a release whose minisign signature or checksum does not match.
 
-Most self-hosted assistants rely on "it's on my LAN, so it's fine." Jarvis does not. Even services running on the same Docker network authenticate to each other on every call.
+## More
 
-**How this manifests in practice:**
+- [Security model](../architecture/security.md): what listens, what is stored, what leaves your network.
+- [Network Egress & Offline Mode](offline-mode.md)
+- [Compliance Roadmap](compliance-roadmap.md)
+- [Privacy Policy](privacy-policy.md)
 
-| Principle | Implementation |
-|-----------|----------------|
-| **Verify explicitly** | Every service-to-service call carries `X-Jarvis-App-Id` + `X-Jarvis-App-Key` headers. The receiving service validates them against `jarvis-auth` --- it never assumes the caller is legitimate. |
-| **Never trust the caller** | The command center does not cache "this node is trusted." Every node request is validated with the auth service via the `X-API-Key` header. |
-| **Encrypt at rest** | Node secrets (API keys, OAuth tokens) are stored in AES-256 encrypted SQLite (pysqlcipher3). The encryption key (K1) never leaves the device. |
-| **Encrypt in transit** | Settings sync between mobile and node is end-to-end encrypted with AES-256-GCM (K2 key). The command center transports the encrypted blob but cannot read it. |
-| **Least privilege** | Nodes are scoped to a household. App-to-app keys are scoped per service. Admin endpoints require a separate `ADMIN_API_KEY`. |
-| **Assume breach** | Even if the Docker network is compromised, an attacker cannot impersonate a service without valid app credentials, or read node secrets without the device's K1 key. |
-
-```mermaid
-graph LR
-    Node -->|"X-API-Key (every request)"| CC["Command Center"]
-    CC -->|"X-Jarvis-App-Id + Key"| Auth["Auth Service"]
-    CC -->|"X-Jarvis-App-Id + Key"| LLM["LLM Proxy"]
-    CC -->|"X-Jarvis-App-Id + Key"| Logs["Logs Service"]
-    Mobile -->|"Bearer JWT"| CC
-    Mobile -.->|"E2E encrypted (K2)"| Node
-
-    style Node fill:#4a148c,color:#fff
-    style CC fill:#4a148c,color:#fff
-    style Auth fill:#4a148c,color:#fff
-    style LLM fill:#4a148c,color:#fff
-    style Logs fill:#4a148c,color:#fff
-    style Mobile fill:#4a148c,color:#fff
-```
-
-!!! note "Roadmap items"
-    Two items will strengthen the zero-trust posture further: **mTLS between services** (Phase 2 on the [compliance roadmap](compliance-roadmap.md)) and **RBAC with per-request authorization scoping** (Phase 4). The trust boundaries are already in place --- these additions add defense-in-depth.
-
-## Authentication Patterns
-
-Jarvis uses three authentication patterns depending on who is communicating:
-
-### 1. Node Authentication
-
-Pi Zero nodes authenticate to backend services using an API key:
-
-```
-X-API-Key: {node_id}:{api_key}
-```
-
-The receiving service validates the key against `jarvis-auth`. Node credentials are created during provisioning and stored in the node's encrypted local database.
-
-### 2. App-to-App Authentication
-
-Backend services authenticate to each other using service credentials:
-
-```
-X-Jarvis-App-Id: <app_id>
-X-Jarvis-App-Key: <app_key>
-```
-
-App credentials are generated by `./jarvis init` and stored in each service's `.env` file. Services validate incoming app-to-app requests against `jarvis-auth` via `POST /internal/validate-app`.
-
-### 3. User Authentication (JWT)
-
-Human users (mobile app, admin UI) authenticate with JWT bearer tokens:
-
-```
-Authorization: Bearer <jwt_access_token>
-```
-
-JWTs are issued by `jarvis-auth` on login, signed with HS256 using a shared secret key. Access tokens are short-lived; refresh tokens are hashed and stored in PostgreSQL.
-
-## Encrypted Local Storage
-
-Pi Zero nodes store secrets (API keys, OAuth tokens, command credentials) in a local SQLite database encrypted with [PySQLCipher](https://github.com/niccokunzmann/pysqlcipher3). The encryption key (K1) is generated on first boot.
-
-Settings sync between the mobile app and nodes uses a shared AES-256 key (K2), exchanged during provisioning.
-
-## Admin CSP + Anti-Clickjacking Headers
-
-`jarvis-admin` serves its SPA same-origin and controls the Docker socket + install/configure flow, so an XSS or clickjacking hole there is high-severity. Since jarvis-admin#16, every response from the admin backend carries:
-
-- **`Content-Security-Policy`**: `script-src 'self'` (the built SPA is a single external module script with no inline scripts, so this is a real XSS backstop) plus `default-src 'self'`, `style-src 'self' 'unsafe-inline'` (React's runtime inline styles only — scripts are never allowed inline), `img-src`/`font-src 'self' data:`, `connect-src 'self'`, `frame-ancestors 'none'`, `base-uri`/`form-action 'self'`, `object-src 'none'`.
-- **`X-Frame-Options: DENY`** --- the admin UI can no longer be framed, closing off clickjacking of Docker-control actions.
-- **`X-Content-Type-Options: nosniff`** and **`Referrer-Policy: strict-origin-when-cross-origin`**.
-
-Headers apply to API routes as well as the SPA. This is the admin slice of the broader security-headers rollout (P2.8) --- the web / pantry-web SPAs, recipes-mobile SecureStore, and mobile ATS are tracked separately.
-
-## Setup Wizard Probe Endpoint (SSRF Hardening)
-
-The `jarvis-admin` setup wizard's `/probe` endpoint (used to validate a service URL the operator enters before it's saved) is unauthenticated by design --- there's no superuser account yet at that point in the flow. To keep this from being a standing SSRF primitive:
-
-- **Pre-install only.** Once setup has completed, `/probe` returns `403` on every call.
-- **Cloud-metadata and link-local targets are blocked**, even during setup: `169.254.0.0/16` (including the `169.254.169.254` cloud-metadata address) and `fe80::/10`. This is checked against the resolved IP, not just the hostname string, so a DNS name that resolves into a blocked range is caught too.
-- **RFC1918 and localhost stay allowed** --- the wizard legitimately needs to probe LAN service URLs (e.g. `http://10.0.0.5:7701`, `http://localhost:7700`).
-- Probe requests never follow redirects (`redirect: 'manual'`), so a target can't 3xx-redirect the probe into a blocked address after the initial check passes.
-
-## Node-Scoped Endpoint Authorization
-
-Command-center's node-scoped provisioning and action endpoints resolve the household from the **target node's row** and enforce it, so an authenticated user cannot act on another household's node. Covered routes: package install/uninstall/revert (request + poll), node command actions (`/actions`, `/node-config`, `/led/preview`), node update requests (request/get/cancel/list), Bluetooth scan/pair/disconnect/discoverable requests, and test-install requests. Admin-key callers (infrastructure) bypass this check; node-auth callbacks (`/results`, `/ack`) are unaffected.
-
-## Admin Traces Endpoint Authorization
-
-Command-center's admin trace router (`/api/v0/admin/traces`, raw voice/chat transcripts across every household) is now gated behind `verify_admin_key` (the same `X-Api-Key` admin token the admin dashboard already sends), matching the mobile trace router which already required a JWT. A missing or wrong key returns `400`/`401`.
-
-## Admin Self-Update Signature Verification
-
-Since jarvis-admin#29 (P1.8, piece 1), the `jarvis-admin` self-updater verifies a minisign signature before applying an update. Previously the updater downloaded the new binary + `public.tar.gz` and applied them with **no integrity check** --- a tampered or MITM'd artifact would have been chmod'd, extracted, and executed.
-
-**How it works:** after downloading the new binary and `public.tar.gz`, the updater fetches the release's `checksums.txt` + `checksums.txt.minisig` and verifies the signature against a baked-in public key **before** `chmod`, extraction, or the file swap. A refusal throws and aborts with nothing mutated.
-
-**Trust policy (*always* enforced, not just a warning):**
-
-| Condition | Result |
-|----------|-------|
-| No signature material (`checksums.txt.minisig` missing) | Refused, unless the operator set `JARVIS_ALLOW_UNSIGNED_UPDATE` (unsigned-only escape hatch). |
-| Signature present but invalid for the trusted key | **Always refused** --- not overridable by the unsigned escape hatch. This is a tampering / wrong-signer signal, never a "no signature" case. |
-| Signature valid but an artifact is missing from `checksums.txt` or its SHA-256 doesn't match | **Always refused** --- also not overridable. A validly-signed manifest that doesn't match the downloaded bytes means the download was tampered. |
-| Signature valid **and** every artifact hash matches | Allowed. |
-
-Trust-on-first-update: the verifying code ships *in* this release, so this release is trusted on first use; every update after it is verified against the baked-in `RELEASE_SIGNING_PUBKEY`. Releases are signed in CI, so any real release already carries the signature this check expects.
-
-!!! note "Follow-up piece"
-    The same verification for the bash installers (`node install.sh`, admin `install.sh`) via the `minisign` binary is a separate, not-yet-landed PR.
-
-## No Cloud Dependencies
-
-By default, Jarvis runs entirely on your local network:
-
-- Speech-to-text runs locally via whisper.cpp
-- LLM inference runs locally via MLX (macOS) or llama.cpp (Linux)
-- Text-to-speech runs locally via Piper TTS (default) or Kokoro TTS (optional); no cloud calls
-- All data is stored in your PostgreSQL instance
-- No telemetry, no external API calls (unless you configure them)
-
-## Credential Rotation
-
-App-to-app credentials can be regenerated by running `./jarvis init --force`, which generates new tokens and updates all service `.env` files. Node credentials can be rotated by re-registering the node.
-
-## Multi-Tenant Isolation
-
-All data is scoped by `household_id`. Users can only access data within their household. Nodes belong to a household and can only submit commands for that household's users.
-
-### Household Role Checks Fail Closed on Misconfiguration
-
-Command center's household-scoped write paths (household settings, node provisioning/management, member-scoped memory CRUD) gate on the caller's role via `verify_household_role()` / `resolve_household_role()`, which resolve that role from `jarvis-auth` using the `JARVIS_APP_KEY` service credential.
-
-If `JARVIS_APP_KEY` is unset, both helpers **fail closed** --- raising `503` --- rather than granting access. Previously an unset key made `verify_household_role()` return silently (implicitly permitting the call) and made `resolve_household_role()` default to the `member` role, so a misconfigured deploy with no app key could let any authenticated JWT holder write household settings, manage nodes, or read/write member-scoped memories regardless of their real role.
-
-An unset `JARVIS_APP_KEY` already means the deploy is misconfigured --- node validation in the same module has always failed closed on it (`"auth not configured"`) --- so there is no scenario where defaulting to open access on a missing key is the safe choice.
-
-### Legacy Memories Router
-
-The legacy `/api/v0/memories` router (superseded in most flows by the mobile command-data API, but still reachable) previously trusted a client-supplied `household_id` on list/create and used a bare integer primary key on get/update/delete, with no ownership check --- any authenticated user could read, tamper with, or delete another household's memories. It now enforces household authorization on every handler: the caller-supplied `household_id` is checked (not trusted) for list/create, and the loaded memory's `household_id` is checked for get/update/delete. Admin-key callers bypass this check; the node/app-auth `/inject` batch endpoint is unaffected.
-
-## Compliance Roadmap
-
-For B2B deployments (hospitals, law firms, enterprises), Jarvis has a phased security roadmap targeting HIPAA, SOC2 Type II, HITRUST CSF, FedRAMP, ISO 27001, and PCI DSS compliance.
-
-See the [Compliance Roadmap](compliance-roadmap.md) for details.
+The security page of the old Docker install is kept under [Legacy](../legacy/security/index.md).
