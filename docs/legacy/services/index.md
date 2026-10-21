@@ -132,7 +132,7 @@ For end-to-end voice commands to work, these services must be running:
 
 ## Communication Patterns
 
-All inter-service communication uses HTTP. See [Authentication](../../architecture/authentication.md) for details on the three auth modes:
+All inter-service communication uses HTTP. See [Authentication](../architecture/authentication.md) for details on the three auth modes:
 
 - **App-to-app auth**: `X-Jarvis-App-Id` + `X-Jarvis-App-Key` headers
 - **Node auth**: `X-API-Key` header (node_id:node_key)

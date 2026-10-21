@@ -98,7 +98,7 @@ The command's result (`CommandResponse`) is sent back to the LLM to generate a n
 
 ### 8. Text-to-Speech
 
-The spoken response text is sent to `jarvis-tts`, which delegates to a selectable provider: [Piper TTS](https://github.com/rhasspy/piper) for fast/lightweight output (the default, baked into the image) or [Kokoro TTS](https://github.com/hexgrad/kokoro) for more natural prosody. The provider is chosen at runtime via the `tts.provider` setting; see the [TTS service docs](../legacy/services/tts.md) for voices and caching. Audio is streamed back to the node as raw 16-bit PCM; the format is carried in `X-Audio-*` response headers so the node plays whatever the provider emits.
+The spoken response text is sent to `jarvis-tts`, which delegates to a selectable provider: [Piper TTS](https://github.com/rhasspy/piper) for fast/lightweight output (the default, baked into the image) or [Kokoro TTS](https://github.com/hexgrad/kokoro) for more natural prosody. The provider is chosen at runtime via the `tts.provider` setting; see the [TTS service docs](../services/tts.md) for voices and caching. Audio is streamed back to the node as raw 16-bit PCM; the format is carried in `X-Audio-*` response headers so the node plays whatever the provider emits.
 
 ## Pre-Routing (Fast Path)
 
@@ -143,7 +143,7 @@ A full turn — you stop talking → Jarvis starts talking — runs in **~2.4 se
 
 Two things dominate a *slow* turn, and neither is the model:
 
-- **Routing.** A node round-tripping audio through the cloud relay instead of the LAN adds ~2s per turn. Co-located nodes override to the LAN directly with `JARVIS_COMMAND_CENTER_LAN_URL` (see [node setup](../clients/node-setup.md)).
+- **Routing.** A node round-tripping audio through the cloud relay instead of the LAN adds ~2s per turn. Co-located nodes override to the LAN directly with `JARVIS_COMMAND_CENTER_LAN_URL` (see [node setup](../../clients/node-setup.md)).
 - **Prefix-cache eviction.** The heavy static prompt (system prompt + tool definitions) is warmed into llama.cpp's KV cache; any interleaved LLM call on the single slot evicts it and forces a cold reprefill (~2.4s vs ~0.3s). Keep throwaway calls (wake greetings, background acks) off the critical path.
 
 Whisper itself transcribes a command in ~70ms — the transcription cost is almost entirely transport, not the model. Swapping to a smaller model saves nothing.

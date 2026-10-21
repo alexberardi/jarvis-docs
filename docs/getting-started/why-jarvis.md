@@ -47,7 +47,7 @@ Out of the box:
 
 **It remembers you.** Jarvis can identify who's speaking and remember your preferences. "I like my coffee black" -- it'll know that next time, and it knows it's *your* preference, not your partner's.
 
-**It's extensible.** If you can write a few lines of Python, you can teach Jarvis anything. There's a single interface to implement, and the community [Pantry](../architecture/cloud.md#pantry-command-store) has a growing library of ready-made packages you can install with one click.
+**It's extensible.** If you can write a few lines of Python, you can teach Jarvis anything. There's a single interface to implement, and the community [Pantry](../pantry/index.md) has a growing library of ready-made packages you can install with one click.
 
 **Use it however you want.** Talk to a Pi Zero node on your counter. Text from the [mobile app](../mobile/index.md) on your phone. Chat from a [web browser](../legacy/services/admin.md) on your laptop. They all connect to the same backend -- same commands, same memories, same smart home controls.
 
@@ -61,7 +61,7 @@ Out of the box:
 
 **To use it day-to-day?** Absolutely not. It's a voice assistant. You talk to it.
 
-**To extend it?** A little. Adding new commands requires basic Python. But the Pantry has pre-built packages for most common needs, and the [Forge](../architecture/cloud.md#pantry-command-store) lets you describe what you want in plain English and generates the code for you.
+**To extend it?** A little. Adding new commands requires basic Python. But the Pantry has pre-built packages for most common needs, and the [Forge](../pantry/index.md) lets you describe what you want in plain English and generates the code for you.
 
 ### How Is This Different from Home Assistant?
 

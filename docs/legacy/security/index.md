@@ -3,7 +3,7 @@
 Jarvis is designed with privacy and security as core principles. All data stays on your network by default, with no cloud dependencies required.
 
 !!! tip "Staying fully local"
-    Every outbound-internet capability is opt-in and defaults to off. See [Network Egress & Offline Mode](offline-mode.md) for the complete list of toggles and how to run air-gapped --- or how to enable updates.
+    Every outbound-internet capability is opt-in and defaults to off. See [Network Egress & Offline Mode](../../security/offline-mode.md) for the complete list of toggles and how to run air-gapped --- or how to enable updates.
 
 ## Zero-Trust Architecture
 
@@ -40,7 +40,7 @@ graph LR
 ```
 
 !!! note "Roadmap items"
-    Two items will strengthen the zero-trust posture further: **mTLS between services** (Phase 2 on the [compliance roadmap](compliance-roadmap.md)) and **RBAC with per-request authorization scoping** (Phase 4). The trust boundaries are already in place --- these additions add defense-in-depth.
+    Two items will strengthen the zero-trust posture further: **mTLS between services** (Phase 2 on the [compliance roadmap](../../security/compliance-roadmap.md)) and **RBAC with per-request authorization scoping** (Phase 4). The trust boundaries are already in place --- these additions add defense-in-depth.
 
 ## Authentication Patterns
 
@@ -164,4 +164,4 @@ The legacy `/api/v0/memories` router (superseded in most flows by the mobile com
 
 For B2B deployments (hospitals, law firms, enterprises), Jarvis has a phased security roadmap targeting HIPAA, SOC2 Type II, HITRUST CSF, FedRAMP, ISO 27001, and PCI DSS compliance.
 
-See the [Compliance Roadmap](compliance-roadmap.md) for details.
+See the [Compliance Roadmap](../../security/compliance-roadmap.md) for details.

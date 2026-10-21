@@ -84,12 +84,12 @@ Header: Authorization: Bearer <jwt_token>
 <div class="screenshot-grid" markdown>
 
 <figure markdown>
-  ![Landing](../assets/images/screenshots/auth-landing.png){ width="240" loading=lazy }
+  ![Landing](../../assets/images/screenshots/auth-landing.png){ width="240" loading=lazy }
   <figcaption>Landing screen</figcaption>
 </figure>
 
 <figure markdown>
-  ![Login](../assets/images/screenshots/auth-login.png){ width="240" loading=lazy }
+  ![Login](../../assets/images/screenshots/auth-login.png){ width="240" loading=lazy }
   <figcaption>Login form</figcaption>
 </figure>
 

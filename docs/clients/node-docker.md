@@ -111,7 +111,7 @@ graph LR
 
 | Service | Port | Needed for |
 |---|---|---|
-| [config-service](../architecture/service-discovery.md) | 7700 | **Bootstrap** — everything else is discovered from it |
+| [config-service](../legacy/architecture/service-discovery.md) | 7700 | **Bootstrap** — everything else is discovered from it |
 | command-center | 7703 | **All** voice/text traffic; node registration |
 | auth | 7701 | Login/registration during setup (at runtime, CC validates the node's key against auth) |
 | MQTT broker | 1883/1884 | Server→node messages — TTS, settings push, package installs, reminders |
@@ -278,4 +278,4 @@ curl -X POST localhost:7771/api/v1/command \
 
 - [Node Setup](node-setup.md) — the full node runtime, service discovery, wake behavior, and update policy
 - [Provisioning](provisioning.md) — the Pi Zero (mobile-app + WiFi-AP) pairing flow
-- [Service Discovery](../architecture/service-discovery.md) — how config-service resolves addresses
+- [Service Discovery](../legacy/architecture/service-discovery.md) — how config-service resolves addresses

@@ -115,4 +115,4 @@ Updates are off by default so a local-only box never phones home. Turn them on p
 - **Node settings** live in each node's `config.json` (or its environment).
 - **Environment variables** (`JARVIS_ALLOW_UPDATES`, `JARVIS_WAKE_WORD_MODEL_AUTODOWNLOAD_ENABLED`, `WHISPER_ALLOW_MODEL_AUTODOWNLOAD`, `TTS_PROVIDER`) are documented in the [Environment Variables reference](../reference/env-vars.md#network-egress-offline-mode).
 
-See also: [Cloud Services](../architecture/cloud.md) for the optional cloud components (Pantry, Relay, Web) and how they stay opt-in.
+See also: [Security model: what leaves your network](../architecture/security.md#what-leaves-your-network) for every outbound connection and its default.

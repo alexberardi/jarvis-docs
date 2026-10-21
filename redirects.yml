@@ -1,6 +1,9 @@
 # Old page -> new page, both relative to docs/. hooks/redirects.py writes a redirect page
 # at each old URL when the site builds. Add an entry whenever a page moves; never remove one
 # (other repos, store listings and search results link the old URLs).
+architecture/cloud.md: legacy/architecture/cloud.md
+architecture/deployment.md: legacy/architecture/deployment.md
+architecture/service-discovery.md: legacy/architecture/service-discovery.md
 getting-started/index.md: legacy/getting-started/index.md
 getting-started/installation.md: legacy/getting-started/installation.md
 getting-started/truenas.md: legacy/getting-started/truenas.md

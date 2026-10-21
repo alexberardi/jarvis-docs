@@ -59,7 +59,7 @@ Kokoro weights download lazily via `huggingface_hub` on first use. The Docker im
 
 ## Native macOS Discovery
 
-When run natively on macOS (outside Docker), the service reaches Dockerized peers like jarvis-auth via their host-published `localhost` ports rather than `host.docker.internal` (which a native process can't resolve). The native launchd plist sets `JARVIS_CONFIG_URL_STYLE=external` so config-service hands back `localhost` URLs — see [Service Discovery: URL Resolution](../../architecture/service-discovery.md#url-resolution). This requires `jarvis-config-client` >= 0.2.1, the first version to honor the `external` style.
+When run natively on macOS (outside Docker), the service reaches Dockerized peers like jarvis-auth via their host-published `localhost` ports rather than `host.docker.internal` (which a native process can't resolve). The native launchd plist sets `JARVIS_CONFIG_URL_STYLE=external` so config-service hands back `localhost` URLs — see [Service Discovery: URL Resolution](../architecture/service-discovery.md#url-resolution). This requires `jarvis-config-client` >= 0.2.1, the first version to honor the `external` style.
 
 ## Environment Variables
 

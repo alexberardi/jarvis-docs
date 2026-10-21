@@ -90,7 +90,7 @@ These commands ship with Jarvis and are available on every node by default:
 
 ## Pantry-Installable Commands
 
-The following commands are available as standalone [Pantry](../architecture/cloud.md#pantry-command-store) packages. Install them with `jarvis pantry install <name>`:
+The following commands are available as standalone [Pantry](../pantry/index.md) packages. Install them with `jarvis pantry install <name>`:
 
 | Command | Name | Description |
 |---------|------|-------------|
