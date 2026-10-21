@@ -16,30 +16,35 @@ We will build a `get_stock_price` command that:
 
 ## Step 1: File and Imports
 
-Create `jarvis-node-setup/commands/stock_price_command.py`:
+Create `commands/stock_price_command.py` in your jarvis-node-setup checkout:
 
 ```python
 from typing import List
 
 import httpx
-from jarvis_log_client import JarvisLogger
 
-from jarvis_command_sdk import IJarvisCommand, CommandExample, CommandAntipattern
-from core.ijarvis_parameter import JarvisParameter
-from core.ijarvis_secret import IJarvisSecret, JarvisSecret
-from core.command_response import CommandResponse
-from core.request_information import RequestInformation
-from services.secret_service import get_secret_value
-
-logger = JarvisLogger(service="jarvis-node")
+from jarvis_command_sdk import (
+    CommandAntipattern,
+    CommandExample,
+    CommandResponse,
+    IJarvisCommand,
+    IJarvisSecret,
+    JarvisPackage,
+    JarvisParameter,
+    JarvisSecret,
+    RequestInformation,
+    get_logger,
+)
 ```
 
 Notable additions compared to the dice command:
 
-- `httpx` for HTTP requests (or use `requests`)
-- `JarvisLogger` for structured logging (never use `print()`)
-- `get_secret_value` for reading secrets at runtime
+- `httpx` for HTTP requests (declared in `required_packages` below, so the node installs it)
+- `get_logger` for logging (never use `print()`)
+- `JarvisSecret` to declare the API key
 - `CommandAntipattern` for disambiguation
+
+Get the logger inside `run()`, not at import time: the node registers its own logger only after it has imported the commands, and a logger fetched earlier stays on Python's standard `logging`. Pass plain messages (no keyword arguments), which both loggers accept.
 
 ## Step 2: Declare Secrets
 
@@ -74,7 +79,7 @@ class StockPriceCommand(IJarvisCommand):
 
 Key choices:
 
-- **`scope="integration"`** means this key is shared across the household (every node sees the same value). Use `"user"` for per-user values like personal credentials.
+- **`scope="integration"`** means one value for everyone who uses this node. Each node keeps its own copy; the mobile app can copy a service's settings to other nodes. Use `"user"` for per-user values like personal credentials.
 - **`is_sensitive=True`** for the API key means it won't appear in settings snapshots sent to the mobile app. The currency preference uses `is_sensitive=False` so the mobile app can display it.
 - **`friendly_name`** is what users see in the mobile settings UI instead of the raw key name.
 
@@ -106,6 +111,14 @@ Key choices:
                 description="Stock ticker symbol (e.g., AAPL, GOOGL, TSLA)",
             ),
         ]
+```
+
+Declare the HTTP library too, so the install resolves and installs it:
+
+```python
+    @property
+    def required_packages(self) -> List[JarvisPackage]:
+        return [JarvisPackage("httpx", ">=0.25")]
 ```
 
 ## Step 4: Associated Service
@@ -179,19 +192,21 @@ This helps the LLM distinguish between "What's Apple's stock price?" (this comma
 
 ```python
     def run(self, request_info: RequestInformation, **kwargs) -> CommandResponse:
+        logger = get_logger(__name__)
+        secrets = kwargs.get("secrets") or {}
         ticker = kwargs.get("ticker", "").upper().strip()
         if not ticker:
             return CommandResponse.error_response(
                 error_details="Please specify a stock ticker symbol",
             )
 
-        api_key = get_secret_value("FINANCE_API_KEY", "integration")
+        api_key = secrets.get("FINANCE_API_KEY")
         if not api_key:
             return CommandResponse.error_response(
                 error_details="Finance API key is not configured. Set it in your node settings.",
             )
 
-        currency = get_secret_value("FINANCE_DEFAULT_CURRENCY", "integration") or "USD"
+        currency = secrets.get("FINANCE_DEFAULT_CURRENCY") or "USD"
 
         try:
             response = httpx.get(
@@ -214,7 +229,7 @@ This helps the LLM distinguish between "What's Apple's stock price?" (this comma
             change_pct = data.get("change_percent")
             name = data.get("name", ticker)
 
-            logger.info("Stock price fetched", ticker=ticker, price=price)
+            logger.info(f"Stock price fetched: {ticker} {price}")
 
             return CommandResponse.final_response(
                 context_data={
@@ -232,38 +247,41 @@ This helps the LLM distinguish between "What's Apple's stock price?" (this comma
             )
 
         except httpx.TimeoutException:
-            logger.error("Stock API timeout", ticker=ticker)
+            logger.error(f"Stock API timeout: {ticker}")
             return CommandResponse.error_response(
                 error_details="The financial data service is not responding. Try again in a moment.",
             )
         except httpx.HTTPStatusError as e:
-            logger.error("Stock API error", ticker=ticker, status=e.response.status_code)
+            logger.error(f"Stock API error: {ticker} HTTP {e.response.status_code}")
             return CommandResponse.error_response(
                 error_details=f"Failed to fetch stock data: HTTP {e.response.status_code}",
             )
         except Exception as e:
-            logger.error("Stock price fetch failed", ticker=ticker, error=str(e))
+            logger.error(f"Stock price fetch failed: {ticker}: {e}")
             return CommandResponse.error_response(
                 error_details=f"Unable to fetch stock price: {str(e)}",
             )
 ```
 
+The secret values come in as the `secrets` keyword: the node reads every secret in `required_secrets` from its encrypted store and passes the ones that are set. Outside `run()` (in `store_auth_values()`, for example), read them with `JarvisStorage("get_stock_price").get_secret("FINANCE_API_KEY")`.
+
 ### Error Handling Best Practices
 
-1. **Check for missing secrets early** -- return a clear error message pointing to settings
+1. **Check optional secrets in `run()`** -- for a `required=True` secret that is missing, `execute()` raises `MissingSecretsError` before `run()` is called, and the user hears that the request didn't work, naming the missing key. The check in `run()` above only matters when a host calls `execute()` without `secrets` (tests, for example); for optional secrets like the currency, fall back to a default
 2. **Handle specific HTTP errors** -- 404 for bad tickers, timeouts, general HTTP errors
-3. **Always use `logger`** -- structured logging with context, never `print()`
+3. **Always use `logger`** -- never `print()`
 4. **Return user-friendly error messages** -- the LLM uses these to generate spoken responses
 5. **Include `context_data` even in errors** -- helps debugging and lets the LLM provide context
 
 ## Step 8: Install and Test
 
 ```bash
-# Install (seeds secret rows in the DB)
+# Install (resolves packages, seeds secret rows in the DB), then restart the node
 python scripts/install_command.py get_stock_price
+sudo systemctl restart jarvis-node
 
-# Set the API key
-python utils/set_secret.py FINANCE_API_KEY "your-api-key-here" integration
+# Set the API key (on the node; users normally enter it in the mobile app)
+python utils/set_secret.py set --key FINANCE_API_KEY --value "your-api-key-here" --scope integration
 
 # Test with E2E
 python test_command_parsing.py -c get_stock_price

@@ -1,6 +1,6 @@
 # Response Patterns
 
-`CommandResponse` is the return type of every `run()` method. It carries the command's output data back through the pipeline to the command center, which uses it to generate a spoken response and update the mobile UI.
+`CommandResponse` is the return type of every `run()` method (import it from `jarvis_command_sdk`). The node turns it into a tool result and posts it to `jarvisd`, whose model writes the spoken reply from it.
 
 ## CommandResponse Structure
 
@@ -14,9 +14,13 @@ class CommandResponse:
     clear_history: bool = False            # Clear conversation history before next turn
     metadata: dict | None = None           # Command-specific metadata
     actions: list[IJarvisButton] | None = None  # Interactive buttons
+    referenceable_items: list[ReferenceableItem] | None = None  # Items the user can act on next
     is_chunked_response: bool = False      # Chunked response flag
     chunk_session_id: str | None = None    # Session ID for chunked responses
+    on_response_complete: Callable[[], None] | None = None  # Run after the reply is spoken (node only)
 ```
+
+What the node sends to `jarvisd` for each tool call is `success`, `message` (taken out of `context_data` and put first), the rest of `context_data` as `context` (with `actions`), `error` and `referenceable_items`. `metadata`, `wait_for_input`, `clear_history` and `on_response_complete` stay on the node.
 
 ## Factory Methods
 
@@ -35,12 +39,44 @@ return CommandResponse.success_response(
 )
 ```
 
-The LLM uses `context_data` to generate a natural spoken response. Include a `message` key as a hint for what to say, plus structured data for the mobile UI.
+The LLM uses `context_data` to generate a natural spoken response. Include a `message` key with what to say, plus structured data. When `message` is spoken word for word, see [`context_data` Best Practices](#context_data-best-practices).
 
 **Signature:**
 
 ```python
 CommandResponse.success_response(
+    context_data: dict | None = None,
+    wait_for_input: bool = True,
+    metadata: dict | None = None,
+    on_response_complete: Callable[[], None] | None = None,
+) -> CommandResponse
+```
+
+`on_response_complete` is for media commands: the node calls it after the spoken reply has finished, so playback starts once the speaker is free. Do the searching in `run()` and only start the audio in the callback.
+
+### `with_items()` -- A List the User Can Act On
+
+Use it when the command reads out a list the user may refer back to ("mark those as read", "send me number 3"). `message` is spoken and `items` are remembered for the rest of the conversation:
+
+```python
+return CommandResponse.with_items(
+    "You have 2 unread emails: from ABC about the invoice, and from Sam.",
+    [
+        ReferenceableItem(ref_id="msg-1", label="email from ABC - 'Invoice #42'", actions=["mark_read"]),
+        ReferenceableItem(ref_id="msg-2", label="email from Sam", actions=["mark_read"]),
+    ],
+)
+```
+
+Each item's `actions` must name `@callback` methods on the same command; the built-in `act_on_items` tool calls them. See [Interface Reference](interface-reference.md#referenceableitem-and-callback).
+
+**Signature:**
+
+```python
+CommandResponse.with_items(
+    message: str,
+    items: list[ReferenceableItem],
+    *,
     context_data: dict | None = None,
     wait_for_input: bool = True,
     metadata: dict | None = None,
@@ -88,7 +124,7 @@ return CommandResponse.follow_up_response(
 )
 ```
 
-The conversation stays open. The user can say "now multiply that by 2" and the command center will route the follow-up to the same command.
+The conversation stays open. The user can say "now multiply that by 2"; the model sees the earlier turn and can call the same command again.
 
 **Signature:**
 
@@ -165,10 +201,10 @@ return CommandResponse.validation_error([
 ])
 ```
 
-The command center receives this and can either:
+The node sends this to `jarvisd` as an ordinary failed tool result. The model can then:
 
-- Retry with a corrected value from `valid_values`
-- Ask the user to clarify
+- call the tool again with a value from `valid_values` (if it repeats exactly the same call, the node stops and the user hears the error)
+- ask the user to clarify, through `jarvisd`'s `request_validation` tool
 
 **Signature:**
 
@@ -197,7 +233,7 @@ CommandResponse.validation_error(
 Attach buttons to a response for interactive flows. The mobile app renders these as tappable buttons.
 
 ```python
-from core.ijarvis_button import IJarvisButton
+from jarvis_command_sdk import CommandResponse, IJarvisButton
 
 return CommandResponse(
     context_data={
@@ -247,7 +283,7 @@ IJarvisButton("Delete", "delete_click", "destructive", button_icon="delete")
 
 ## Handling Button Actions
 
-When the user taps a button, the command center calls your command's `handle_action()` method:
+When the user taps a button, `jarvisd` forwards the tap to the node over MQTT. The node calls your command's `handle_action()` method and posts the result back:
 
 ```python
 def handle_action(self, action_name: str, context: dict) -> CommandResponse:
@@ -282,7 +318,7 @@ if action_name == "cancel_click":
 
 ## `context_data` Best Practices
 
-`context_data` is the bridge between your command and the LLM's spoken response. The command center's LLM reads this data and generates natural language.
+`context_data` is the bridge between your command and the spoken response. The node puts `message` at the top of the tool result, and `jarvisd`'s model reads the result and writes the reply.
 
 ### Always include a `message` key
 
@@ -293,6 +329,13 @@ context_data={
     "message": "It's 72 degrees in Chicago",  # LLM uses this as a starting point
 }
 ```
+
+Sometimes `message` is spoken exactly as you wrote it, with no model in between:
+
+- **On the fast path** (`request_info.is_pre_routed` is `True`): no model is involved, so `message` (or the `PreRouteResult`'s `spoken_response`) is the reply.
+- **When the response keeps the conversation open** (`wait_for_input=True`) and succeeded: the node speaks the command's own `message` instead of the model's reply, because small models misread state data. With `wait_for_input=False` the model's reply is spoken.
+
+So write `message` as a complete sentence you are happy to hear.
 
 ### Include structured data for the mobile UI
 
@@ -323,7 +366,7 @@ context_data=None
 
 ## The `metadata` Field
 
-`metadata` is for command-internal data that should not influence the spoken response. It flows through the pipeline but is not shown to the LLM.
+`metadata` is for command-internal data that should not influence the spoken response. It stays on the node: it is not sent to `jarvisd` or shown to the LLM.
 
 ```python
 return CommandResponse.success_response(

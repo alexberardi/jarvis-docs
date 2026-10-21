@@ -1,6 +1,6 @@
 # Secrets Deep Dive
 
-Secrets store configuration that commands need at runtime -- API keys, tokens, user preferences, and service URLs. They are managed through an encrypted SQLite database on the node and synchronized with the mobile app via settings snapshots.
+Secrets store configuration that commands need at runtime -- API keys, tokens, user preferences, and service URLs. They are managed through an encrypted SQLite database on each node and synchronized with the mobile app via settings snapshots. `JarvisSecret` and `JarvisStorage` are imported from `jarvis_command_sdk`.
 
 ## JarvisSecret Constructor
 
@@ -9,18 +9,33 @@ JarvisSecret(
     key: str,                       # Unique identifier (e.g., "OPENWEATHER_API_KEY")
     description: str,               # Human-readable description
     scope: str,                     # "integration" or "user"
-    value_type: str,                # "string", "int", or "bool"
+    value_type: str,                # "string", "int", "bool" or "user"
     required: bool = True,          # Whether command fails without it
     is_sensitive: bool = True,      # Whether value appears in settings snapshots
     friendly_name: str | None = None,  # Display name for mobile UI
+    enum_values: list[str] | None = None,  # Allowed values (mobile shows a dropdown)
+    presets: dict[str, dict[str, str]] | None = None,  # Values to fill in per enum choice
+)
+```
+
+`enum_values` needs `value_type="string"`. `presets` needs `enum_values`: its keys are enum values, and choosing one in the app fills in the related secrets, e.g. the IMAP host and port for a mail provider:
+
+```python
+JarvisSecret(
+    "EMAIL_PROVIDER", "Mail provider", "integration", "string",
+    is_sensitive=False,
+    enum_values=["gmail", "icloud"],
+    presets={
+        "icloud": {"IMAP_HOST": "imap.mail.me.com", "IMAP_PORT": "993"},
+    },
 )
 ```
 
 ## Scopes
 
-### `"integration"` -- Shared Across All Nodes
+### `"integration"` -- One Value per Node
 
-Use for config that applies to the entire household:
+Use for config that is the same for everyone who uses the node:
 
 - API keys (OpenWeather, financial data, etc.)
 - OAuth tokens (Gmail, Spotify)
@@ -31,10 +46,12 @@ Use for config that applies to the entire household:
 JarvisSecret(
     "OPENWEATHER_API_KEY",
     "Open Weather API Key",
-    "integration",       # All nodes in this household use the same key
+    "integration",       # Everyone on this node uses the same key
     "string",
 )
 ```
+
+Secrets live in each node's own encrypted database, so an `integration` value is set per node. To reuse it, the mobile app's node settings can copy a service's configured secrets to your other nodes (the target nodes need their encryption key imported first).
 
 ### `"user"` -- Per-User
 
@@ -64,14 +81,16 @@ JarvisSecret(
 | `"string"` | Text values | API keys, URLs, tokens |
 | `"int"` | Integer values | Port numbers, thresholds |
 | `"bool"` | Boolean values | Feature flags |
+| `"user"` | A household member (the app shows a member picker; the value is the member's user id as a string) | Who a background agent posts notifications to |
 
 **Invalid value types raise `ValueError` at construction time.**
 
 All values are stored as strings internally. Use appropriate conversion in your `run()` method:
 
 ```python
-port = int(get_secret_value("MY_SERVICE_PORT", "integration") or "8080")
-enabled = get_secret_value("FEATURE_FLAG", "integration") == "true"
+secrets = kwargs.get("secrets") or {}
+port = int(secrets.get("MY_SERVICE_PORT") or "8080")
+enabled = secrets.get("FEATURE_FLAG") == "true"
 ```
 
 ## Sensitivity
@@ -185,45 +204,60 @@ The primary way users set secrets:
 2. Navigate to Nodes tab, tap a node
 3. Find the command's service group
 4. Enter values in the settings form
-5. The mobile app pushes the encrypted settings to the node via the command center
+5. The mobile app pushes the encrypted settings to the node through your `jarvisd` server, and the node stores them
 
 ### `set_secret.py` (Dev/CLI)
 
-For development or headless setup:
+For development or headless setup, from a shell in the node's directory (`/opt/jarvis-node` on an installed Pi):
 
 ```bash
-python utils/set_secret.py OPENWEATHER_API_KEY "your-key-here" integration
-python utils/set_secret.py OPENWEATHER_LOCATION "Miami,FL,US" node
+python utils/set_secret.py set --key OPENWEATHER_API_KEY --value "your-key-here" --scope integration
+python utils/set_secret.py set --key OPENWEATHER_LOCATION --value "Miami,FL,US" --scope integration
 ```
+
+`--scope` defaults to `integration`; the other scope is `user`. The tool also has `get`, `delete` and `list` subcommands.
 
 ### Programmatically
 
-In `store_auth_values()` or `init_data()`:
+In `store_auth_values()` or `init_data()`, use `JarvisStorage`:
 
 ```python
-from services.secret_service import set_secret
+from jarvis_command_sdk import JarvisStorage
 
-set_secret("GMAIL_ACCESS_TOKEN", token_value, "integration")
+JarvisStorage("email").set_secret("GMAIL_ACCESS_TOKEN", token_value)  # scope "integration"
+JarvisStorage("email", secret_scope="user").set_secret("EMAIL_ADDRESS", address)  # current user
 ```
+
+A `"user"` scope resolves to the current user (the speaker, or the user who connected the account). If the host registered no storage backend, `get_secret()` returns `None` and `set_secret()` does nothing.
 
 ## Reading Secrets at Runtime
 
-Use `get_secret_value()` in your `run()` method:
+The node passes your secrets into `run()` as the `secrets` keyword: every secret in `required_secrets` (required or not) that has a value, read for the current user where the scope is `"user"`:
 
 ```python
-from services.secret_service import get_secret_value
-
 def run(self, request_info, **kwargs) -> CommandResponse:
-    api_key = get_secret_value("OPENWEATHER_API_KEY", "integration")
+    secrets = kwargs.get("secrets") or {}
+    api_key = secrets.get("OPENWEATHER_API_KEY")
     if not api_key:
         return CommandResponse.error_response(
             error_details="OpenWeather API key is not configured. Set it in your settings.",
         )
-    location = get_secret_value("OPENWEATHER_LOCATION", "integration")
+    location = secrets.get("OPENWEATHER_LOCATION")
     # ...
 ```
 
+Anywhere else (or for a secret not in `required_secrets`), read it with `JarvisStorage`:
+
+```python
+from jarvis_command_sdk import JarvisStorage
+
+location = JarvisStorage("get_weather").get_secret("OPENWEATHER_LOCATION")
+```
+
 **Important:** Even though the secret presence check runs before `run()`, it only verifies that `required=True` secrets are present. For optional secrets, you must check manually.
+
+!!! note "`services.secret_service`"
+    Older commands call `get_secret_value()` and `set_secret()` from `services.secret_service`. That module exists only inside the Python node, so such a command fails on a desktop agent. Use the `secrets` keyword or `JarvisStorage`.
 
 ## Secret Validation in the Pipeline
 
@@ -239,7 +273,7 @@ if secrets is not None:
         raise MissingSecretsError(missing)
 ```
 
-If any required secret is missing, a `MissingSecretsError` is raised. The command center catches this and returns an appropriate error message to the user.
+If any required secret is missing, a `MissingSecretsError` is raised and `run()` is never called. The node catches it like any exception from a tool and sends `jarvisd` a failed tool result with the message `Missing required secrets: <keys>`. The user hears the model's reply to that failure or, when the node falls back to its own message, "Sorry, that didn't work: Missing required secrets: ...". Nothing points the user to the settings, so a clear `friendly_name` and `setup_guide` help.
 
 ## Patterns
 
@@ -290,7 +324,7 @@ def required_secrets(self) -> List[IJarvisSecret]:
 def run(self, request_info, **kwargs):
     city = kwargs.get("city")
     if not city:
-        city = get_secret_value("WEATHER_LOCATION", "integration")
+        city = (kwargs.get("secrets") or {}).get("WEATHER_LOCATION")
     if not city:
         city = self._detect_location_from_ip()
     # ...
