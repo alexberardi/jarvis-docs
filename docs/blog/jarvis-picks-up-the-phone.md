@@ -1,9 +1,15 @@
 ---
 title: "Jarvis picks up the phone"
 description: "Jarvis 0.2.0 can make real phone calls on your behalf, plan and schedule errands, and speak in a voice you actually chose — here's the fun stuff, and the decisions behind it."
+date: 2026-08-07
 ---
 
 # Jarvis picks up the phone
+
+*Published <time datetime="2026-08-07">7 August 2026</time>*
+
+!!! note "A Docker-stack release (note added 21 October 2026)"
+    0.2.0 was a release of the old Docker/microservice install, which is now retired. Its version numbers are not those of Jarvis Automation, the single-binary server that replaced it. Phone calls are no longer a separate gateway service; they are part of the server. To install today, see [Install](../install/index.md).
 
 Every version so far, Jarvis has lived inside your house. It listens on a little Pi on the counter, it turns your lights off, it tells you the weather, it reminds you when the dog needs his medication. Useful. Bounded. Politely domestic.
 
