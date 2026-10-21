@@ -126,3 +126,66 @@ def test_post_strips_draft_notes(built_site):
     for needle in DRAFT_NOTE_NEEDLES:
         assert needle not in src, f"source post still contains draft note: {needle!r}"
         assert needle not in rendered, f"rendered post leaks draft note: {needle!r}"
+
+
+# --- Dates and retired-install notes (#204 L1-L5) -----------------------------
+# Blog posts are dated articles. Each date is the day the post was first added
+# to this repo (git log --diff-filter=A). Posts are not rewritten: where a post
+# describes the old Docker install, a dated note says so and points at install/.
+
+BLOG = REPO_ROOT / "docs" / "blog"
+POST_DATES = {
+    "llm-era-voice-assistant.md": "2026-06-24",
+    "everything-was-green.md": "2026-07-13",
+    "jarvis-picks-up-the-phone.md": "2026-08-07",
+    "jarvis-starts-paying-attention.md": "2026-08-21",
+}
+VISIBLE_DATES = {
+    "2026-06-24": "24 June 2026",
+    "2026-07-13": "13 July 2026",
+    "2026-08-07": "7 August 2026",
+    "2026-08-21": "21 August 2026",
+}
+
+
+def _front_matter(md):
+    import yaml
+
+    text = (BLOG / md).read_text(encoding="utf-8")
+    assert text.startswith("---\n"), f"{md} has no front matter"
+    return yaml.safe_load(text.split("---\n", 2)[1]), text
+
+
+def test_every_post_is_listed_with_a_date():
+    posts = sorted(p.name for p in BLOG.glob("*.md") if p.name != "index.md")
+    assert posts == sorted(POST_DATES), "a post was added: give it a date here"
+
+
+@pytest.mark.parametrize("md", sorted(POST_DATES))
+def test_post_has_a_date(md, built_site):
+    meta, _ = _front_matter(md)
+    assert str(meta.get("date")) == POST_DATES[md]
+    _, site_dir = built_site
+    html = _read(site_dir, "blog", md[:-3], "index.html")
+    visible = VISIBLE_DATES[POST_DATES[md]]
+    assert f'<time datetime="{POST_DATES[md]}">{visible}</time>' in html, "no visible date on the page"
+    index = _read(site_dir, "blog", "index.html")
+    assert visible in index, f"blog index does not show the date of {md}"
+
+
+def test_llm_era_post_notes_the_retired_install():
+    text = POST_SRC.read_text(encoding="utf-8")
+    getting_started = text.split("## Getting started", 1)[1]
+    note, rest = getting_started.split("<!-- jarvis:install-cmd:start -->", 1)
+    assert '!!! note "' in note and "retired" in note
+    assert "../install/index.md" in note
+    assert "jarvis-server" in note
+    # The note sits before the old command; the post itself is not rewritten.
+    assert "jarvis-admin/main/install.sh" in rest
+
+
+@pytest.mark.parametrize("md", ["jarvis-picks-up-the-phone.md", "jarvis-starts-paying-attention.md", "index.md"])
+def test_docker_stack_release_notes(md):
+    text = (BLOG / md).read_text(encoding="utf-8")
+    assert "Docker-stack release" in text
+    assert "../install/index.md" in text

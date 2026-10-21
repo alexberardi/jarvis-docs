@@ -1,9 +1,15 @@
 ---
 title: "Jarvis starts paying attention"
 description: "Jarvis 0.3.0 stops only answering when spoken to and starts noticing — you heading out for an appointment, arriving home, a game ending — then reacts, quietly and on your terms. Plus a voice loop that talks back in about two seconds."
+date: 2026-08-21
 ---
 
 # Jarvis starts paying attention
+
+*Published <time datetime="2026-08-21">21 August 2026</time>*
+
+!!! note "A Docker-stack release (note added 21 October 2026)"
+    0.3.0 was a release of the old Docker/microservice install, which is now retired. Its version numbers are not those of Jarvis Automation, the single-binary server that replaced it. To install today, see [Install](../install/index.md).
 
 Every version of Jarvis so far has been a very good listener with one small limitation: it only ever heard you when you talked to it. You said "Hey Jarvis," it woke up, it did the thing, it went back to sleep. A butler who's polite, capable, and — let's be honest — a little oblivious. It has no idea you're about to be late for the dentist unless you stop and ask.
 

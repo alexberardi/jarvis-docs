@@ -1,9 +1,12 @@
 ---
 title: "Everything was green"
 description: "Three weeks before shipping a self-hosted voice assistant, almost every serious bug we found had the same shape: a system reporting success while doing nothing at all."
+date: 2026-07-13
 ---
 
 # Everything was green
+
+*Published <time datetime="2026-07-13">13 July 2026</time>*
 
 In the three weeks before we shipped Jarvis, we found a lot of bugs. Almost all of the serious ones had the same shape, and it took an embarrassingly long time to notice.
 
