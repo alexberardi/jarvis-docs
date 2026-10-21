@@ -1,151 +1,108 @@
 # Authentication
 
-Jarvis uses three authentication patterns depending on who is communicating with whom.
+Who can call `jarvisd`, and how it knows. The `auth` module owns users, households, nodes and tokens; every other module checks callers through it in process, not over HTTP.
 
-## 1. Node Authentication
+## Callers
 
-Pi Zero nodes authenticate to services using an API key:
+| Caller | Credential | Used by |
+|---|---|---|
+| A person | `Authorization: Bearer <access token>` (an RS256 JWT) | The mobile app, the web admin |
+| A node | `X-API-Key: node_id:node_key` | Voice nodes, desktop agents |
+| An external app | `X-Jarvis-App-Id` and `X-Jarvis-App-Key` | Callers outside the process, such as a remote GPU machine |
+| An operator script | `X-Jarvis-Admin-Token` | `/auth/admin/*` only; unset by default, so those routes refuse everything |
 
-```
-Header: X-API-Key: {node_id}:{api_key}
-```
+Secrets are compared in constant time, and an unset expected value never matches.
 
-The receiving service forwards these credentials to `jarvis-auth` for validation.
+## Households
 
-```mermaid
-sequenceDiagram
-    participant N as Node
-    participant S as Service
-    participant A as Auth Service
+A **household** is the unit everything is shared in: nodes, devices, routines, recipes. A person can belong to several households and switch between them (`POST /auth/switch-household`). A check always uses the household the request is about, not the one the token was issued for.
 
-    N->>S: Request + X-API-Key: node_id:api_key
-    S->>A: POST /internal/validate-node
-    A-->>S: {valid: true, node_id, household_id}
-    S-->>N: Response
-```
+Each membership has a role:
 
-### Node Registration
+| Role | Can also |
+|---|---|
+| `member` | Use Jarvis in the household |
+| `power_user` | Create invites, add nodes |
+| `admin` | Edit or delete the household, add and remove members |
 
-Nodes are registered via the admin API during provisioning:
+Separately, a person can be a **superuser** of the whole install. Superusers use every page of the web admin; other members see only Chat and Add-ons there, and the server enforces that per route.
 
-```bash
-python utils/authorize_node.py \
-  --cc-key <admin_key> \
-  --household-id <uuid> \
-  --room office \
-  --name dev-mac \
-  --update-config config.json
-```
+### The first account
 
-This generates a unique `node_id` and `api_key` pair, stores them in the auth database, and optionally writes them to the node's config file.
+On a fresh install no account exists yet. `jarvisd` writes a one-time **setup token** to `setup-token` in its data directory (readable only by the service user) and keeps only its hash in memory. The [setup wizard](../install/setup-wizard.md) at `http://<host>:7710/setup` asks for it, creates the first superuser and a household called "My Home", and the token file is deleted. If you missed the token at install, `jarvisd setup-link` prints the setup link again.
 
-## 2. App-to-App Authentication
+### Joining
 
-Backend services authenticate to each other using app credentials:
+After the first account, sign-up needs an **invite code** from a household's power user or admin. Invites grant `member` or `power_user` (never `admin`) and expire after 7 days by default. Open sign-up, where anyone who can reach the server makes an account, is off unless `auth.open_registration` is turned on.
 
-```
-Headers:
-  X-Jarvis-App-Id: jarvis-command-center
-  X-Jarvis-App-Key: <shared_secret>
-```
+## Passwords
 
-```mermaid
-sequenceDiagram
-    participant CC as Command Center
-    participant A as Auth Service
+- Passwords are hashed with **bcrypt** (cost 12).
+- Login, sign-up and token refresh are rate-limited per IP address, and repeated failed logins for one email lock it out for a while (by default 8 failures, 15 minutes).
+- A superuser can set a temporary password for someone. It is shown once, forces a new password, and signs that person out everywhere. Until the password is changed, the server refuses every other request from that account.
+- Changing your password revokes every refresh token, so your other devices sign in again. An access token already issued stays valid until it expires.
 
-    CC->>A: Request + X-Jarvis-App-Id + X-Jarvis-App-Key
-    A->>A: Validate credentials
-    A-->>CC: Response
-```
+## Tokens
 
-App credentials are generated during `./jarvis init` and stored in each service's `.env` file. Each service has its own unique app ID and key pair.
+### Access tokens
 
-### Which Services Use App-to-App Auth
+Access tokens are JWTs signed with **RS256**. They last **30 minutes** (`auth.token.access_expire_minutes`) and carry the user ID, email, superuser flag and current household.
 
-Most inter-service communication uses this pattern:
-
-- Command Center to Auth, Whisper, TTS, Notifications
-- OCR Service to Auth
-- Recipes Server to Auth, OCR Service
-- Logs to Auth (for validating incoming log requests)
-- Config Service to Auth
-
-## 3. User Authentication (JWT)
-
-Human users (admin UI, mobile app) authenticate with JWT tokens:
+The signing key is an RSA-2048 key that `jarvisd` generates on first start and keeps in its database. There is no key to configure. Anyone who needs to verify a token can fetch the public key:
 
 ```
-Header: Authorization: Bearer <jwt_token>
+GET /auth/public-key
+→ {"public_key": "-----BEGIN PUBLIC KEY-----...", "algorithm": "RS256", "kid": "..."}
 ```
 
-### Login Flow
+The token's `kid` header names the key that signed it. Keys are kept apart by algorithm, so a token that claims HS256 cannot be forged with the public RSA key.
 
-<div class="screenshot-grid" markdown>
+!!! note "Upgraded installs"
+    An install imported from the old Docker stack keeps the old shared HS256 secret, **only to verify** tokens issued before the move, so nobody is signed out. New tokens are always RS256.
 
-<figure markdown>
-  ![Landing](../assets/images/screenshots/auth-landing.png){ width="240" loading=lazy }
-  <figcaption>Landing screen</figcaption>
-</figure>
+### Refresh tokens
 
-<figure markdown>
-  ![Login](../assets/images/screenshots/auth-login.png){ width="240" loading=lazy }
-  <figcaption>Login form</figcaption>
-</figure>
+Refresh tokens last **30 days** (`auth.token.refresh_expire_days`). `jarvisd` stores only a hash of each one. Every refresh returns a new refresh token and retires the old one.
 
-</div>
+- A retired token presented again within a few seconds (`auth.token.refresh_grace_seconds`, default 10) gets the same successor, so two requests racing on a phone do not sign it out.
+- Signing out revokes that session, or every session.
 
-```mermaid
-sequenceDiagram
-    participant U as User
-    participant A as Auth Service
-    participant DB as PostgreSQL
+## Nodes
 
-    U->>A: POST /auth/login {email, password}
-    A->>DB: Verify credentials
-    A-->>U: {access_token, refresh_token}
-    U->>A: GET /protected + Bearer access_token
-    A-->>U: Response
-```
+A node (a voice node or a desktop agent) has a **node ID and a node key**. It sends both on every request as `X-API-Key: node_id:node_key`.
 
-### Token Lifecycle
+- The key is random and shown once; `jarvisd` stores a bcrypt hash.
+- A node belongs to exactly one household, and records who added it.
+- A node may call only the modules it has been granted.
+- Validation reads the node's state on every call, so turning a node off or signing it out takes effect at once.
 
-- **Access tokens** are short-lived JWTs (configurable expiry)
-- **Refresh tokens** are long-lived, stored as hashed values in PostgreSQL
-- When an access token expires, the client uses the refresh token to obtain a new pair
-- Logout invalidates the refresh token server-side
+### Adding a node
 
-### Token Refresh
+Every path ends at `POST /nodes/register` with a short-lived **provisioning token**:
 
-```bash
-curl -X POST http://localhost:7701/auth/refresh \
-  -d '{"refresh_token": "<refresh_token>"}'
-# Returns: {access_token, refresh_token}
-```
+- **Voice node:** the mobile app gets a provisioning token (valid for 30 minutes) and hands it to the node while the node is in setup mode. See [Provisioning](../clients/provisioning.md).
+- **Desktop agent:** the computer shows a pairing code. A household member types that code in to approve it; the pairing list never shows the codes, and wrong guesses are limited. The computer then shows the household's name to confirm before it registers.
 
-## 4. Admin Authentication
+Signing a device out (by the person who added it, or a household admin) removes the node and revokes its credentials, for HTTP and MQTT alike.
 
-Administrative endpoints (service management, node registration) use a static admin key:
+### MQTT
 
-```
-Header: X-Admin-Key: <admin_api_key>
-```
+The broker on port 1884 accepts a node with its node ID as the username and its node key as the password; nodes fetch these from `GET /node/mqtt-credentials`. Each node may subscribe only to its own topics (`jarvis/nodes/<node_id>/#`), and only the command center publishes commands to a node.
 
-The admin key is set via the `ADMIN_API_KEY` environment variable on each service that exposes admin endpoints.
+### Command secrets
 
-## Auth Flow Summary
+Secrets that commands use (API keys, account tokens) are encrypted **end to end** between the mobile app and the node with the node's own key (AES-256-GCM). The command center carries the encrypted settings but cannot read them. They are edited only in the mobile app, by household admins.
 
-| Who | What | Pattern | Headers |
-|-----|------|---------|---------|
-| Node | Service | API Key | `X-API-Key: node_id:api_key` |
-| Service | Service | App-to-App | `X-Jarvis-App-Id` + `X-Jarvis-App-Key` |
-| User | Service | JWT Bearer | `Authorization: Bearer <token>` |
-| Admin | Service | Admin Key | `X-Admin-Key: <admin_api_key>` |
+## App credentials
 
-## Security Notes
+App-to-app keys remain only for callers outside the process. Inside `jarvisd`, modules do not authenticate to each other. `jarvisd` has its own app credential (stored in `app-key` in the data directory) to sign the callbacks its own background jobs make. App keys are stored as bcrypt hashes and can be rotated or revoked.
 
-- All secrets are stored in `.env` files which are gitignored
-- Passwords are hashed before storage (never stored in plaintext)
-- Refresh tokens are stored as hashed values in PostgreSQL
-- App-to-app credentials are unique per service pair
-- Node API keys are generated with cryptographic randomness during registration
+## Accounts and deletion
+
+Deleting an account (`DELETE /auth/me`) asks for the password, and refuses while you still have an active node or are the only admin of a household that has other members. Then, in one transaction, every module removes what belongs to you, your activity history is de-identified, and households left empty are deleted with their nodes. Data that belongs to a household stays with it.
+
+Deleting a household (admins only) runs every module's clean-up for it and drops its nodes' cached credentials.
+
+## Where it lives
+
+In [jarvis-server](https://github.com/alexberardi/jarvis-server): `internal/modules/auth` (routes, tokens, households, nodes), `internal/platform/authn` (JWT checks and the caller types other modules use), and the design notes [`docs/cc/00-platform.md`](https://github.com/alexberardi/jarvis-server/blob/main/docs/cc/00-platform.md) and [`05-nodes.md`](https://github.com/alexberardi/jarvis-server/blob/main/docs/cc/05-nodes.md).
