@@ -45,7 +45,7 @@ The node uploads the recording in one request (`POST /media/whisper/transcribe`,
 
 `jarvisd` transcribes it on `whisper-server` and answers with the text and, if recognised, the speaker.
 
-- **Vocabulary.** The household setting `voice.stt_prompt` gives whisper words to expect (names, rooms). A desktop agent can add its own vocabulary when it starts a conversation.
+- **Vocabulary.** The setting `voice.stt_prompt` gives whisper words to expect (names, rooms). A desktop agent can add its own vocabulary when it starts a conversation.
 - **Speaker identification.** With `voice.recognition_enabled` on (it is off by default), the clip is compared with each household member's voiceprint. A speaker counts only above `voice.similarity_threshold` and clearly ahead of the next candidate (`voice.min_speaker_margin`). The speaker belongs to the **conversation**, never to the node.
 - **Wake check.** `voice.wake_verification_mode` (`off`, `bias` or `enforce`; default `off`) checks that the clip really starts with the wake phrase.
 
@@ -105,13 +105,13 @@ Speaker identification needs each person to enroll. Enrollment uses a **node's m
 3. The node uploads the take; `jarvisd` turns it into a voiceprint. You record three takes. A take with too little speech, or one that does not match your other takes, is rejected and you record it again.
 4. Verification works the same way, with a shorter take.
 
-Only voiceprints are stored, never the recordings. They belong to a person in a household, not to a node, and are deleted with the account. Changing the speaker model means enrolling again. Enrolling does not turn recognition on: that is the separate household setting `voice.recognition_enabled`.
+Only voiceprints are stored, never the recordings. They belong to a person in a household, not to a node, and are deleted with the account. Changing the speaker model means enrolling again. Enrolling does not turn recognition on: that is the separate setting `voice.recognition_enabled`.
 
 When nobody is recognised, tools that act for one person refuse, and household tools keep working. A desktop agent is the exception: its voice turns act as the computer's owner.
 
 ## Settings
 
-Household settings, in the web admin or the mobile app:
+Install-wide settings, on the web admin's **Settings** page (superusers only); `voice.recognition_enabled` is also in the setup wizard's Privacy step. No household can set its own value:
 
 | Setting | Default | What it does |
 |---|---|---|

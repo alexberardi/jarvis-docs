@@ -25,7 +25,7 @@ Each membership has a role:
 | `power_user` | Create invites, add nodes |
 | `admin` | Edit or delete the household, add and remove members |
 
-Separately, a person can be a **superuser** of the whole install. Superusers use every page of the web admin; other members see only Chat and Add-ons there, and the server enforces that per route.
+Separately, a person can be a **superuser** of the whole install. Superusers use every page of the web admin. Other members see the member pages (Chat, Add-ons, Inbox, Workflows and Recordings) but not the Admin group, and the server enforces that per route.
 
 ### The first account
 
@@ -58,7 +58,7 @@ GET /auth/public-key
 The token's `kid` header names the key that signed it. Keys are kept apart by algorithm, so a token that claims HS256 cannot be forged with the public RSA key.
 
 !!! note "Upgraded installs"
-    An install imported from the old Docker stack keeps the old shared HS256 secret, **only to verify** tokens issued before the move, so nobody is signed out. New tokens are always RS256.
+    An install imported from the old Docker stack keeps the old shared HS256 secret, **only to verify** tokens issued before the move, so nobody is signed out. New tokens are RS256 unless an operator explicitly sets `auth.algorithm` (env `AUTH_ALGORITHM`) to HS256 and provides `AUTH_SECRET_KEY`. The import does not copy that setting.
 
 ### Refresh tokens
 
@@ -78,7 +78,7 @@ A node (a voice node or a desktop agent) has a **node ID and a node key**. It se
 
 ### Adding a node
 
-Every path ends at `POST /nodes/register` with a short-lived **provisioning token**:
+Every path ends at `POST /cc/api/v0/nodes/register` (on port 7700) with a short-lived **provisioning token**:
 
 - **Voice node:** the mobile app gets a provisioning token (valid for 30 minutes) and hands it to the node while the node is in setup mode. See [Provisioning](../clients/provisioning.md).
 - **Desktop agent:** the computer shows a pairing code. A household member types that code in to approve it; the pairing list never shows the codes, and wrong guesses are limited. The computer then shows the household's name to confirm before it registers.
@@ -87,11 +87,16 @@ Signing a device out (by the person who added it, or a household admin) removes 
 
 ### MQTT
 
-The broker on port 1884 accepts a node with its node ID as the username and its node key as the password; nodes fetch these from `GET /node/mqtt-credentials`. Each node may subscribe only to its own topics (`jarvis/nodes/<node_id>/#`), and only the command center publishes commands to a node.
+The broker on port 1884 accepts a node with its node ID as the username and its node key as the password; nodes fetch these from `GET /cc/api/v0/node/mqtt-credentials`. Each node may subscribe only to its own topics (`jarvis/nodes/<node_id>/#`), and only the command center publishes commands to a node.
 
 ### Command secrets
 
-Secrets that commands use (API keys, account tokens) are encrypted **end to end** between the mobile app and the node with the node's own key (AES-256-GCM). The command center carries the encrypted settings but cannot read them. They are edited only in the mobile app, by household admins.
+Secrets that commands use (API keys, account tokens) are encrypted between the mobile app and the node with the node's own key, **K2** (AES-256-GCM). They are edited only in the mobile app, by household admins.
+
+- The command center stores and relays only the ciphertext, and never stores K2.
+- How K2 reaches the node matters. A Pi node that gets its keys over its setup hotspot gets K2 straight from the app. A desktop agent, or a node keyed without the hotspot, gets it through `jarvisd`: the app posts K2 to `/cc/api/v0/nodes/<node_id>/k2` and the node pulls it once, so it passes through the server's memory for the length of that call.
+- So this protects command secrets against a stolen database or backup, not against a compromised server.
+- On the node, the Python Pi node keeps them in an SQLCipher database. The desktop agent (and the experimental Go Pi node, which is the same program) keeps K2 and the secrets in JSON files only its user can read (0600), not encrypted.
 
 ## App credentials
 
