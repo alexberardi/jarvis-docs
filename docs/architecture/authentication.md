@@ -80,7 +80,7 @@ A node (a voice node or a desktop agent) has a **node ID and a node key**. It se
 
 Every path ends at `POST /nodes/register` with a short-lived **provisioning token**:
 
-- **Voice node:** the mobile app gets a provisioning token (valid for 10 minutes) and hands it to the node while the node is in setup mode. See [Provisioning](../clients/provisioning.md).
+- **Voice node:** the mobile app gets a provisioning token (valid for 30 minutes) and hands it to the node while the node is in setup mode. See [Provisioning](../clients/provisioning.md).
 - **Desktop agent:** the computer shows a pairing code. A household member types that code in to approve it; the pairing list never shows the codes, and wrong guesses are limited. The computer then shows the household's name to confirm before it registers.
 
 Signing a device out (by the person who added it, or a household admin) removes the node and revokes its credentials, for HTTP and MQTT alike.

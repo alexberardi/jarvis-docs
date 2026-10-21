@@ -100,3 +100,11 @@ def test_no_live_page_links_the_old_cloud_anchors():
         assert "architecture/service-discovery.md" not in text.replace("legacy/architecture/", ""), (
             f"{rel} links the old service-discovery page"
         )
+
+
+def test_provisioning_token_lifetime_matches_jarvisd():
+    # jarvis-server internal/modules/cc/provisioning.go: provisioningTTL = 30 * time.Minute
+    # (the legacy provisioning.py used 10).
+    text = _text("architecture/authentication.md")
+    assert "valid for 30 minutes" in text
+    assert "valid for 10 minutes" not in text
