@@ -5,7 +5,7 @@ Jarvis Automation is a **pre-release** (release candidate rc18). Builds are on t
 Jarvis Automation is one server (`jarvisd`) that runs on a Mac, a Windows PC or a Linux machine on your network, plus the clients you talk to Jarvis through.
 
 1. Check the [requirements and choose a model](requirements.md).
-2. Install the server on [macOS](macos.md), [Windows](windows.md) or [Linux](linux.md), or with an [install script](one-liners.md).
+2. Install the server on [macOS](macos.md), [Windows](windows.md) or [Linux](linux.md), or with an [install script](one-liners.md). Or run it as a container on [Unraid](unraid.md) or in [Docker](docker.md).
 3. Finish in the [setup wizard](setup-wizard.md) at `http://<host>:7710/setup`.
 4. Add clients: the [desktop agent](../clients/desktop-agent.md), a [voice node](voice-node.md) and the [mobile app](mobile-app.md).
 

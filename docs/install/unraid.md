@@ -17,7 +17,16 @@ Jarvis runs on Unraid as one container, installed from a Community Applications 
     https://raw.githubusercontent.com/alexberardi/jarvis-server/main/scripts/packaging/unraid/jarvis.xml
     ```
 
-3. Click **Apply** with the defaults. There is nothing to fill in.
+3. Set **Repository** to a release tag, `ghcr.io/alexberardi/jarvisd:<tag>` (see [The image tag](#the-image-tag)). Leave the rest at the defaults.
+4. Click **Apply**.
+
+Moving from the old Docker install and keeping its data? Don't open the WebUI yet: [import your data](#coming-from-the-old-install) first.
+
+### The image tag
+
+The template installs `ghcr.io/alexberardi/jarvisd:latest`, but `:latest` follows stable releases only. While Jarvis Automation is a pre-release there is no `:latest`, and the container can't be pulled with the default. Name a release instead: `ghcr.io/alexberardi/jarvisd:<tag>`, where `<tag>` is the newest tag on the [releases page](https://github.com/alexberardi/jarvis-server/releases); its release notes name the image. Releases up to rc18 have no image; the first one comes with the next release.
+
+Not on Unraid? The same container runs in plain [Docker](docker.md).
 
 ## First run
 
@@ -75,6 +84,12 @@ Everything Jarvis keeps (the database, models and engines) is under `/mnt/user/a
 Update from the **Docker** tab: **Check for Updates**, then **apply update** on Jarvis. Your data in appdata is kept.
 
 The admin's **Updates** page tells you when a new release exists, but in the container it doesn't install it; it points you to the Docker tab. Pre-releases are not offered as updates.
+
+With a release tag in **Repository**, Check for Updates only finds a rebuild of that tag; to move to a newer release, put its tag in **Repository**. More: [Upgrade: In a container](upgrade.md#in-a-container).
+
+## Coming from the old install
+
+To move the old Docker install's data into Jarvis, see [Migrating: On Unraid or in Docker](migrating-from-docker.md#on-unraid-or-in-docker). Do it before you open the WebUI.
 
 ## Troubleshooting
 
