@@ -110,7 +110,7 @@ The queue is wired after `start()`. That is fine: the scheduler reads it on ever
 
 ## Context Aggregation
 
-After each successful agent run, the scheduler caches the agent's context data:
+After each successful agent run, the scheduler caches the agent's context data and sends it to jarvisd as facts:
 
 ```python
 # Inside _run_agent_safe():
@@ -118,7 +118,10 @@ if agent.include_in_context:
     context = agent.get_context_data()
     with self._context_lock:
         self._context_cache[agent.name] = context
+    # then: flatten the dict into facts and POST them to /memories/inject
 ```
+
+The node flattens the dict into one fact per leaf (`<agent>: <path>: <value>`) and posts them to jarvisd's `/memories/inject` as household memories, which jarvisd adds to a turn when they match what was said (see [Agents](index.md#what-the-server-does-with-agent-data) for the rules). `home_assistant` and `device_agent` are not sent. A failed inject is logged and does not count toward auto-disable.
 
 The voice thread retrieves a snapshot of all cached context:
 
@@ -145,7 +148,7 @@ This returns a dict mapping agent names to their context data:
 }
 ```
 
-The node places this into `node_context["agents"]` when it starts a conversation with your Jarvis Automation server. jarvisd reads only the Home Assistant / device inventory entry (`home_assistant` or `device_agent`) from it; other agents' context never reaches the LLM (see [Agents](index.md#what-the-server-does-with-agent-data)).
+The node places this into `node_context["agents"]` when it starts a conversation with your Jarvis Automation server. jarvisd reads only the Home Assistant / device inventory entry (`home_assistant` or `device_agent`) from it; other agents' context reaches the model through the facts above, not through `node_context`.
 
 ## Error Handling
 
