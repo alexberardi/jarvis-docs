@@ -114,6 +114,21 @@ def test_network_page_names_the_ports_and_mdns():
         assert want in text, f"{NETWORK} doesn't mention {want}"
 
 
+def test_legacy_port_switch_is_documented_as_next_release_only():
+    """rc18 always opens the legacy ports; server.legacy_ports and JARVIS_LEGACY_PORTS come after it."""
+    network = _text(NETWORK)
+    assert "three TCP ports" not in network, f"{NETWORK} describes the post-rc18 layout as current"
+    assert "rc18 always opens" in network, f"{NETWORK} doesn't say rc18 always opens the legacy ports"
+    for md in (NETWORK, TROUBLESHOOTING):
+        text = _text(md)
+        for line in text.splitlines():
+            if "legacy_ports" in line or "LEGACY_PORTS" in line:
+                assert "next release" in line, f"{md} presents the legacy-port switch as current: {line.strip()}"
+    trouble = _text(TROUBLESHOOTING)
+    assert "all 3 TCP ports" not in trouble or "next release" in trouble.split("all 3 TCP ports")[0][-400:], \
+        f"{TROUBLESHOOTING}'s sample doctor output shows the post-rc18 layout unlabelled"
+
+
 def test_offline_mode_is_about_jarvisd():
     text = _text(OFFLINE)
     for gone in ("MinIO", "PostgreSQL", "Redis", "Loki", "config-service", "~/.jarvis/", "docker"):

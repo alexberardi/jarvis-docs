@@ -4,7 +4,7 @@ Your voice nodes, phones and desktop agents reach the Jarvis Automation server o
 
 ## Ports
 
-A new install listens on three TCP ports and announces itself on mDNS:
+On rc18 the server listens on these ports, plus the [legacy ports](#legacy-ports) below, and announces itself on mDNS:
 
 | Port | What uses it |
 |---|---|
@@ -15,7 +15,7 @@ A new install listens on three TCP ports and announces itself on mDNS:
 
 ### Legacy ports
 
-Before jarvisd, each part of Jarvis was a separate service with its own port, and older nodes and apps still use those ports. jarvisd can open them too:
+Before jarvisd, each part of Jarvis was a separate service with its own port, and older nodes and apps still use those ports. rc18 always opens them too:
 
 | Port | Service |
 |---|---|
@@ -30,10 +30,12 @@ Before jarvisd, each part of Jarvis was a separate service with its own port, an
 | 7031 | OCR |
 | 9883 | MQTT over WebSocket |
 
-The `server.legacy_ports` setting (admin web app → **Settings**) turns them on or off; a restart applies it. `JARVIS_LEGACY_PORTS=1` (or `0`) in `jarvisd.env` overrides the setting.
-
 !!! note "Which servers open them"
-    Up to and including rc18, jarvisd always opens the legacy ports. From the next release, a new install opens only the ports in the first table, and a server upgraded from an earlier jarvisd keeps the legacy ports on, so nodes set up against them keep working. `jarvisd doctor` checks exactly the ports your server opens.
+    Up to and including rc18, jarvisd always opens the legacy ports; rc18 has no setting to turn them off. From the next release, a fresh install opens only the ports in the first table, and a server upgraded from an earlier jarvisd keeps the legacy ports on, so nodes set up against them keep working.
+
+    From the next release, the `server.legacy_ports` setting (admin web app → **Settings**, then restart), or `JARVIS_LEGACY_PORTS=1` (or `0`) in `jarvisd.env`, which overrides it, brings them back or turns them off.
+
+    `jarvisd doctor` checks exactly the ports your server opens.
 
 ### Change a port
 
