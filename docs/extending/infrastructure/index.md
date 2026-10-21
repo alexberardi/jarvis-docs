@@ -1,62 +1,43 @@
 # Infrastructure Services
 
-Commands, agents, and other extensions have access to a rich set of infrastructure services on the node. These utilities handle everything from HTTP communication with the command center to encrypted secret storage and persistent data.
+A package reaches the device's storage, secrets and the server through the [Command SDK](../../libraries/command-sdk.md). The SDK's helpers work wherever the package runs: the device registers the backends behind them at startup. Import them from `jarvis_command_sdk`.
 
-This section covers the developer-facing APIs that your plugins can use at runtime.
-
-## Available Services
-
-| Service | Module | Purpose |
-|---------|--------|---------|
-| [Command Center Client](jcc-client.md) | `clients/jarvis_command_center_client.py` | HTTP client for CC (voice commands, LLM chat, training, conversations) |
-| [Secret Service](secrets.md) | `services/secret_service.py` | Read/write secrets from encrypted SQLite |
-| [Command Data Store](datastore.md) | `repositories/command_data_repository.py` | Generic key-value persistence with TTL |
-| [JarvisStorage](datastore.md#jarvisstorage-sdk-persistence-facade) | `jarvis_command_sdk.JarvisStorage` | SDK persistence facade for Pantry packages |
-| [Process Introspection](process.md) | `jarvis_command_sdk.process_alive` | PID-reuse-safe liveness check for pidfile-tracked daemons |
-| [Settings Snapshots](settings.md) | `services/settings_snapshot_service.py` | Build encrypted settings for mobile sync |
-| Command Registry | `repositories/command_registry_repository.py` | Enable/disable commands |
-
-## Encrypted Storage
-
-All data is stored in an **encrypted SQLite database** using pysqlcipher3 (AES-256-CBC, 256K KDF iterations). The encryption key lives at `~/.jarvis/db.key` and is generated automatically during node provisioning.
-
-This means secrets, command data, and registry state are encrypted at rest. Even if someone gains physical access to the Pi Zero's SD card, the data is unreadable without the key file.
-
-## Common Access Pattern
-
-Most infrastructure services are accessed through simple module-level functions or repository classes that take a database session:
-
-```python
-# Module-level functions (secret service)
-from services.secret_service import get_secret_value, set_secret
-
-api_key = get_secret_value("MY_API_KEY", "integration")
-
-# Repository classes (data store, registry)
-from db import SessionLocal
-from repositories.command_data_repository import CommandDataRepository
-
-db = SessionLocal()
-repo = CommandDataRepository(db)
-entry = repo.get("my_command", "cache_key")
-db.close()
-
-# Singleton client (command center)
-from clients.jarvis_command_center_client import JarvisCommandCenterClient
-
-client = JarvisCommandCenterClient()
-result = client.chat_text("What time is it in Tokyo?")
-```
-
-## When to Use What
+## For packages: the SDK
 
 | You need to... | Use |
 |----------------|-----|
-| Call the LLM for structured parsing | [Command Center Client](jcc-client.md) --- `chat()` or `lightweight_chat()` |
-| Read an API key or config value | [Secret Service](secrets.md) --- `get_secret_value()` |
-| Cache data between command invocations | [Command Data Store](datastore.md) --- `CommandDataRepository` |
-| Store data in a Pantry package | [JarvisStorage](datastore.md#jarvisstorage-sdk-persistence-facade) --- SDK facade over `CommandDataRepository` |
-| Store temporary results with auto-expiry | [Command Data Store](datastore.md) --- `save()` with `expires_at` |
-| Check if a pidfile-tracked daemon is alive | [Process Introspection](process.md) --- `process_alive(pid, expected_comm=...)` |
-| Expose settings to the mobile app | [Settings Snapshots](settings.md) --- automatic via `required_secrets` |
-| Check if a command is enabled | Command Registry --- `CommandRegistryRepository.get_all()` |
+| Ask the LLM for a text reply | [`llm_chat_text(prompt)`](jcc-client.md) |
+| POST to a server route as the node | [`cc_post(path, json)`](jcc-client.md#call-the-server) |
+| Read an API key or other setting | [`JarvisStorage(name).get_secret(key)`](secrets.md) |
+| Cache data between runs, with optional expiry | [`JarvisStorage(name).save(key, data, expires_at)`](datastore.md#jarvisstorage-sdk-persistence-facade) |
+| Check if a pidfile-tracked daemon is alive | [`process_alive(pid, expected_comm=...)`](process.md) |
+| Expose settings to the mobile app | Declare them in [`required_secrets`](settings.md#for-command-authors) |
+
+```python
+from jarvis_command_sdk import JarvisStorage, llm_chat_text
+
+storage = JarvisStorage("my_command")
+api_key = storage.get_secret("MY_API_KEY")  # integration scope by default
+storage.save("last_run", {"ok": True})
+reply = llm_chat_text("Say hello in French.")  # None when there is no LLM
+```
+
+A computer's desktop agent has only the SDK, and it registers no LLM or server backend: there `llm_chat_text` and `cc_post` return `None`. See [Where your code runs](../where-code-runs.md).
+
+## On the Python node only
+
+The Python Pi node (`jarvis-node-setup`) has its own modules under the SDK. Its built-in commands use them, and they are what the SDK's backends call on a Pi. A package should not import them: they don't exist on a computer, and they change with the node.
+
+| Module | Purpose |
+|--------|---------|
+| `services/secret_service.py` | Secrets in the node's encrypted database; what `JarvisStorage.get_secret` reads on a Pi |
+| `repositories/command_data_repository.py` | Per-command key-value data with expiry; what `JarvisStorage.save` writes on a Pi |
+| `clients/jarvis_command_center_client.py` | The node's server client (voice pipeline, conversations); see [Command Center Client](jcc-client.md#the-nodes-own-client) |
+| `services/settings_snapshot_service.py` | Encrypted settings snapshots for the mobile app; see [Settings Snapshots](settings.md) |
+| `repositories/command_registry_repository.py` | Which commands are enabled |
+
+## Encrypted storage
+
+The node keeps secrets, command data and the command registry in an **encrypted SQLite database** (SQLCipher, through the `sqlcipher3` library). The key is at `~/.jarvis/db.key` (or `$JARVIS_SECRET_DIRECTORY/db.key`) and is created the first time the database is opened. The database file is `./jarvis_node.db` in the node's working directory, or `$JARVIS_NODE_DB`.
+
+Without the key file the data is unreadable, even with the SD card in hand.

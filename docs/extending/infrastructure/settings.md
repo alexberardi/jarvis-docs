@@ -1,257 +1,48 @@
 # Settings Snapshots
 
-The settings snapshot system enables the mobile app to discover and configure command settings on nodes. It builds an encrypted summary of all commands, their secrets (metadata only), enabled state, authentication status, device families, and device managers --- then ships it to the mobile app via the command center.
-
-**Module:** `services/settings_snapshot_service.py`
-
-## How It Works
-
-The snapshot flow involves five steps:
-
-```mermaid
-sequenceDiagram
-    participant Mobile as Mobile App
-    participant CC as Command Center
-    participant Node as Node
-
-    Mobile->>CC: Request settings snapshot
-    CC->>Node: MQTT: snapshot_request(node_id, request_id)
-    Node->>Node: build_snapshot()
-    Node->>Node: encrypt_snapshot(data, K2)
-    Node->>CC: PUT /snapshot (encrypted blob)
-    CC-->>Mobile: Download encrypted blob
-    Mobile->>Mobile: Decrypt with K2, render settings UI
-```
-
-1. **Mobile requests** a settings snapshot via the command center
-2. **Command center forwards** the request to the node over MQTT
-3. **Node builds the snapshot** by enumerating all commands, device families, and device managers; collecting secrets metadata, enabled state, and auth config
-4. **Node encrypts** the snapshot with AES-256-GCM using the shared K2 key
-5. **Node uploads** the encrypted blob to the command center, where the mobile app downloads and decrypts it
-
-## What is Included in a Snapshot
-
-The `build_snapshot()` function assembles data from multiple sources:
-
-### Commands
-
-For each discovered command:
-
-- **Secrets metadata** --- key name, description, scope, value type, friendly name, `is_set` (whether a value exists), and `is_sensitive` flag. Sensitive values are never included --- only metadata.
-- **Enabled state** --- from the `CommandRegistryRepository`
-- **Parameters** --- the command's parameter definitions for the mobile UI
-- **Associated service** --- grouping label for the mobile settings screen (e.g., "OpenWeather", "Gmail")
-- **Authentication config** --- from `CommandAuth`, whether OAuth needs to be completed and any error messages
-
-### Device Families
-
-For each discovered device family (local protocol integration):
-
-- Family name and description
-- Required secrets metadata (same format as commands)
-
-### Device Managers
-
-For each discovered device manager (cloud API integration):
-
-- Manager name and description
-- Required secrets metadata
-
-### Hardware
-
-A `hardware` block is always included in the snapshot. The mobile app uses it to show or hide HAT-specific controls (LED brightness, button configuration) and to display the node's detected audio card on the Hardware tab.
-
-| Field | Type | Description |
-|-------|------|-------------|
-| `hat_detected` | bool | `true` when a ReSpeaker HAT is present |
-| `led_chain_available` | bool | `true` when the APA102 LED ring is available (equals `hat_detected`) |
-| `audio_card` | string \| null | ALSA card name (e.g. `"seeed2micvoicec"`); `null` on macOS or no HAT |
-| `is_muted` | bool | Current PulseAudio mute state; field is omitted if the state is indeterminate |
-| `button_available` | bool | `true` when gpiozero is importable and `hat_detected` is `true` |
-
-The `node_config` section of the snapshot also carries two HAT-related fields from `config.json`:
-
-| Field | Type | Description |
-|-------|------|-------------|
-| `led_enabled` | bool | Whether the LED ring is active (default `true`) |
-| `led_brightness_percent` | int | LED brightness (0–100, default `100`) |
-
-### Example Snapshot Structure
-
-```json
-{
-  "commands": {
-    "get_weather": {
-      "enabled": true,
-      "associated_service": "OpenWeather",
-      "secrets": [
-        {
-          "key": "OPENWEATHER_API_KEY",
-          "friendly_name": "API Key",
-          "description": "Open Weather API Key",
-          "scope": "integration",
-          "value_type": "string",
-          "is_set": true,
-          "is_sensitive": true
-        },
-        {
-          "key": "OPENWEATHER_LOCATION",
-          "friendly_name": "Default Location",
-          "description": "Default weather location",
-          "scope": "node",
-          "value_type": "string",
-          "is_set": true,
-          "is_sensitive": false,
-          "value": "Miami,FL,US"
-        }
-      ],
-      "parameters": [...],
-      "auth": null
-    }
-  },
-  "device_families": {...},
-  "device_managers": {...},
-  "hardware": {
-    "hat_detected": true,
-    "led_chain_available": true,
-    "audio_card": "seeed2micvoicec",
-    "is_muted": false,
-    "button_available": true
-  },
-  "node_config": {
-    "led_enabled": true,
-    "led_brightness_percent": 80
-  }
-}
-```
-
-Note that `OPENWEATHER_API_KEY` (sensitive) has no `value` field, while `OPENWEATHER_LOCATION` (non-sensitive) includes the current value. This is how the mobile app knows to show a masked placeholder for API keys but display the actual value for locations and preferences.
-
-## Encryption
-
-### `encrypt_snapshot(data, k2) -> bytes`
-
-Encrypts the snapshot JSON with AES-256-GCM:
-
-- **Algorithm:** AES-256-GCM (authenticated encryption)
-- **Key:** K2, a shared 256-bit AES key
-- **Nonce:** 12 random bytes, prepended to the ciphertext
-- **Output:** `nonce (12 bytes) || ciphertext || tag (16 bytes)`
-
-```python
-import json
-
-snapshot_data = build_snapshot()
-json_bytes = json.dumps(snapshot_data).encode("utf-8")
-encrypted = encrypt_snapshot(json_bytes, k2_key)
-```
-
-The mobile app performs the inverse: reads the 12-byte nonce, decrypts the rest with K2, and parses the resulting JSON.
-
-### The K2 Key
-
-K2 is a shared AES-256 key exchanged between the node and mobile app during provisioning. It is used exclusively for encrypting settings data in transit.
-
-- **Provisioning:** exchanged via the BLE provisioning flow (see [Provisioning](../../clients/provisioning.md))
-- **Development:** generate a dev key with `python utils/generate_dev_k2.py`
-- **Storage:** stored in the node's encrypted SQLite database as a secret
-
-```bash
-# Generate a K2 key for development
-python utils/generate_dev_k2.py
-# Output: K2 key written to ~/.jarvis/k2.key
-```
-
-## Upload
-
-### `upload_snapshot(node_id, request_id, encrypted) -> bool`
-
-Uploads the encrypted blob to the command center via HTTP PUT:
-
-```python
-success = upload_snapshot(
-    node_id="576f209e-4c46-4105-b785-6e76ccf579c9",
-    request_id="req-abc-123",
-    encrypted=encrypted_blob
-)
-```
-
-The command center stores the blob temporarily and notifies the mobile app that the snapshot is ready for download.
-
-## Full Orchestration
-
-### `handle_snapshot_request(node_id, request_id)`
-
-This is the top-level function called when the node receives a snapshot request over MQTT. It orchestrates the entire flow:
-
-1. Calls `build_snapshot()` to enumerate commands, device families, device managers, and hardware state
-2. Serializes the snapshot to JSON
-3. Reads the K2 key from the secret store
-4. Calls `encrypt_snapshot()` to encrypt the JSON
-5. Calls `upload_snapshot()` to PUT the encrypted blob to the command center
-
-```python
-from services.settings_snapshot_service import handle_snapshot_request
-
-# Called by the MQTT handler when a snapshot request arrives
-handle_snapshot_request(
-    node_id="576f209e-4c46-4105-b785-6e76ccf579c9",
-    request_id="req-abc-123"
-)
-```
-
-## Config Push (Mobile to Node)
-
-The snapshot flow is bidirectional. When a user changes a setting in the mobile app:
-
-1. Mobile encrypts the updated values with K2
-2. Mobile sends the encrypted payload to the command center
-3. Command center forwards to the node via MQTT
-4. Node decrypts with K2 and calls `set_secret()` for each changed value
-
-This means the mobile app can configure API keys, toggle feature flags, and update preferences on any node --- all through the same encrypted channel.
-
-## Mobile App Integration
-
-The mobile app uses the snapshot to render per-command settings screens, grouped by `associated_service`:
-
-```
-Node: Office Pi
-────────────────────────
-OpenWeather
-  API Key              ••••••••
-  Units                imperial
-  Default Location     Miami,FL,US
-
-Gmail
-  ⚠️ Authentication Required
-  [Complete OAuth Setup]
-
-Govee (Device Manager)
-  API Key              ••••••••
-  Default Room         living room
-
-Hardware
-  HAT detected         ✓ ReSpeaker 2-Mics
-  Audio card           seeed2micvoicec
-  LED brightness       80%
-```
-
-Each secret renders differently based on its metadata:
-
-- `is_sensitive=True` --- masked input, user can enter a new value but never sees the current one
-- `is_sensitive=False` --- plain text input showing the current value
-- `value_type="bool"` --- toggle switch
-- `value_type="int"` --- numeric stepper
-- `needs_auth=True` --- shows an authentication prompt with a button to start the OAuth flow
+The mobile app shows each node's settings (API keys, options, sign-ins) on its settings screens. The node builds that list itself, from what its commands, agents, device protocols and device managers declare, and the household edits the values from the app. A package never talks to this system directly.
 
 ## For Command Authors
 
-You do not need to interact with the snapshot system directly. It works automatically based on your command's `required_secrets` declarations:
+The settings screen comes from your `required_secrets` declarations:
 
-1. Declare your secrets with appropriate `scope`, `is_sensitive`, and `friendly_name` values
-2. The snapshot system reads these declarations and includes them in the snapshot
-3. The mobile app renders the settings UI
-4. Users enter values, which are pushed to the node's secret store
+1. Declare each setting as a `JarvisSecret` with a `scope`, `value_type`, `is_sensitive` and `friendly_name`.
+2. When the app opens the node's settings, the node lists every declared secret: its key, description, scope, type, friendly name and whether a value is set.
+3. The app renders a field for each one.
+4. What the user enters goes back to the node and is stored in its secret store, where `JarvisStorage(...).get_secret(key)` reads it.
 
-The only thing you control is how your secrets are declared. See [Secrets Deep Dive](../../commands/secrets.md) for the full reference on `JarvisSecret` options.
+```python
+from jarvis_command_sdk import JarvisSecret
+
+required_secrets = [
+    JarvisSecret("OPENWEATHER_API_KEY", "OpenWeather API key", "integration", "string",
+                 friendly_name="API key"),
+    JarvisSecret("OPENWEATHER_UNITS", "imperial or metric", "integration", "string",
+                 is_sensitive=False, friendly_name="Units", enum_values=["imperial", "metric"]),
+]
+```
+
+How each declaration shows up in the app:
+
+| Declaration | Field |
+|-------------|-------|
+| `is_sensitive=True` (the default) | Masked: the user can enter a new value but never sees the current one |
+| `is_sensitive=False` | Plain text showing the current value |
+| `value_type="bool"` | Toggle |
+| `value_type="int"` | Number |
+| `enum_values=[...]` | A picker |
+| `value_type="user"` | A household-member picker; the value is that member's user id |
+| `scope="user"` | Each household member sets their own value |
+
+The scope is `"integration"` (one value for the household) or `"user"` (one per member); anything else raises `ValueError`. Commands with an OAuth `authentication` config also get a sign-in prompt. See [Secrets Deep Dive](../../commands/secrets.md) for every `JarvisSecret` option.
+
+## How it works
+
+For the curious; none of this is a package API.
+
+1. The app asks the server for a node's settings, and the server asks the node over MQTT.
+2. The node builds the snapshot (`build_snapshot()` in `services/settings_snapshot_service.py` on the Python node): every command, device family and device manager with its secrets metadata, enabled state and sign-in status, plus the node's hardware.
+3. It encrypts the snapshot with **K2**, a key only the node and the household's phones hold (AES-256-GCM), and uploads it with `PUT /api/v0/nodes/{node_id}/settings/requests/{request_id}/snapshot`.
+4. The app downloads it, decrypts it with K2 and renders the screens.
+
+Changes go the other way through the same channel: the app encrypts the new values with K2, the server relays them, and the node decrypts them and stores them. The server only ever sees ciphertext. K2 reaches the node when it is [provisioned](../../clients/provisioning.md).

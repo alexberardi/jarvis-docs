@@ -2,13 +2,17 @@
 
 > **The Stewards** --- Device managers are the head stewards who maintain the master inventory of every device in the household. They know what is installed, where it lives, and whether it is online --- whether they learned that from an external authority like Home Assistant or by dispatching their own translators to survey each room.
 
-A device manager implements `IJarvisDeviceManager` to provide Jarvis with a list of controllable devices from a backend platform. Managers are discovered automatically by `DeviceManagerDiscoveryService` at startup.
+A device manager implements `IJarvisDeviceManager` to give Jarvis the list of devices from a backend platform. It ships in a package and runs on the Python node, which finds it at startup. The household picks the active manager with the server setting `smart_home.device_manager`.
 
-## Interface Reference
+## Interface reference
+
+From the SDK (`jarvis_command_sdk/device_manager.py`):
 
 ```python
 from abc import ABC, abstractmethod
-from dataclasses import dataclass
+
+from jarvis_command_sdk import AuthenticationConfig, DeviceManagerDevice, IJarvisSecret
+
 
 class IJarvisDeviceManager(ABC):
     # --- Required (abstract) ---
@@ -16,25 +20,21 @@ class IJarvisDeviceManager(ABC):
     @property
     @abstractmethod
     def name(self) -> str:
-        """Unique identifier. Examples: 'home_assistant', 'jarvis_direct'."""
-        ...
+        """Unique identifier, e.g. 'home_assistant', 'jarvis_direct'."""
 
     @property
     @abstractmethod
     def friendly_name(self) -> str:
-        """Human-readable label shown in the mobile app. Examples: 'Home Assistant', 'Jarvis Direct'."""
-        ...
+        """Label shown in the mobile app, e.g. 'Home Assistant'."""
 
     @property
     @abstractmethod
     def can_edit_devices(self) -> bool:
-        """If True, the mobile app shows an edit UI for curating the device list."""
-        ...
+        """True: the mobile app lets the user curate the device list."""
 
     @abstractmethod
     async def collect_devices(self) -> list[DeviceManagerDevice]:
         """Return the current list of devices from this backend."""
-        ...
 
     # --- Optional (with defaults) ---
 
@@ -49,144 +49,81 @@ class IJarvisDeviceManager(ABC):
     @property
     def authentication(self) -> AuthenticationConfig | None:
         return None
-
-    def is_available(self) -> bool:
-        """Returns True if all required secrets are present. Called by discovery."""
-        ...
-
-    def validate_secrets(self) -> list[str]:
-        """Returns a list of validation error messages (empty = valid)."""
-        ...
 ```
 
-## Key Properties
+The node's own copy of the interface (`core/ijarvis_device_manager.py`, used by the built-in `jarvis_direct`) adds `is_available()` and `validate_secrets()`, which returns the keys of missing required secrets. They are not part of the SDK interface; a package doesn't implement them.
+
+## Key properties
 
 ### `can_edit_devices`
 
-This property controls whether the mobile app presents a device curation UI:
+Whether the mobile app shows a device curation UI:
 
-- **`True`** (Jarvis Direct) --- The user manually adds/removes devices from the discovered list. The manager discovers everything it can find on the network, but only user-selected devices are active.
-- **`False`** (Home Assistant) --- The external platform is the source of truth. Jarvis imports whatever HA exposes and does not allow local edits.
+- **`True`** (Jarvis Direct): the manager finds everything it can, and the user chooses which devices to keep.
+- **`False`** (Home Assistant): the platform is the source of truth. Jarvis imports what it exposes and allows no local edits.
 
 ### `required_secrets` and `authentication`
 
-Managers that need credentials declare them via `required_secrets` (a list of `IJarvisSecret` objects) and optionally `authentication` (an `AuthenticationConfig` for OAuth flows). If secrets are missing, `is_available()` returns `False` and the manager is skipped at discovery time.
+A manager that needs credentials declares them as `JarvisSecret`s in `required_secrets`, and optionally an `AuthenticationConfig` for an OAuth sign-in. The mobile app shows them on the node's settings screen (see [Settings Snapshots](../infrastructure/settings.md)). Read them with `JarvisStorage` when you need them, and handle a value that isn't set yet.
 
-## Built-in Implementations
+## Implementations
 
-### HomeAssistantDeviceManager
+### Jarvis Direct (built into the node)
 
-Connects to a Home Assistant instance via WebSocket and maps HA entities to `DeviceManagerDevice` objects.
-
-```python
-class HomeAssistantDeviceManager(IJarvisDeviceManager):
-    name = "home_assistant"
-    friendly_name = "Home Assistant"
-    can_edit_devices = False  # HA is the source of truth
-
-    required_secrets = [
-        IJarvisSecret(key="HA_REST_URL", description="Home Assistant URL"),
-        IJarvisSecret(key="HA_API_KEY", description="Long-lived access token"),
-    ]
-
-    authentication = AuthenticationConfig(
-        # OAuth config for HA authentication flow
-        ...
-    )
-
-    async def collect_devices(self) -> list[DeviceManagerDevice]:
-        # 1. Connect to HA WebSocket
-        # 2. Fetch entity registry
-        # 3. Map each entity to DeviceManagerDevice
-        # 4. Filter to supported domains (light, switch, climate, etc.)
-        ...
-```
-
-**What it does:**
-
-- Opens a WebSocket connection to the HA instance
-- Fetches the full entity registry
-- Maps HA entity attributes (friendly_name, device_class, state) to the normalized `DeviceManagerDevice` format
-- Requires `HA_REST_URL` and `HA_API_KEY` secrets
-- Includes an OAuth `AuthenticationConfig` for token-based authentication
-
-### JarvisDirectDeviceManager
-
-Aggregates all discovered `IJarvisDeviceProtocol` adapters into a single device list. This is the "no hub needed" option --- Jarvis talks directly to devices over LAN or cloud APIs.
+`device_managers/jarvis_direct_manager.py` in `jarvis-node-setup`, name `jarvis_direct`, `can_edit_devices = True`. It is the "no hub" option: it runs `discover()` on every installed [device protocol](protocols.md) at once and merges the results:
 
 ```python
-class JarvisDirectDeviceManager(IJarvisDeviceManager):
-    name = "jarvis_direct"
-    friendly_name = "Jarvis Direct"
-    can_edit_devices = True  # User curates the device list
-
-    async def collect_devices(self) -> list[DeviceManagerDevice]:
-        # 1. Get all registered IJarvisDeviceProtocol instances
-        # 2. Call discover() on each protocol concurrently
-        protocols = get_device_family_discovery_service().get_all_protocols()
-        tasks = [proto.discover() for proto in protocols]
-        results = await asyncio.gather(*tasks, return_exceptions=True)
-
-        # 3. Flatten and deduplicate
-        all_devices = []
-        for result in results:
-            if isinstance(result, Exception):
-                logger.warning(f"Protocol discovery failed: {result}")
-                continue
-            all_devices.extend(result)
-
-        return self._deduplicate(all_devices)
+# What JarvisDirectDeviceManager.collect_devices() does (simplified)
+families = get_device_family_discovery_service().get_all_families()
+protocols = list(families.values())
+results = await asyncio.gather(
+    *[p.discover(timeout=SCAN_TIMEOUT) for p in protocols],
+    return_exceptions=True,
+)
 ```
 
-**Deduplication logic:** When the same physical device is discovered by multiple protocols, `JarvisDirectDeviceManager` deduplicates using a priority chain:
+A protocol that fails is logged and skipped. When several protocols find the same device, it keeps one, matching on (in order):
 
-1. **MAC address** (strongest --- same hardware)
+1. **MAC address** (same hardware)
 2. **IP address** (same network endpoint)
 3. **Cloud ID** (same vendor account)
 4. **Entity ID** (fallback)
 
+and converts each `DiscoveredDevice` to a `DeviceManagerDevice` with `source="direct"`.
+
+### Home Assistant (a package)
+
+The Home Assistant manager comes from the [`jarvis-home-assistant-integration`](https://github.com/alexberardi/jarvis-home-assistant-integration) package, not from the node. Its manager, `home_assistant` (`can_edit_devices = False`), reads the devices and entities from your Home Assistant instance and maps each entity to a `DeviceManagerDevice` with `source="home_assistant"`. It needs `HOME_ASSISTANT_REST_URL` and `HOME_ASSISTANT_API_KEY` (a long-lived access token), and also offers an OAuth sign-in. The same package has the Home Assistant commands and an agent.
+
 ## Discovery
 
-Managers are discovered by `DeviceManagerDiscoveryService`, which scans the `device_managers/` package at startup. Place your manager file in that directory and it is registered automatically:
+At startup the node loads every manager in `device_managers/` (the built-in one) and in `device_managers/custom_managers/<package>/`, where the installer puts a package's `manager.py`. A built-in manager whose `validate_secrets()` reports missing keys is skipped. The node loads components once, so restart it after installing one.
 
+See [Discovery System](../discovery.md) for details.
+
+## Writing a custom manager
+
+Start from the scaffold, which writes `manager.py` and the manifest:
+
+```bash
+jdt init my_hub --type manager
 ```
-device_managers/
-    __init__.py
-    home_assistant_device_manager.py
-    jarvis_direct_device_manager.py
-    your_new_manager.py              # <-- just add the file
-```
 
-See [Discovery System](../discovery.md) for details on how scanning works.
-
-## Settings Sync
-
-The function `get_all_managers_for_snapshot()` collects metadata from all registered managers (including those that are unavailable due to missing secrets). This is used by the settings sync system to show all possible managers in the mobile app, so users can configure secrets for managers they want to enable.
+Here is a minimal manager for a hypothetical SmartThings integration:
 
 ```python
-def get_all_managers_for_snapshot() -> list[dict]:
-    """Return manager metadata for settings sync. No secret filtering."""
-    managers = get_device_manager_discovery_service().get_all_managers()
-    return [
-        {
-            "name": m.name,
-            "friendly_name": m.friendly_name,
-            "can_edit_devices": m.can_edit_devices,
-            "is_available": m.is_available(),
-            "required_secrets": [s.key for s in m.required_secrets],
-            "authentication": m.authentication.to_dict() if m.authentication else None,
-        }
-        for m in managers
-    ]
-```
+import httpx
 
-## Writing a Custom Manager
+from jarvis_command_sdk import (
+    DeviceManagerDevice,
+    IJarvisDeviceManager,
+    IJarvisSecret,
+    JarvisSecret,
+    JarvisStorage,
+)
 
-Here is a minimal example that integrates a hypothetical SmartThings hub:
+CATEGORY_DOMAINS = {"Light": "light", "Switch": "switch", "Thermostat": "climate"}
 
-```python
-from device_managers.base import IJarvisDeviceManager, DeviceManagerDevice
-from jarvis_command_sdk import IJarvisSecret
 
 class SmartThingsDeviceManager(IJarvisDeviceManager):
     @property
@@ -208,12 +145,16 @@ class SmartThingsDeviceManager(IJarvisDeviceManager):
     @property
     def required_secrets(self) -> list[IJarvisSecret]:
         return [
-            IJarvisSecret(key="SMARTTHINGS_TOKEN", description="Personal access token"),
+            JarvisSecret("SMARTTHINGS_TOKEN", "Personal access token", "integration", "string",
+                         friendly_name="Access token"),
         ]
 
     async def collect_devices(self) -> list[DeviceManagerDevice]:
-        token = self.secret_service.get_secret("SMARTTHINGS_TOKEN")
-        async with httpx.AsyncClient() as client:
+        token = JarvisStorage("smartthings").get_secret("SMARTTHINGS_TOKEN")
+        if not token:
+            return []
+
+        async with httpx.AsyncClient(timeout=10) as client:
             resp = await client.get(
                 "https://api.smartthings.com/v1/devices",
                 headers={"Authorization": f"Bearer {token}"},
@@ -221,28 +162,22 @@ class SmartThingsDeviceManager(IJarvisDeviceManager):
             resp.raise_for_status()
             data = resp.json()
 
-        devices: list[DeviceManagerDevice] = []
-        for item in data["items"]:
-            devices.append(DeviceManagerDevice(
+        return [
+            DeviceManagerDevice(
                 name=item["label"],
-                domain=self._map_category(item["categoryType"]),
+                domain=CATEGORY_DOMAINS.get(item.get("categoryType", ""), "switch"),
                 entity_id=f"smartthings.{item['deviceId']}",
-                is_controllable=True,
-                manufacturer=item.get("manufacturerName", "Unknown"),
-                model=item.get("name", "Unknown"),
+                manufacturer=item.get("manufacturerName"),
+                model=item.get("name"),
                 protocol="smartthings",
-                local_ip=None,
-                mac_address=None,
                 cloud_id=item["deviceId"],
+                source="smartthings",
                 area=item.get("roomId"),
-                state=None,
-                extra=None,
-            ))
-        return devices
-
-    def _map_category(self, category: str) -> str:
-        mapping = {"Light": "light", "Switch": "switch", "Thermostat": "climate"}
-        return mapping.get(category, "switch")
+            )
+            for item in data.get("items", [])
+        ]
 ```
 
-Save this as `device_managers/smartthings_device_manager.py` and restart the node. The discovery service picks it up automatically.
+`httpx` is installed on the Python node. If your manager needs a library the node doesn't have, declare it in the manifest's `packages`.
+
+Test it with `jdt test`, install it on a node with [`jdt deploy`](../toolkit/deploy.md) (or publish it to Pantry and install it from the mobile app), then restart the node. When the server asks the node for a device list, it names the manager to run (the household's `smart_home.device_manager` setting, `jarvis_direct` by default), or `all` to merge every loaded manager; a manager the node hasn't loaded gets "not found or not configured".

@@ -1,70 +1,79 @@
 # Device Control
 
-Jarvis uses a two-tier architecture for smart home device control:
+Jarvis controls smart home devices through two kinds of package component:
 
-1. **Device Managers** / The Stewards (`IJarvisDeviceManager`) --- high-level backends that maintain the master device inventory. A steward might consult Home Assistant (an external authority) or aggregate several translators directly.
-2. **Device Protocols** / The Translators (`IJarvisDeviceProtocol`) --- low-level protocol adapters that speak each device family's native language over LAN or cloud APIs (LIFX bulbs, Kasa switches, Govee lights, Apple TV).
+1. **Device managers** (`IJarvisDeviceManager`) keep the household's device inventory. A manager either asks a platform that already knows the devices (such as Home Assistant) or gathers them itself from device protocols.
+2. **Device protocols** (`IJarvisDeviceProtocol`) speak one device family's own language, over the LAN or a cloud API (LIFX bulbs, Kasa switches, Govee lights, Apple TV).
 
-The `control_device` command does not care which tier handles a device. It asks the active device manager for a device list, matches the user's intent, and delegates control.
+The active manager is a server setting, `smart_home.device_manager`: `jarvis_direct` (the default, built into the node) or `home_assistant` (from the Home Assistant package). When you ask Jarvis to control a device, your Jarvis Automation server finds it in the household's device list and relays the action to the household's node, which runs it through the right protocol. Every protocol call happens on a node.
 
 ## Architecture
 
 ```mermaid
 graph TD
-    CMD["control_device command"] --> DM["Active Device Manager"]
-    DM --> HA["HA Device Manager<br/>(Home Assistant WebSocket)"]
-    DM --> JD["Jarvis Direct Manager"]
-    JD --> LIFX["LIFX Protocol<br/>(UDP 56700)"]
-    JD --> Kasa["Kasa Protocol<br/>(python-kasa)"]
-    JD --> Govee["Govee Protocol<br/>(REST + LAN)"]
-    JD --> Apple["Apple Protocol<br/>(mDNS/pyatv)"]
+    SRV["jarvisd<br/>(device list, smart_home.device_manager)"] --> NODE["Python node"]
+    NODE --> DM["Active device manager"]
+    DM --> HA["home_assistant<br/>(Home Assistant package)"]
+    DM --> JD["jarvis_direct<br/>(built into the node)"]
+    JD --> P1["Device protocol packages<br/>(LIFX, Kasa, Govee, Apple, ...)"]
 ```
 
-## Managers vs Protocols
+Device managers and protocols run only on the Python node. A computer's desktop agent skips them when it installs a package (see [Where your code runs](../where-code-runs.md)).
 
-| Aspect | Device Manager | Device Protocol |
+## Managers vs protocols
+
+| Aspect | Device manager | Device protocol |
 |--------|---------------|----------------|
 | Interface | `IJarvisDeviceManager` | `IJarvisDeviceProtocol` |
-| Package | `device_managers/` | `device_families/` |
-| Scope | Aggregates many devices (possibly many protocols) | Controls one protocol/device family |
-| Discovery | `DeviceManagerDiscoveryService` | `DeviceFamilyDiscoveryService` |
-| Example | Home Assistant (hundreds of entities), Jarvis Direct (aggregates all protocols) | LIFX (UDP LAN bulbs), Kasa (TP-Link switches) |
+| Package entry file | `manager.py` | `protocol.py` |
+| Installed to (on the node) | `device_managers/custom_managers/<name>/` | `device_families/custom_families/<name>/` |
+| Scope | Many devices, possibly from many protocols | One protocol or device family |
+| Returns | `DeviceManagerDevice` | `DiscoveredDevice` |
+| Example | Home Assistant (every HA entity), Jarvis Direct (every installed protocol) | LIFX (UDP LAN bulbs), Kasa (TP-Link switches) |
 
-**When to write a Device Manager:** You have a platform that already aggregates devices (like Home Assistant, SmartThings, or a proprietary hub) and you want Jarvis to pull its device list.
+Import both from the SDK: `from jarvis_command_sdk import IJarvisDeviceManager, IJarvisDeviceProtocol`.
 
-**When to write a Device Protocol:** You want to control a specific device family directly over LAN or cloud API, without an intermediary platform.
+**When to write a device manager:** you have a platform that already aggregates devices (Home Assistant, SmartThings, a vendor hub) and you want Jarvis to use its device list.
 
-## The Normalized Device Format
+**When to write a device protocol:** you want to control a device family directly over the LAN or a cloud API, with no platform in between. The `jarvis_direct` manager picks up every installed protocol.
 
-Both tiers produce a common `DeviceManagerDevice` dataclass so the rest of the system does not need to know where a device came from:
+## The normalized device format
+
+A manager returns `DeviceManagerDevice`s, so the rest of the system doesn't need to know where a device came from. Protocols return the similar `DiscoveredDevice` (see [Device Protocols](protocols.md#discovereddevice)), which `jarvis_direct` converts.
 
 ```python
+from dataclasses import dataclass, field
+from typing import Any
+
+
 @dataclass
 class DeviceManagerDevice:
-    name: str               # Human-readable name ("Living Room Light")
-    domain: str             # HA-style domain ("light", "switch", "climate", "media_player")
-    entity_id: str          # Unique ID ("light.living_room")
-    is_controllable: bool   # Can Jarvis send commands to this device?
-    manufacturer: str       # "LIFX", "TP-Link", "Govee"
-    model: str              # "A19", "KP125", "H6061"
-    protocol: str           # "lifx", "kasa", "govee", "homeassistant"
-    local_ip: str | None    # LAN IP if available
-    mac_address: str | None # MAC address if available
-    cloud_id: str | None    # Cloud/vendor device ID
-    area: str | None        # Room or area ("living_room", "kitchen")
-    state: str | None       # Current state ("on", "off", "72F")
-    extra: dict | None      # Protocol-specific metadata
+    name: str                          # "Living Room Light"
+    domain: str                        # HA-style domain: "light", "switch", "climate", ...
+    entity_id: str                     # unique ID: "light.living_room"
+    is_controllable: bool = True       # can Jarvis send commands to it?
+    manufacturer: str | None = None    # "LIFX", "TP-Link"
+    model: str | None = None           # "A19", "KP125"
+    protocol: str | None = None        # "lifx", "kasa", "govee"
+    local_ip: str | None = None
+    mac_address: str | None = None
+    cloud_id: str | None = None        # the vendor's device ID
+    device_class: str | None = None    # HA device class, e.g. "door", "motion"
+    source: str = "direct"             # where it came from: "direct", "home_assistant", ...
+    area: str | None = None            # room: "living_room"
+    state: str | None = None           # "on", "off", "72F"
+    extra: dict[str, Any] = field(default_factory=dict)  # protocol-specific metadata
 ```
 
 This format is used for:
 
-- Device list display in the mobile app
-- Command matching (the LLM sees device names and domains)
-- Settings sync snapshots (`get_all_managers_for_snapshot()`)
+- the device list in the mobile app,
+- matching what the user said to a device (the LLM sees device names and domains),
+- the node's settings snapshot.
 
-## Available Device Packages
+## Available device packages
 
-The following device integrations are available as Pantry packages. Install via `jarvis pantry install <package-name>`.
+The following device integrations are Pantry packages (their source is on GitHub under `alexberardi/<package>`). Install one on a node from the mobile app, or with [`jdt deploy`](../toolkit/deploy.md) while you develop; then restart the node.
 
 ### Lighting
 
@@ -107,8 +116,8 @@ The following device integrations are available as Pantry packages. Install via 
 
 For homes already using Home Assistant, the `jarvis-home-assistant-integration` package provides a full device manager (all HA entities), voice commands for device control and status queries, and a background agent for state caching. Requires a long-lived HA access token.
 
-## Getting Started
+## Getting started
 
-- To integrate a platform that already has device lists, see [Device Managers](managers.md).
+- To integrate a platform that already has a device list, see [Device Managers](managers.md).
 - To add direct control for a new protocol or device family, see [Device Protocols](protocols.md).
-- For how plugins are found at runtime, see the [Discovery System](../discovery.md).
+- For how the node finds installed components, see the [Discovery System](../discovery.md).

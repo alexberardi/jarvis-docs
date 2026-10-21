@@ -1,103 +1,69 @@
 # Text-to-Speech Providers
 
-A TTS provider implements `IJarvisTextToSpeechProvider` to speak text aloud through the node's audio output. The node calls the provider after receiving a response from the Command Center.
+A text-to-speech (TTS) provider speaks Jarvis's replies, announcements and prompts on the node's speaker.
 
-## Interface Reference
+!!! note "Built into the node"
+    Providers are not package components: Pantry and `jdt` can't install one. You add a provider by editing the node's source (`jarvis-node-setup`). See [Providers](index.md).
+
+## Interface reference
+
+`core/ijarvis_text_to_speech_provider.py`:
 
 ```python
 from abc import ABC, abstractmethod
+
+from core.platform_audio import platform_audio
+
+CHIME_PATH = "sounds/chime.wav"  # resolved next to the node's code
+
 
 class IJarvisTextToSpeechProvider(ABC):
     @property
     @abstractmethod
     def provider_name(self) -> str:
-        """Unique name for this provider. Example: 'jarvis_tts'."""
-        ...
+        """The name the node config selects, e.g. 'jarvis-tts-api'."""
 
     @abstractmethod
     def speak(self, include_chime: bool, text: str) -> None:
-        """Speak the given text aloud.
+        """Turn text into speech and play it. Returns when playback ends."""
 
-        Args:
-            include_chime: If True, play a chime sound before speaking.
-            text: The text to synthesize and play.
-        """
-        ...
-
-    def play_chime(self) -> None:
-        """Play the built-in chime sound (sounds/chime.wav).
-
-        This is a helper method available to all providers. Call it from
-        your speak() implementation when include_chime is True.
-        """
-        ...
+    def play_chime(self):
+        platform_audio.play_chime(CHIME_PATH)
 ```
 
-The `play_chime()` method is a built-in helper that plays `sounds/chime.wav` through the system audio. You do not need to implement chime logic yourself --- just call `self.play_chime()` when `include_chime` is `True`.
+A provider synthesises **and plays** the audio. For playback, use the node's `platform_audio` (`core/platform_audio.py`): `play_audio_file(path)` plays a WAV file on the node's output device.
 
-## Built-in Implementations
+A provider may also offer `speak_stream(text) -> bool`, which plays audio as it arrives and returns `False` to let the caller fall back to `speak`. It is optional and not part of the interface; `jarvis-tts-api` has one.
 
-### JarvisTTS
+## Built-in implementations
 
-The primary TTS provider. Proxies text through the Command Center's media endpoint, which forwards it to the `jarvis-tts` service. `jarvis-tts` itself can run multiple backends (Piper default, Kokoro optional) selected via the `tts.provider` setting — the node side is unchanged. Supports streaming PCM audio for low latency.
+### `jarvis-tts-api` (JarvisTTS)
 
-```python
-class JarvisTTS(IJarvisTextToSpeechProvider):
-    provider_name = "jarvis_tts"
+The default. It sends the text to your Jarvis Automation server with `POST /api/v0/media/tts/speak` (JSON `{"text": …}`, authenticated as the node), gets a WAV back and plays it. `speak_stream` uses `POST /api/v0/media/tts/speak/stream`, which returns raw PCM with its format in the `X-Audio-Sample-Rate`, `X-Audio-Channels` and `X-Audio-Sample-Width` headers.
 
-    def speak(self, include_chime: bool, text: str) -> None:
-        if include_chime:
-            self.play_chime()
+jarvisd synthesises in-process with **Kokoro**, the only engine it has (Piper was cut). The voice and speed are server settings (`tts.kokoro_voice`, `tts.kokoro_speed`); the node side doesn't change.
 
-        # Request streaming PCM audio from the TTS service
-        response = self.jcc_client.post(
-            "/api/v0/media/tts/synthesize",
-            json={"text": text},
-            stream=True,
-        )
-
-        # Play PCM audio chunks as they arrive (low latency)
-        for chunk in response.iter_bytes():
-            self.audio_player.play_pcm(chunk)
+```json
+{ "tts_provider": "jarvis-tts-api" }
 ```
 
-**Streaming:** `JarvisTTS` uses streaming PCM to minimize time-to-first-audio. The TTS service begins sending audio data before the entire text is synthesized, so the user hears the beginning of the response while the rest is still being generated.
+### `espeak` (EspeakTTS)
 
-### EspeakTTS
+Speaks with the local `espeak` program. Robotic, but needs no server: useful for offline testing.
 
-A local fallback provider that uses the `espeak` command-line tool. No network connection required --- useful for offline operation or as a lightweight alternative.
-
-```python
-class EspeakTTS(IJarvisTextToSpeechProvider):
-    provider_name = "espeak"
-
-    def speak(self, include_chime: bool, text: str) -> None:
-        if include_chime:
-            self.play_chime()
-
-        # Generate WAV to a temp file using espeak
-        with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as tmp:
-            tmp_path = tmp.name
-
-        subprocess.run(
-            ["espeak", "-w", tmp_path, text],
-            check=True,
-        )
-
-        # Play the generated audio file
-        self.audio_player.play_file(tmp_path)
-        os.unlink(tmp_path)
+```json
+{ "tts_provider": "espeak" }
 ```
 
-**Trade-offs:** `espeak` produces robotic-sounding speech but works offline, requires no API keys, and has near-zero latency. It is a good fallback when the Jarvis TTS service is unavailable.
+## Writing a custom provider
 
-## Writing a Custom Provider
-
-Here is an example that uses macOS system voices via the `say` command:
+An example that uses macOS system voices (`say`), for a node run on a Mac. Save it as `tts_providers/macos_say_provider.py` in the node's checkout:
 
 ```python
-from tts_providers.base import IJarvisTextToSpeechProvider
 import subprocess
+
+from core.ijarvis_text_to_speech_provider import IJarvisTextToSpeechProvider
+
 
 class MacOSSayProvider(IJarvisTextToSpeechProvider):
     @property
@@ -107,68 +73,55 @@ class MacOSSayProvider(IJarvisTextToSpeechProvider):
     def speak(self, include_chime: bool, text: str) -> None:
         if include_chime:
             self.play_chime()
-
-        # Use macOS built-in "say" command with the Samantha voice
-        subprocess.run(
-            ["say", "-v", "Samantha", text],
-            check=True,
-        )
+        subprocess.run(["say", "-v", "Samantha", text], check=True)
 ```
 
-Save as `tts_providers/macos_say_provider.py`, then set `"tts_provider": "macos_say"` in your node config.
-
-Here is a more advanced example using a cloud TTS API with audio streaming:
+A cloud API that returns WAV audio, playing it through the node:
 
 ```python
-from tts_providers.base import IJarvisTextToSpeechProvider
-import httpx
-import tempfile
 import os
+import tempfile
 
-class ElevenLabsProvider(IJarvisTextToSpeechProvider):
+import requests
+
+from core.ijarvis_text_to_speech_provider import IJarvisTextToSpeechProvider
+from core.platform_audio import platform_audio
+from services.secret_service import get_secret_value
+
+
+class CloudTTSProvider(IJarvisTextToSpeechProvider):
     @property
     def provider_name(self) -> str:
-        return "elevenlabs"
-
-    def __init__(self):
-        self._api_key = self.secret_service.get_secret("ELEVENLABS_API_KEY")
-        self._voice_id = self.secret_service.get_secret("ELEVENLABS_VOICE_ID") or "default"
+        return "cloud_tts"
 
     def speak(self, include_chime: bool, text: str) -> None:
-        if not self._api_key:
-            logger.error("ELEVENLABS_API_KEY not configured")
-            return
+        api_key = get_secret_value("CLOUD_TTS_API_KEY", "integration")
+        if not api_key:
+            raise RuntimeError("CLOUD_TTS_API_KEY is not set")
 
-        if include_chime:
-            self.play_chime()
-
-        response = httpx.post(
-            f"https://api.elevenlabs.io/v1/text-to-speech/{self._voice_id}",
-            headers={
-                "xi-api-key": self._api_key,
-                "Content-Type": "application/json",
-            },
-            json={
-                "text": text,
-                "model_id": "eleven_monolingual_v1",
-            },
+        response = requests.post(
+            "https://tts.example.com/v1/speak",
+            headers={"Authorization": f"Bearer {api_key}"},
+            json={"text": text, "format": "wav"},
+            timeout=30,
         )
+        response.raise_for_status()
 
-        if response.status_code != 200:
-            logger.error(f"ElevenLabs API error: {response.status_code}")
-            return
-
-        # Write audio to temp file and play
-        with tempfile.NamedTemporaryFile(suffix=".mp3", delete=False) as tmp:
+        with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as tmp:
             tmp.write(response.content)
-            tmp_path = tmp.name
-
-        self.audio_player.play_file(tmp_path)
-        os.unlink(tmp_path)
+            path = tmp.name
+        try:
+            if include_chime:
+                self.play_chime()
+            platform_audio.play_audio_file(path)
+        finally:
+            os.unlink(path)
 ```
 
-## Chime Behavior
+Then set `"tts_provider"` to your provider's name in the node's `config.json` and restart the node. Store any key in the node's secret store first (see [Speech-to-Text Providers](stt.md#writing-a-custom-provider)).
 
-The `include_chime` parameter is `True` when Jarvis is responding to a voice command (indicating "I heard you, here is my response"). It is `False` for proactive speech (announcements, timers, etc.) where a chime would be unexpected.
+The node instantiates every provider class it finds with no arguments, so keep `__init__` cheap and argument-free.
 
-The built-in chime file is located at `sounds/chime.wav`. To use a custom chime, replace this file or override `play_chime()` in your provider.
+## Chime behavior
+
+`include_chime=True` asks for the chime before the speech; the node passes it for alert announcements, and `False` for most spoken replies and prompts. Call `self.play_chime()` when it is `True`. The chime is `sounds/chime.wav` in the node's checkout; override `play_chime()` to use another sound.
