@@ -39,7 +39,9 @@ LEGACY_PAGES = [
     "getting-started/index.md",  # the old install's overview; not in the issue's list
     "getting-started/installation.md",
     "getting-started/truenas.md",
+    "getting-started/configuration.md",  # loop item #382: Docker-era
     "reference/cli.md",
+    "reference/env-vars.md",  # loop item #382
     "libraries/log-client.md",
     "libraries/config-client.md",
     "libraries/settings-client.md",

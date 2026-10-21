@@ -4,12 +4,14 @@
 getting-started/index.md: legacy/getting-started/index.md
 getting-started/installation.md: legacy/getting-started/installation.md
 getting-started/truenas.md: legacy/getting-started/truenas.md
+getting-started/configuration.md: legacy/getting-started/configuration.md
 libraries/auth-client.md: legacy/libraries/auth-client.md
 libraries/config-client.md: legacy/libraries/config-client.md
 libraries/log-client.md: legacy/libraries/log-client.md
 libraries/settings-client.md: legacy/libraries/settings-client.md
 libraries/web-scraper.md: legacy/libraries/web-scraper.md
 reference/cli.md: legacy/reference/cli.md
+reference/env-vars.md: legacy/reference/env-vars.md
 services/admin.md: legacy/services/admin.md
 services/auth.md: legacy/services/auth.md
 services/command-center.md: legacy/services/command-center.md

@@ -1,118 +1,103 @@
 # Network Egress & Offline Mode
 
-Jarvis is **local-first**. Out of the box, a self-hosted deployment makes **no unsolicited connections to the public internet** — voice commands, transcription, speech, memory, and device control all happen on your own hardware.
+Jarvis is **local-first**. A Jarvis Automation server with its default settings makes **no connections to the internet on its own**: voice commands, transcription, speech, memory and device control all run on your own hardware, and the server talks only to your own nodes, phones and devices.
 
-Everything that *could* reach the public internet is gated behind a setting that **defaults to off**. Nothing leaves your network unless you explicitly opt in, or unless you install a command package or device family that talks to a third party by design.
+Everything that reaches the internet is either something you start (downloading a model, running `jarvisd upgrade`) or a setting that **defaults to off**.
 
 !!! success "Default posture"
-    A fresh install with default settings is effectively **offline**. The only outbound traffic is between your own Jarvis services (all discovered via `jarvis-config-service`) and your own infrastructure (PostgreSQL, Redis, MinIO, the MQTT broker, Loki). To reach the public internet, you turn on a specific capability below.
+    A fresh install with default settings is effectively **offline** once its models are downloaded. To reach the internet, you turn on a specific capability below.
 
 ## Local vs. external
 
-| Treated as **local** (always allowed) | Treated as **external** (opt-in) |
+| Treated as **local** (always allowed) | Treated as **external** (you opt in) |
 |---|---|
-| Service-to-service calls discovered via config-service (localhost, `*.local`, private IPs, container names, `host.docker.internal`) | Vendor clouds (weather, music, smart-home clouds) |
-| Self-hosted infra: PostgreSQL, Redis, MinIO/S3, Mosquitto (MQTT), Loki/Grafana | Push providers (Expo → Apple APNs / Firebase FCM) |
-| A node talking to *your* command center (LAN or your own cloud-hosted CC) | Model/asset downloads (HuggingFace, GitHub releases) |
-| LAN device families (Hue, Kasa, LIFX, Z-Wave, HomeKit) | Update checks (`api.github.com`) |
-| | Third-party reader proxy (`r.jina.ai`) |
+| Nodes, phones and desktop agents on your network talking to your server ([ports](../operate/network.md)) | Model and runtime downloads (`huggingface.co`, GitHub releases) |
+| mDNS announcements on your local network | Update checks (`api.github.com`) |
+| LAN device families (Hue, Kasa, LIFX, Z-Wave, HomeKit) | Web search and the reader proxy (`r.jina.ai`) |
+| The model runtimes the server starts on the same machine | Push providers (Expo → Apple APNs / Firebase FCM) |
+| | The Pantry package store, vendor clouds, cloud model providers |
 
-## Outbound egress toggles
+## What can reach the internet
 
-Every switch below **defaults to off** (or to a local option). Turn one on only when you want that capability.
+### Settings that are off by default
 
-| Capability | Reaches | Setting | Where to set | Default |
-|---|---|---|---|---|
-| **Web search** (quick answers) | DuckDuckGo + fetched pages | `web_search.enabled` *(household)* | Mobile app → Household Settings (admin) | **off** |
-| **External reader proxy** (deep-research fallback) | `r.jina.ai` | `web_scraping.allow_external` *(household)* | Mobile app → Household Settings (admin) | **off** |
-| **Node update checks** | `api.github.com` | `updates.allow_check` *(command-center, global)* | Settings DB / settings server | **off** |
-| **Node self-update (OTA)** | GitHub releases | `allow_updates` / `JARVIS_ALLOW_UPDATES` *(node)* | Node `config.json` or env | **off** |
-| **Wake-word model download** | GitHub (openWakeWord) | `wake_word_model_autodownload_enabled` / `JARVIS_WAKE_WORD_MODEL_AUTODOWNLOAD_ENABLED` *(node)* | Node `config.json` or env | **off** |
-| **Speech-to-text model download** | `huggingface.co` | `whisper.allow_model_autodownload` / `WHISPER_ALLOW_MODEL_AUTODOWNLOAD` *(whisper)* | Settings DB or env | **off** |
-| **Text-to-speech engine** | `huggingface.co` (Kokoro) vs. local (Piper) | `tts.provider` / `TTS_PROVIDER` *(tts)* | Settings DB or env | **`piper` (local)** |
-| **Admin auto-update** | `api.github.com` | `JARVIS_ALLOW_UPDATES` *(admin)* | Admin dashboard → **Updates** page, or admin env / `~/.jarvis/admin.json` | **off** |
-| **Mobile push notifications** | Expo (`exp.host`) → APNs/FCM | in-app toggle (`@jarvis/push_notifications_enabled`) | Mobile app → Settings | **off (opt-in)** |
-| **Push delivery relay** | your relay → Expo | `RELAY_URL` *(notifications)* | `.env` | **unset (off)** |
+Change these in the admin web app (**Settings**), or household settings in the mobile app as a household admin.
 
-!!! note "Scope of each toggle"
-    - **Household** settings (`web_search.enabled`, `web_scraping.allow_external`) are set once by a household **admin** in the mobile app and apply to everyone in the household.
-    - **Global** service settings (`updates.allow_check`, `whisper.*`, `tts.provider`) live in the settings database and apply to that service.
-    - **Node** settings live in each node's `config.json` (or its environment) and apply to that device.
-    - **Push** is per-device — each phone decides for itself and contacts Expo only after you opt in.
+| Capability | Reaches | Setting (scope) |
+|---|---|---|
+| **Server update checks** | `api.github.com`, GitHub releases | `updates.enabled` (server; or `JARVIS_ALLOW_UPDATES` in `jarvisd.env`) |
+| **Node update checks** | `api.github.com` | `updates.allow_check` (server) |
+| **Web search** (quick answers, deep research) | DuckDuckGo and the pages it finds | `web_search.enabled` (household) |
+| **External reader proxy** (deep-research fallback) | `r.jina.ai` | `web_scraping.allow_external` (household) |
+| **Pantry package store** | `pantry-api.jarvisautomation.io` (`pantry.base_url`) | `pantry.enabled` (household) |
+| **Push delivery** | your relay (such as `relay.jarvisautomation.io`) → Expo | `relay.url` (server; or `RELAY_URL`); empty means off |
 
-## Fully-offline checklist
+With `updates.enabled` off, the server makes no update request at all. With `relay.url` empty, push notifications are not sent; the inbox still works. With `pantry.enabled` off, package installs are refused.
 
-To keep a deployment fully local:
+### Things you start
 
-1. Leave every toggle in the table above **off** (that is the default — you don't have to do anything).
-2. Keep `tts.provider` = **`piper`** (the default). Piper is baked into the image and needs no download. Kokoro would fetch its weights from HuggingFace on first use.
-3. Provide a **local Whisper model** and point `whisper.model_path` (or `WHISPER_MODEL`) at it, since `whisper.allow_model_autodownload` is off. With no local model and the gate off, transcription fails loudly with instructions rather than silently downloading one.
-4. **Pre-stage the wake-word model** (or accept keyboard/fallback wake), since `wake_word_model_autodownload_enabled` is off. Installers that already ship the model need nothing further.
-5. Do **not** set `RELAY_URL`, and leave mobile push disabled — no push payloads leave the device or the box.
-6. Be aware that **installing a command package** (`jarvis-cmd-*`) or a **vendor-cloud device family** (e.g. Nest, Ecobee, Govee cloud) intentionally adds outbound traffic for that feature. Installing it is the opt-in.
+| Action | Reaches |
+|---|---|
+| Installing a model in the setup wizard or on the **Models** page | `huggingface.co` for the model; GitHub releases for the runtime that runs it (llama.cpp, whisper.cpp) |
+| `jarvisd upgrade` | `api.github.com` and the release's files on GitHub |
+| Adding a cloud model provider (an OpenAI-compatible endpoint or `api.anthropic.com`) | That provider, with the conversations sent to it |
+| Setting up phone calls (Twilio) | `api.twilio.com` |
+| Installing a command package or a vendor-cloud device family | Whatever that integration needs |
+
+Runtimes are checked against checksums built into jarvisd before they run. The download addresses are settings too: point the Hugging Face endpoint (`HF_ENDPOINT`) and the runtime download base at a mirror on your network to install models without the internet.
+
+### On nodes and phones
+
+| Capability | Reaches | Setting (all off by default) |
+|---|---|---|
+| **Node self-update** | GitHub releases | `allow_updates` in the node's `config.json` (or `JARVIS_ALLOW_UPDATES`) |
+| **Wake-word model download** | GitHub (openWakeWord) | `wake_word_model_autodownload_enabled` in the node's `config.json` |
+| **Mobile push notifications** | Expo (`exp.host`) → APNs/FCM | Mobile app → **Settings** |
+
+## Fully offline checklist
+
+1. Install the server and download your models while connected, or from a mirror on your network.
+2. Leave every setting in the tables above **off** (the default).
+3. Leave `relay.url` empty and mobile push off: no push payloads leave the phone or the server.
+4. Don't add a cloud model provider.
+5. Upgrade by hand: download a release on another machine and run `jarvisd upgrade` with `JARVISD_RELEASE_BASE` pointing at the folder ([CLI](../operate/cli.md#upgrade)).
+6. Remember that a command package or a vendor-cloud device family (Nest, Ecobee, Govee cloud) adds outbound traffic for that feature by design. Installing it is the opt-in.
 
 !!! tip "Verifying"
-    From the box, you can confirm the posture with a passive check like `sudo lsof -i -nP | grep ESTABLISHED` or your firewall/router logs — with everything above off, you should see only intra-network connections (your own services + infra), not connections to `github.com`, `huggingface.co`, `exp.host`, or `r.jina.ai`.
+    On the server, list open connections with `sudo lsof -i -nP | grep ESTABLISHED` (Linux, macOS) or `Get-NetTCPConnection -State Established` (Windows), or check your router's logs. With everything above off, you should see only connections inside your network, not to `github.com`, `huggingface.co`, `exp.host` or `r.jina.ai`.
 
 ## Command packages & device families
 
-- **Command packages** (`jarvis-cmd-weather`, `-news`, `-spotify`, …) are external integrations by nature. Installing one from the Pantry is your consent for the traffic it needs; the package's code runs on your node, not in the cloud.
+- **Command packages** (`jarvis-cmd-weather`, `-news`, `-spotify`, ...) are external integrations by nature. Installing one from the Pantry is your consent for the traffic it needs; the package's code runs on your node, not in the cloud.
 - **LAN device families** (Hue, Kasa, LIFX, Z-Wave, HomeKit) stay entirely on your network.
-- **Vendor-cloud device families** (e.g. Nest/Google, Govee cloud, Resideo, SimpliSafe) require the vendor's cloud to function. Choosing to add one is the opt-in.
+- **Vendor-cloud device families** (Nest/Google, Govee cloud, Resideo, SimpliSafe) need the vendor's cloud to work. Adding one is the opt-in.
 
 ## Enabling updates
 
-Updates are off by default so a local-only box never phones home. Turn them on per surface:
+Updates are off by default so a local-only server never phones home.
 
-=== "Node updates (OTA)"
+=== "Server"
 
-    The node-update flow spans two services, so allow it in both places:
+    Turn on update checks on the admin web app's **Updates** page (the `updates.enabled` setting), or set `JARVIS_ALLOW_UPDATES=1` in `jarvisd.env` and restart. The server then checks GitHub for new releases and can install one from the admin web app.
 
-    1. **On the node** — allow the device to download and apply a release:
+    `jarvisd upgrade` on the command line works either way: running it is the opt-in. See [Upgrade](../install/upgrade.md).
+
+=== "Nodes"
+
+    A node update needs two switches:
+
+    1. **On the server**: `updates.allow_check`, which lets the server look up the newest node release on `api.github.com`.
+    2. **On the node**: allow it to download and apply a release:
 
         ```json title="config.json"
         { "allow_updates": true }
         ```
 
-        or set the environment variable:
+        or set `JARVIS_ALLOW_UPDATES=true` in the node's environment.
 
-        ```bash
-        JARVIS_ALLOW_UPDATES=true
-        ```
-
-    2. **In command-center** — allow the version lookup that finds the latest release:
-
-        ```
-        updates.allow_check = true   # settings DB (global)
-        ```
-
-    **How it flows:** you trigger an update from the mobile app → command-center looks up the latest release on `api.github.com` (needs `updates.allow_check`) → the node downloads and applies it (needs `allow_updates`). Applying an **explicit** version to a node skips the GitHub lookup (no egress for the check), but the node still needs `allow_updates` to fetch the release.
-
-=== "Admin dashboard self-update"
-
-    Since jarvis-admin#54, the **Updates** page in the admin dashboard has a switch for this — flipping it calls `POST /api/update/settings` (superuser only), which persists `allowUpdates` to `~/.jarvis/admin.json` and applies it to the live config immediately, no restart needed. See [Admin: Update Opt-In Toggle](../legacy/services/admin.md#update-opt-in-toggle).
-
-    Without dashboard access, the same box-level flag still works:
-
-    ```bash
-    JARVIS_ALLOW_UPDATES=true          # admin container environment
-    ```
-
-    or in `~/.jarvis/admin.json`:
-
-    ```json
-    { "allowUpdates": true }
-    ```
-
-    With it off, `/api/update/check` makes no request to `api.github.com` and `/api/update/apply` returns `403`. With it off, the dashboard now also reports `updatesEnabled: false` explicitly, rather than silently rendering "you're running the latest version" for a check that never ran.
+    You start the update from the mobile app. Installing an **explicit** version skips the GitHub lookup, but the node still needs `allow_updates` to fetch the release.
 
 !!! warning "Updates require internet"
-    Enabling any update path allows outbound connections to GitHub (and, for the applied release, GitHub release assets). Leave these off if you want a fully air-gapped deployment and update manually instead.
-
-## Where these settings live
-
-- **Household & service settings** (`web_search.enabled`, `web_scraping.allow_external`, `updates.allow_check`, `whisper.*`, `tts.provider`) are runtime settings — change them via the **mobile app**, the **settings server API**, or the **settings database**. See [Configuration → Runtime Settings](../getting-started/configuration.md#runtime-settings).
-- **Node settings** live in each node's `config.json` (or its environment).
-- **Environment variables** (`JARVIS_ALLOW_UPDATES`, `JARVIS_WAKE_WORD_MODEL_AUTODOWNLOAD_ENABLED`, `WHISPER_ALLOW_MODEL_AUTODOWNLOAD`, `TTS_PROVIDER`) are documented in the [Environment Variables reference](../reference/env-vars.md#network-egress-offline-mode).
+    Any update path connects to GitHub. Leave them off for an air-gapped install and upgrade by hand instead.
 
 See also: [Cloud Services](../architecture/cloud.md) for the optional cloud components (Pantry, Relay, Web) and how they stay opt-in.
