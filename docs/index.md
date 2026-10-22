@@ -73,4 +73,4 @@ Jarvis ships with these commands out of the box:
 | `get_current_time` | Current time in any timezone |
 | ... and more | See the full [command list](commands/index.md) |
 
-Many commands that were previously built-in have been extracted to installable **[Pantry](pantry/index.md)** packages, including: `get_weather`, `get_news`, `get_sports_scores`, `search_web`, `tell_a_story`, `bluetooth`, `music`, `email`, `get_calendar_events`, and device families (Kasa, LIFX, Govee, Apple, Nest). Install them from the Pantry tab in the [mobile app](mobile/pantry.md).
+Many commands that were previously built-in have been extracted to installable **[Pantry](pantry/index.md)** packages, including: `get_weather_openweather`, `get_news`, `get_sports_scores`, `tell_a_story`, `bluetooth`, `music`, `email`, `get_calendar_events`, and device families (Apple, Govee, Nest, Philips Hue, Home Assistant and more). Install them from the Pantry tab in the [mobile app](mobile/pantry.md).

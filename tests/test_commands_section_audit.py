@@ -183,3 +183,24 @@ def test_commands_pages_build_and_link(built_site):
         parts = ("commands", "index.html") if page == "index" else ("commands", page, "index.html")
         body = _article(built_site, *parts)
         assert "core.ijarvis" not in body, page
+
+
+def test_pantry_table_matches_the_catalog():
+    text = _page("index.md")
+    pantry = text[text.index("## Pantry-Installable Commands") : text.index("## Guides")]
+    for name in ("get_weather_openweather", "medication_tracker"):
+        assert f"`{name}`" in pantry, name
+    assert "`get_weather`" not in pantry
+    for gone in ("search_web", "check_texts", "read_thread", "draft_reply", "tell_dad_joke", "greeting"):
+        assert f"`{gone}`" not in pantry, gone
+    for family in ("LIFX", "Kasa"):
+        assert family not in pantry, family
+    assert "install <package>" in pantry
+
+
+def test_lifecycle_styled_nodes_set_no_fill():
+    # The theme's mermaid CSS keeps each label's colour (white in dark mode) whatever
+    # `color:` a node sets, so a pastel fill is unreadable there; mark nodes with borders.
+    for line in _page("lifecycle.md").splitlines():
+        if re.match(r"\s*(style|classDef) ", line):
+            assert "fill:" not in line, line
