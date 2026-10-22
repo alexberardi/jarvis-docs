@@ -72,6 +72,14 @@ def test_pantry_page_matches_the_app():
     assert re.search(r"admin", page, re.IGNORECASE) and re.search(r"power user", page, re.IGNORECASE)
     # There is no Routine package type.
     assert "| Routine |" not in page
+    # The install button's label depends on the nodes' versions: Install (none have it),
+    # Update to v... (every node has an older version), Install / Update to v... (mixed),
+    # and Up to date (v...) when all nodes are current.
+    assert "**Update to v…" in page
+    assert "**Install / Update to v…" in page
+    assert "Up to date (v" in page
+    # The Root-privileged install confirmation comes before node selection.
+    assert page.index("Root-privileged install") < page.index("Select nodes")
 
 
 def test_auth_page_matches_the_server_and_app():

@@ -23,12 +23,12 @@ Tap a package to open its page: what it contains (**Components**), its **Securit
 
 Only household **admins** and **power users** see the install button.
 
-1. Tap **Install** (or **Install / Update to v…** when some of your nodes have an older version).
-2. With one node, the install starts at once. With several, pick the nodes in **Select nodes**.
-3. A package that installs system software asks first (**Root-privileged install**, with the list of packages). Continue only if you trust the author.
+1. Tap the install button: **Install** when no node has the package, **Update to v…** when every node has an older version, or **Install / Update to v…** when some nodes have it and some don't.
+2. A package that installs system software asks first (**Root-privileged install**, with the list of packages). Continue only if you trust the author.
+3. With one node, the install starts at once. With several, pick the nodes in **Select nodes**.
 4. The progress screen follows each node until the install finishes.
 
-The node downloads the package, checks it, installs its dependencies and enables its commands. When every node already has the latest version, the app says **Up to date**.
+The node downloads the package, checks it, installs its dependencies and enables its commands. When every node already has the latest version, the button reads **Up to date (v…)** and cannot be tapped.
 
 Some packages are not for every node:
 
