@@ -5,18 +5,17 @@ The Jarvis developer docs site (MkDocs Material), published at https://docs.jarv
 ## Verify
 
 ```bash
-python3.11 -m venv .venv && . .venv/bin/activate
-pip install -r requirements-dev.txt
-python -m pytest        # runs `mkdocs build --strict` and checks the built site
+.venv/bin/python -m pip install -q -r requirements.txt -r requirements-dev.txt
+.venv/bin/python -m pytest        # runs `mkdocs build --strict` and checks the built site
 ```
 
-On the dev box, bare `python`, `pip` and `mkdocs` are mise shims with no Python version set, so they fail at once (`mise ERROR No version is set for shim`). Only `python3.11` resolves. Verify and proof commands must not rely on PATH; call the venv's binaries by path. The proof command for a docs PR:
+On the dev box, every Python shim on the PATH — `python`, `python3`, `python3.11`, `pip`, `mkdocs` — is a mise shim with no Python version set, so any of them fails at once (`mise ERROR No version is set for shim`). Verify and proof commands must not rely on PATH and must never create the venv: the loop runner creates `.venv`, so a proof or verify command starts with `.venv/bin/python -m pip install …`. The proof command for a docs PR:
 
 ```bash
 .venv/bin/python -m pip install -q -r requirements.txt -r requirements-dev.txt && .venv/bin/mkdocs build --strict && .venv/bin/python -m pytest -q
 ```
 
-(The loop runner creates `.venv`. Elsewhere, create it first with `python3.11 -m venv .venv`.) Do not add a `mise.toml` to fix this: mise does not trust a config in a fresh checkout, so every shim call would fail.
+Outside the loop (a laptop or CI), create the venv first with `python3.11 -m venv .venv` if your box has a real `python3.11` (no version needed: use any installed Python 3.11, e.g. `~/.local/share/mise/installs/python/3.11.16/bin/python3.11`). Do not add a `mise.toml` to fix this: mise does not trust a config in a fresh checkout, so every shim call would fail.
 
 CI (`.github/workflows/ci.yml`) runs the same on every pull request and push to `main`. `./run.sh` serves the site locally on port 7730.
 
