@@ -126,33 +126,29 @@ The experimental Go Pi node runs the same commands except `control_device`, `rou
 
 ## Pantry-Installable Commands
 
-The following commands are available as standalone [Pantry](../pantry/index.md) packages. Install them from the mobile app: open the Pantry, pick a package and the node to install it on. Pantry is off by default; a household admin turns it on in the household settings first (installs are refused until then). On a node source checkout, `python scripts/command_store.py install <name>` does the same from a shell.
+The following commands are available as standalone [Pantry](../pantry/index.md) packages. Install them from the mobile app: open the Pantry, pick a package and the node to install it on. Pantry is off by default; a household admin turns it on in the household settings first (installs are refused until then). On a node source checkout, `python scripts/command_store.py install <package>` does the same from a shell; it takes the package name, which is not always the command name.
 
 | Command | Name | Description |
 |---------|------|-------------|
-| `OpenWeatherCommand` | `get_weather` | Current weather and forecasts via OpenWeather API (requires API key) |
+| `OpenWeatherCommand` | `get_weather_openweather` | Current weather and forecasts via OpenWeather API (requires API key) |
 | `OpenMeteoWeatherCommand` | `get_weather_meteo` | Current weather and forecasts via Open-Meteo — **free, no API key required** |
 | `NewsCommand` | `get_news` | News headlines via RSS feeds |
 | `SportsCommand` | `get_sports` | Live sports scores via ESPN (NFL, NBA, MLB, NHL, College) |
-| `WebSearchCommand` | `search_web` | Live web search for current information |
 | `MusicCommand` | `music` | Play content and control playback via Music Assistant |
 | `PandoraCommand` | `pandora` | Stream Pandora Radio with voice control — skip, thumbs up/down, station listing |
 | `SpotifyCommand` | `spotify` | Stream Spotify with voice control via spotifyd — tracks, artists, albums, playlists |
 | `AudacyCommand` | `audacy` | Live radio from the Audacy network |
 | `EmailCommand` | `email` | List, read, search, send, reply, archive email (Gmail/IMAP) |
 | `ReadCalendarCommand`, `AddEventCommand` | `get_calendar_events`, `add_event` | Read and add calendar events (iCloud CalDAV, Google Calendar) |
-| `CheckTextsCommand`, `ReadThreadCommand`, `DraftReplyCommand` | `check_texts`, `read_thread`, `draft_reply` | Check, read and reply to text messages (through a Mac running jarvis-osx-api) |
-| `MedicationCommand` | `medication` | Personal + household medication tracking with dose reminders. Mark doses by voice; add and manage records in the app. Personal med alerts are push-only (not spoken aloud on shared nodes) |
+| `MedicationCommand` | `medication` | Package `medication_tracker`. Personal + household medication tracking with dose reminders. Mark doses by voice; add and manage records in the app. Personal med alerts are push-only (not spoken aloud on shared nodes) |
 | `RottenTomatoesCommand` | `rotten_tomatoes` | Movie and TV ratings, what's in theaters — Tomatometer scores, no API key |
 | `EntertainmentKnowledgeCommand` | `entertainment_knowledge` | Look up a movie or TV show and send a rich card to the inbox |
 | `GetBarstoolCommand` | `get_barstool` | Barstool Sports headlines |
 | `GetDriveTimeCommand` | `get_drive_time` | Driving time and distance with live traffic |
-| `DadJokeCommand` | `tell_dad_joke` | Random dad jokes via icanhazdadjoke.com — no configuration required |
-| `GreetingCommand` | `greeting` | Say hello in 10 languages |
 
 The live catalog may list more; browse it in the app.
 
-Device families (LIFX, Kasa, Govee, Apple, Nest, Hue, and more) are also available as Pantry packages, installed the same way. See [Device Packages](../extending/devices/index.md#available-device-packages).
+Device families (Apple, Govee, Nest, Philips Hue, Home Assistant, Home Connect, HomeKit, Schlage, SimpliSafe and Z-Wave) are also available as Pantry packages, installed the same way. See [Device Packages](../extending/devices/index.md#available-device-packages).
 
 !!! note
     `BluetoothCommand` (jarvis-cmd-bluetooth) has been archived and is no longer maintained. Use a music command (`PandoraCommand`, `SpotifyCommand`, or `MusicCommand`) for audio playback.

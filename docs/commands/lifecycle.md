@@ -35,11 +35,15 @@ flowchart TD
     K --> L[run]
     L --> N[CommandResponse]
 
-    style A fill:#e1f5fe
-    style N fill:#e8f5e9
-    style ERR fill:#ffebee
-    style ERR2 fill:#ffebee
-    style M fill:#fff3e0
+    %% Borders only: a fill here would keep the theme's label colour, white in dark mode.
+    classDef start stroke:#a537d6,stroke-width:3px
+    classDef done stroke:#2f9e57,stroke-width:3px
+    classDef fail stroke:#d9434d,stroke-width:3px
+    classDef invalid stroke:#c27a12,stroke-width:3px
+    class A start
+    class N done
+    class ERR,ERR2 fail
+    class M invalid
 ```
 
 ## Step-by-Step Walkthrough
