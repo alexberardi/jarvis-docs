@@ -17,14 +17,15 @@ Jarvis runs on Unraid as one container, installed from a Community Applications 
     https://raw.githubusercontent.com/alexberardi/jarvis-server/main/scripts/packaging/unraid/jarvis.xml
     ```
 
-3. Set **Repository** to a release tag, `ghcr.io/alexberardi/jarvisd:<tag>` (see [The image tag](#the-image-tag)). Leave the rest at the defaults.
-4. Click **Apply**.
+3. Leave the settings at the defaults and click **Apply**.
 
 Moving from the old Docker install and keeping its data? Don't open the WebUI yet: [import your data](#coming-from-the-old-install) first.
 
 ### The image tag
 
-The template installs `ghcr.io/alexberardi/jarvisd:latest`, but `:latest` follows stable releases only. While Jarvis Automation is a pre-release there is no `:latest`, and the container can't be pulled with the default. Name a release instead: `ghcr.io/alexberardi/jarvisd:<tag>`, where `<tag>` is the newest tag on the [releases page](https://github.com/alexberardi/jarvis-server/releases); its release notes name the image. Releases up to rc18 have no image; the first one comes with the next release.
+The template installs `ghcr.io/alexberardi/jarvisd:latest`. Every release publishes its image as `:<tag>` and moves `:latest` to it, pre-releases included, so the default always pulls the newest release. Releases up to rc18 have no image; the first one comes with the next release.
+
+To stay on one release, put `ghcr.io/alexberardi/jarvisd:<tag>` in **Repository** instead, where `<tag>` is a tag from the [releases page](https://github.com/alexberardi/jarvis-server/releases). Check for Updates then only finds a rebuild of that tag; to move on, put the newer tag in **Repository**.
 
 Not on Unraid? The same container runs in plain [Docker](docker.md).
 
@@ -81,11 +82,9 @@ Everything Jarvis keeps (the database, models and engines) is under `/mnt/user/a
 
 ## Updating
 
-Update from the **Docker** tab: **Check for Updates**, then **apply update** on Jarvis. Your data in appdata is kept.
+Update from the **Docker** tab: **Check for Updates**, then **apply update** on Jarvis. With the template's `:latest`, that moves Jarvis to the newest release. Your data in appdata is kept. More: [Upgrade: In a container](upgrade.md#in-a-container).
 
 The admin's **Updates** page tells you when a new release exists, but in the container it doesn't install it; it points you to the Docker tab. While you run a pre-release, it tells you about the next pre-release too.
-
-With a release tag in **Repository**, Check for Updates only finds a rebuild of that tag; to move to a newer release, put its tag in **Repository**. More: [Upgrade: In a container](upgrade.md#in-a-container).
 
 ## Coming from the old install
 
@@ -94,7 +93,7 @@ To move the old Docker install's data into Jarvis, see [Migrating: On Unraid or 
 ## Troubleshooting
 
 **The container doesn't start: a port is already in use.**
-Another container already uses 7700, 7710 or 1884 (an MQTT broker on 1884 is the usual one). In bridge mode, change the host side of Jarvis's mapping and use that port in the addresses you give phones and nodes; in host mode, stop the other container or move it.
+Another container already uses 7700, 7710 or 1884 (an MQTT broker on 1884 is the usual one). Stop that container or move it to another port, in bridge and host mode alike. Don't remap Jarvis's side instead: clients find the services through `/services`, which always hands out the container's own ports, so with 27700 mapped to 7700 phones and nodes are still sent to `http://<unraid-ip>:7700/cc` and can't reach it.
 
 **The WebUI asks for a token.**
 That is the setup token. Copy it from the container's log (Docker tab → the Jarvis icon → **Logs**) or from `/mnt/user/appdata/jarvis/setup-token`.

@@ -8,8 +8,8 @@ a one-off `docker run --rm … import-legacy` with the Jarvis container stopped,
 
 Names, ports and texts are from jarvis-server main: scripts/packaging/container/{Dockerfile,
 entrypoint.sh}, scripts/packaging/unraid/jarvis.xml, internal/modules/admin/update.go
-(ContainerHint) and .github/workflows/release.yml (the image is pushed as :<version>, and as
-:latest only for a version without a "-").
+(ContainerHint) and .github/workflows/release.yml (every v* tag pushes :<version> and :latest,
+pre-releases included; docs/decisions/2026-10-21-container-tags.md).
 """
 
 import re
@@ -66,12 +66,30 @@ def test_docker_page_has_run_and_compose_with_ports_volume_and_mode():
         assert needle in text, f"docker page is missing {needle!r}"
 
 
-def test_no_page_pulls_latest_while_only_pre_releases_exist():
-    # release.yml pushes :latest only for a stable version; every release so far is a pre-release.
-    for name in ("docker.md", "upgrade.md", "migrating-from-docker.md"):
-        assert f"{IMAGE}:latest" not in _md(name), name
+def test_latest_is_published_for_every_release_and_the_template_default_is_used():
+    # jarvis-server docs/decisions/2026-10-21-container-tags.md: every v* tag publishes :<tag> and
+    # :latest, pre-releases included. The Unraid template's default :latest is what to use.
     unraid = _md("unraid.md")
-    assert ":latest" in unraid and f"{IMAGE}:<tag>" in unraid
+    docker = _md("docker.md")
+    upgrade = _md("upgrade.md")
+    assert f"{IMAGE}:latest" in unraid and f"{IMAGE}:latest" in docker
+    for name, text in (("unraid.md", unraid), ("docker.md", docker), ("upgrade.md", upgrade)):
+        for stale in ("stable releases only", "No `:latest`", "no `:latest`", "Set **Repository** to a release tag",
+                      "With a release tag in **Repository**", "names a release tag"):
+            assert stale not in text, f"{name} still says {stale!r}"
+    # The image only exists from the first release after rc18.
+    assert "rc18" in unraid and "rc18" in docker
+    assert 'id="the-image-tag"' in unraid or "### The image tag" in unraid
+
+
+def test_port_conflicts_are_freed_not_remapped():
+    # /services always hands out the container ports (7700 …), so a remapped host port breaks
+    # discovery: a container mapped 27700→7700 still answers with http://<host>:7700/cc.
+    unraid = _md("unraid.md")
+    docker = _md("docker.md")
+    trouble = unraid.split("a port is already in use", 1)[1].split("\n\n**", 1)[0]
+    assert "host side" not in trouble and "/services" in trouble
+    assert "change the left side" not in docker and "/services" in docker
 
 
 def test_upgrade_page_has_container_section_with_both_hints():

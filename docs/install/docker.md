@@ -9,10 +9,7 @@ Jarvis runs as one container on any Linux machine with Docker: the whole server,
 
 ## The image
 
-The image is `ghcr.io/alexberardi/jarvisd:<tag>`, where `<tag>` is a release's tag. Each release's notes on the [releases page](https://github.com/alexberardi/jarvis-server/releases) name its image; use the newest.
-
-!!! note "No `:latest` yet"
-    `:latest` follows stable releases only. While Jarvis Automation is a pre-release, name the tag. Releases up to rc18 have no image; the first one comes with the next release.
+Every release publishes its image as `ghcr.io/alexberardi/jarvisd:<tag>`, where `<tag>` is the release's tag (its notes on the [releases page](https://github.com/alexberardi/jarvis-server/releases) name it), and moves `ghcr.io/alexberardi/jarvisd:latest` to it, pre-releases included. The examples below pin a `<tag>`, so you choose when to move on; use `:latest` instead to always pull the newest release. Releases up to rc18 have no image; the first one comes with the next release.
 
 ## Run it
 
@@ -71,7 +68,7 @@ Give phones and voice nodes the server's address: `http://<host>:7700`. They nev
 | 7710 | The admin and the setup wizard |
 | 1884 | MQTT, for voice nodes |
 
-Every service lives on 7700 under its own path, so these three ports are all a new install needs; see [Ports](../architecture/index.md#ports). To use another port on the host, change the left side of a mapping (`8700:7700`) and use that port in the addresses you give phones and nodes.
+Every service lives on 7700 under its own path, so these three ports are all a new install needs; see [Ports](../architecture/index.md#ports). Keep the host side of each mapping the same as the container's: clients find the services through `/services`, which always hands out the container's own ports, so a remap such as `27700:7700` sends phones and nodes to 7700 anyway. If a port is taken, free it on the host.
 
 ## The data folder and its owner
 
