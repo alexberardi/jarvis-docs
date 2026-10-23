@@ -30,7 +30,7 @@ On [Unraid](unraid.md) and in [Docker](docker.md), Jarvis doesn't replace itself
 
     On the **Docker** tab, click **Check for Updates**, then **apply update** on Jarvis.
 
-    If the template's **Repository** names a release tag (`ghcr.io/alexberardi/jarvisd:<tag>`, see [The image tag](unraid.md#the-image-tag)), Check for Updates only looks for a rebuild of that tag. To move to a newer release, edit the container, put the new tag in **Repository** and click **Apply**.
+    With the template's default `ghcr.io/alexberardi/jarvisd:latest`, that moves Jarvis to the newest release, pre-releases included. If you pinned one release in **Repository** instead (`ghcr.io/alexberardi/jarvisd:<tag>`, see [The image tag](unraid.md#the-image-tag)), Check for Updates only looks for a rebuild of that tag: to move on, edit the container, put the new tag in **Repository** and click **Apply**.
 
 === "Docker"
 
