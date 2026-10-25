@@ -2,7 +2,7 @@
 
 The Jarvis node is the primary voice interface for Jarvis. It runs on Raspberry Pi hardware (Pi Zero 2 W, Pi 4, Pi 5), any 64-bit Linux machine, or inside Docker with a mic and speaker attached. macOS is supported for development (native only; Docker Desktop has no audio hardware access via VM).
 
-This Python node is the **supported** Pi voice node. It talks to `jarvisd`, the Jarvis Automation server, at one address: `http://<server>:7700`. Install the server first (see [Install](../install/index.md)); Jarvis Automation is a **pre-release** (release candidate rc18).
+This Python node is the **supported** Pi voice node. It talks to `jarvisd`, the Jarvis Automation server, at one address: `http://<server>:7700`. Install the server first (see [Install](../install/index.md)); Jarvis Automation is a **pre-release** (release candidate rc18.6).
 
 This page starts with installing and running a node, then its settings and troubleshooting. The node's internals, for people working on `jarvis-node-setup` or writing commands, are at the end under [For developers](#for-developers).
 
@@ -50,7 +50,7 @@ Known gaps in this preview:
 Install it from the release (pin the tag; every release so far is a pre-release, so there is no "latest" download link):
 
 ```bash
-curl -fsSLo install-pi.sh https://github.com/alexberardi/jarvis-server/releases/download/v0.1.0-rc18/install-pi.sh
+curl -fsSLo install-pi.sh https://github.com/alexberardi/jarvis-server/releases/download/v0.1.0-rc18.6/install-pi.sh
 sudo sh install-pi.sh                     # installs the Go node, disabled
 /opt/jarvis-agent/jarvis-agent enroll --server <server> --room <room>
 sudo sh install-pi.sh --activate          # make it the node that runs (--deactivate goes back)

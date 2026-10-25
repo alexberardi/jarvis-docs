@@ -16,7 +16,7 @@ On the server, run:
 jarvisd doctor
 ```
 
-It prints one line per check, `OK`, `WARN` or `FAIL`, and under a problem the command that fixes it. On a Linux server with ufw blocking the ports, for example (this sample is the next release's three-port layout; on rc18 the lines also count and list the legacy ports):
+It prints one line per check, `OK`, `WARN` or `FAIL`, and under a problem the command that fixes it. On a Linux server with ufw blocking the ports, for example (this sample is a fresh install's three-port layout; with the legacy ports on, the lines also count and list them):
 
 ```text
 OK    listening: jarvisd answers on all 3 TCP ports
@@ -110,9 +110,7 @@ The mobile app never finds the server by itself: type its address (`http://<serv
 
 ## An older node or app can't reach a service
 
-Older nodes and apps may still use the per-service ports (7703 for the command center, and so on). On rc18 these legacy ports are always open, so this doesn't apply to an rc18 server: look at the [firewall](#phones-and-nodes-cant-connect-but-it-works-on-the-server) instead.
-
-From the next release, a fresh install doesn't open them. To bring them back from the next release, turn on `server.legacy_ports` in the admin web app's **Settings** and restart, or set `JARVIS_LEGACY_PORTS=1` in `jarvisd.env`. See [Legacy ports](../operate/network.md#legacy-ports).
+Older nodes and apps may still use the per-service ports (7703 for the command center, and so on). Since rc18.4, a fresh install doesn't open these legacy ports (an upgraded server keeps them on; on rc18 and earlier they are always open, so look at the [firewall](#phones-and-nodes-cant-connect-but-it-works-on-the-server) instead). To bring them back, turn on `server.legacy_ports` in the admin web app's **Settings** and restart, or set `JARVIS_LEGACY_PORTS=1` in `jarvisd.env`. See [Legacy ports](../operate/network.md#legacy-ports).
 
 ## The server stops answering after a while (macOS)
 

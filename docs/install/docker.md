@@ -9,7 +9,7 @@ Jarvis runs as one container on any Linux machine with Docker: the whole server,
 
 ## The image
 
-Every release publishes its image as `ghcr.io/alexberardi/jarvisd:<tag>`, where `<tag>` is the release's tag (its notes on the [releases page](https://github.com/alexberardi/jarvis-server/releases) name it), and moves `ghcr.io/alexberardi/jarvisd:latest` to it, pre-releases included. The examples below pin a `<tag>`, so you choose when to move on; use `:latest` instead to always pull the newest release. Releases up to rc18 have no image; the first one comes with the next release.
+Every release publishes its image as `ghcr.io/alexberardi/jarvisd:<tag>`, where `<tag>` is the release's tag (its notes on the [releases page](https://github.com/alexberardi/jarvis-server/releases) name it), and moves `ghcr.io/alexberardi/jarvisd:latest` to it, pre-releases included. The examples below pin a `<tag>`, so you choose when to move on; use `:latest` instead to always pull the newest release. Releases up to rc18 have no image; the first one is rc18.4.
 
 ## Run it
 

@@ -152,7 +152,7 @@ Installs a signed release from the [releases page](https://github.com/alexberard
 jarvisd version
 ```
 
-Prints the release this jarvisd program is, such as `v0.1.0-rc18`.
+Prints the release this jarvisd program is, such as `v0.1.0-rc18.6`.
 
 ## migrate status
 

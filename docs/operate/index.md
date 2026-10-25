@@ -2,7 +2,7 @@
 
 Running a Jarvis Automation server day to day: the `jarvisd` command, where the data lives and how to back it up, the ports nodes and phones use, what reaches the internet, and what to do when something doesn't connect.
 
-Jarvis Automation is a **pre-release** (release candidate rc18). Builds are on the [releases page](https://github.com/alexberardi/jarvis-server/releases); each one is marked *Pre-release*. These pages describe rc18 and say where the next release differs.
+Jarvis Automation is a **pre-release** (release candidate rc18.6). Builds are on the [releases page](https://github.com/alexberardi/jarvis-server/releases); each one is marked *Pre-release*. These pages describe rc18.6 and say where older releases differ.
 
 | Page | Read it to |
 |---|---|

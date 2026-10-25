@@ -114,19 +114,18 @@ def test_network_page_names_the_ports_and_mdns():
         assert want in text, f"{NETWORK} doesn't mention {want}"
 
 
-def test_legacy_port_switch_is_documented_as_next_release_only():
-    """rc18 always opens the legacy ports; server.legacy_ports and JARVIS_LEGACY_PORTS come after it."""
+def test_legacy_port_switch_is_documented_by_release():
+    """rc18 and earlier always open the legacy ports; since rc18.4 a fresh install doesn't, and
+    server.legacy_ports / JARVIS_LEGACY_PORTS switch them. Each page says which release does what."""
     network = _text(NETWORK)
-    assert "three TCP ports" not in network, f"{NETWORK} describes the post-rc18 layout as current"
-    assert "rc18 always opens" in network, f"{NETWORK} doesn't say rc18 always opens the legacy ports"
+    assert "Since rc18.4" in network, f"{NETWORK} doesn't say when the legacy-port switch arrived"
+    assert "Up to and including rc18" in network, f"{NETWORK} doesn't say rc18 always opened the legacy ports"
     for md in (NETWORK, TROUBLESHOOTING):
-        text = _text(md)
-        for line in text.splitlines():
-            if "legacy_ports" in line or "LEGACY_PORTS" in line:
-                assert "next release" in line, f"{md} presents the legacy-port switch as current: {line.strip()}"
+        assert "next release" not in _text(md), f"{md} still calls a shipped change 'the next release'"
     trouble = _text(TROUBLESHOOTING)
-    assert "all 3 TCP ports" not in trouble or "next release" in trouble.split("all 3 TCP ports")[0][-400:], \
-        f"{TROUBLESHOOTING}'s sample doctor output shows the post-rc18 layout unlabelled"
+    assert "Since rc18.4" in trouble, f"{TROUBLESHOOTING} doesn't say when fresh installs stopped opening them"
+    assert "all 3 TCP ports" not in trouble or "fresh install" in trouble.split("all 3 TCP ports")[0][-400:], \
+        f"{TROUBLESHOOTING}'s sample doctor output shows the three-port layout unlabelled"
 
 
 def test_offline_mode_is_about_jarvisd():
