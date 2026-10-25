@@ -2,7 +2,7 @@
 
 Before Jarvis Automation, Jarvis ran as a set of Docker containers, each service on its own port. That install is retired for new users, and it no longer installs out of the box: MinIO, which it depends on, is gone. An existing install keeps running, and its pages are kept, frozen, under [Legacy](../legacy/index.md). This page moves you to Jarvis Automation, a single program called `jarvisd`, on the same machine.
 
-Jarvis Automation is a **pre-release** (release candidate rc18). Builds are on the [releases page](https://github.com/alexberardi/jarvis-server/releases); each one is marked *Pre-release*, so open the newest and look under **Assets**. The commands below use `v0.1.0-rc18` as the example tag: replace it with the newest tag there.
+Jarvis Automation is a **pre-release** (release candidate rc18.5). Builds are on the [releases page](https://github.com/alexberardi/jarvis-server/releases); each one is marked *Pre-release*, so open the newest and look under **Assets**. The commands below use `v0.1.0-rc18` as the example tag: replace it with the newest tag there.
 
 ## Choose a path
 
@@ -101,7 +101,7 @@ Install with the script, and give it the option that stops the old install first
 === "Linux and macOS"
 
     ```sh
-    curl -fsSLO https://github.com/alexberardi/jarvis-server/releases/download/v0.1.0-rc18/install.sh
+    curl -fsSLO https://github.com/alexberardi/jarvis-server/releases/download/v0.1.0-rc18.5/install.sh
     less install.sh                         # read it first
     sh install.sh --stop-legacy             # asks for sudo
     ```
@@ -183,7 +183,7 @@ Options and other ways to point at the old database: [`jarvisd import-legacy`](.
 Recipes, meal plans and staples come over separately. While the old database is still running, export them with the script from the same release:
 
 ```sh
-curl -fsSLO https://raw.githubusercontent.com/alexberardi/jarvis-server/v0.1.0-rc18/scripts/legacy/recipes-export.sh
+curl -fsSLO https://raw.githubusercontent.com/alexberardi/jarvis-server/v0.1.0-rc18.5/scripts/legacy/recipes-export.sh
 less recipes-export.sh                  # read it first
 bash recipes-export.sh --out ~/recipes-export.tar.gz
 ```
@@ -345,9 +345,9 @@ Run the same `--apply` again whenever more people have signed in; it adds only w
 There is nothing to do for most nodes. The import kept each node's registration and key, and the new server answers on the old ports, so a node reconnects by itself within a minute or two and shows in the app's node list. Inactive nodes stay inactive.
 
 !!! note "The old ports, by release"
-    rc18 always opens the old per-service ports (7701–7712, 7030, 7031 and 9883; see [Legacy ports](../operate/network.md#legacy-ports)).
+    rc18 and earlier always open the old per-service ports (7701–7712, 7030, 7031 and 9883; see [Legacy ports](../operate/network.md#legacy-ports)).
 
-    From the next release, the server decides once, the first time it starts on a database, whether to open them, and stores the answer as the `server.legacy_ports` setting: on for a server upgraded from an earlier jarvisd, off for a new database. [Step 2](#2-install-with-the-old-install-stopped) (in a container, its first start) starts the new server once on an empty database, so it stores *off*; `jarvisd import-legacy --apply` then turns the setting back on, for the nodes and apps that still call the old ports. Turn it off in the admin's **Settings** (then restart) once every node is on 0.3.4 or later. `JARVIS_LEGACY_PORTS=1` (or `0`) in `jarvisd.env` overrides the setting.
+    Since rc18.4, the server decides once, the first time it starts on a database, whether to open them, and stores the answer as the `server.legacy_ports` setting: on for a server upgraded from an earlier jarvisd, off for a new database. [Step 2](#2-install-with-the-old-install-stopped) (in a container, its first start) starts the new server once on an empty database, so it stores *off*; `jarvisd import-legacy --apply` then turns the setting back on, for the nodes and apps that still call the old ports. Turn it off in the admin's **Settings** (then restart) once every node is on 0.3.4 or later. `JARVIS_LEGACY_PORTS=1` (or `0`) in `jarvisd.env` overrides the setting.
 
     In a container, the server can only answer on the ports you map. The Unraid template and the Docker guide map 7700, 7710 and 1884; to keep older nodes working, map the old ports too (see [Unraid](unraid.md)).
 

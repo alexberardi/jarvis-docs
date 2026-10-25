@@ -5,7 +5,7 @@
 [:fontawesome-brands-discord: **Join the Discord**](https://discord.gg/9SuQFVexxJ){ .md-button } &nbsp; [:fontawesome-brands-github: GitHub](https://github.com/alexberardi/jarvis-server){ .md-button }
 
 !!! note "Pre-release"
-    Jarvis Automation is a **pre-release** (release candidate rc18). Builds are on the [releases page](https://github.com/alexberardi/jarvis-server/releases).
+    Jarvis Automation is a **pre-release** (release candidate rc18.5). Builds are on the [releases page](https://github.com/alexberardi/jarvis-server/releases).
 
     The old Docker/microservice install is retired for new users: it no longer installs out of the box (MinIO is gone). Its pages are kept, frozen, under [Legacy](legacy/index.md).
 

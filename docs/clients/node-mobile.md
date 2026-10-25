@@ -2,7 +2,7 @@
 
 The Jarvis Automation mobile app is built with Expo/React Native and runs on iOS and Android. It is the companion app for chatting with Jarvis, setting up and managing voice nodes, receiving notifications, and browsing deep research results. It talks to one server: `jarvisd`, the Jarvis Automation server.
 
-Jarvis Automation is a **pre-release** (release candidate rc18). Server builds are on the [releases page](https://github.com/alexberardi/jarvis-server/releases); each one is marked *Pre-release*. Get the app from the [App Store](https://apps.apple.com/app/id6760924901) or [Google Play](https://play.google.com/store/apps/details?id=com.jarvis.nodemobile).
+Jarvis Automation is a **pre-release** (release candidate rc18.5). Server builds are on the [releases page](https://github.com/alexberardi/jarvis-server/releases); each one is marked *Pre-release*. Get the app from the [App Store](https://apps.apple.com/app/id6760924901) or [Google Play](https://play.google.com/store/apps/details?id=com.jarvis.nodemobile).
 
 ## Connect to your server
 

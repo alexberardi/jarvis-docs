@@ -3,7 +3,7 @@
 Jarvis Automation is one server program, `jarvisd`, plus the clients you talk to Jarvis through: voice nodes, the desktop agent and the mobile app. This section describes how `jarvisd` is put together. It is written for people who extend Jarvis, run it on their own hardware or want to know where their data goes.
 
 !!! note "Pre-release"
-    Jarvis Automation is a **pre-release** (release candidate rc18). Builds are on the [releases page](https://github.com/alexberardi/jarvis-server/releases). Details on these pages can change before the first full release.
+    Jarvis Automation is a **pre-release** (release candidate rc18.5). Builds are on the [releases page](https://github.com/alexberardi/jarvis-server/releases). Details on these pages can change before the first full release.
 
 The old Docker install ran each part as its own container with its own database. Its architecture pages are kept, frozen, under [Legacy](../legacy/architecture/index.md).
 

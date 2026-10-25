@@ -2,7 +2,7 @@
 
 What the server needs (operating system, memory, disk, GPU) and how to pick the language model that fits your hardware. See also [Models and hardware](../models/index.md).
 
-Jarvis Automation is a **pre-release** (release candidate rc18). Builds are on the [releases page](https://github.com/alexberardi/jarvis-server/releases); each one is marked *Pre-release*, so open the newest and look under **Assets**.
+Jarvis Automation is a **pre-release** (release candidate rc18.5). Builds are on the [releases page](https://github.com/alexberardi/jarvis-server/releases); each one is marked *Pre-release*, so open the newest and look under **Assets**.
 
 ## Choosing a model
 
@@ -25,7 +25,7 @@ The server runs on a machine that stays on. It is one program, `jarvisd`, with i
 | **Windows** | 64-bit Intel or AMD (`amd64`) | Runs as a Windows service. |
 | **Linux** | 64-bit Intel or AMD (`amd64`), or ARM (`arm64`) | Needs systemd. Models run on an NVIDIA (CUDA) or AMD (ROCm, Vulkan) GPU, or on the CPU. |
 
-Each install page lists what it needs: [macOS](macos.md), [Windows](windows.md), [Linux](linux.md). From the next release there is also a container, for [Unraid](unraid.md) or [Docker](docker.md); releases up to rc18 have no image.
+Each install page lists what it needs: [macOS](macos.md), [Windows](windows.md), [Linux](linux.md). Since rc18.4 there is also a container, for [Unraid](unraid.md) or [Docker](docker.md); releases up to rc18 have no image.
 
 ### Memory
 

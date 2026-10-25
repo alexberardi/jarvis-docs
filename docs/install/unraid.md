@@ -23,7 +23,7 @@ Moving from the old Docker install and keeping its data? Don't open the WebUI ye
 
 ### The image tag
 
-The template installs `ghcr.io/alexberardi/jarvisd:latest`. Every release publishes its image as `:<tag>` and moves `:latest` to it, pre-releases included, so the default always pulls the newest release. Releases up to rc18 have no image; the first one comes with the next release.
+The template installs `ghcr.io/alexberardi/jarvisd:latest`. Every release publishes its image as `:<tag>` and moves `:latest` to it, pre-releases included, so the default always pulls the newest release. Releases up to rc18 have no image; the first one is rc18.4.
 
 To stay on one release, put `ghcr.io/alexberardi/jarvisd:<tag>` in **Repository** instead, where `<tag>` is a tag from the [releases page](https://github.com/alexberardi/jarvis-server/releases). Check for Updates then only finds a rebuild of that tag; to move on, put the newer tag in **Repository**.
 

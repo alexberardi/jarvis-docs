@@ -77,7 +77,7 @@ def test_latest_is_published_for_every_release_and_the_template_default_is_used(
         for stale in ("stable releases only", "No `:latest`", "no `:latest`", "Set **Repository** to a release tag",
                       "With a release tag in **Repository**", "names a release tag"):
             assert stale not in text, f"{name} still says {stale!r}"
-    # The image only exists from the first release after rc18.
+    # The image only exists from rc18.4, the first release after rc18.
     assert "rc18" in unraid and "rc18" in docker
     assert 'id="the-image-tag"' in unraid or "### The image tag" in unraid
 

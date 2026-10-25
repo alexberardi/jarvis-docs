@@ -4,7 +4,7 @@ Your voice nodes, phones and desktop agents reach the Jarvis Automation server o
 
 ## Ports
 
-On rc18 the server listens on these ports, plus the [legacy ports](#legacy-ports) below, and announces itself on mDNS:
+The server listens on these ports, plus the [legacy ports](#legacy-ports) below when they're on, and announces itself on mDNS:
 
 | Port | What uses it |
 |---|---|
@@ -15,7 +15,7 @@ On rc18 the server listens on these ports, plus the [legacy ports](#legacy-ports
 
 ### Legacy ports
 
-Before jarvisd, each part of Jarvis was a separate service with its own port, and older nodes and apps still use those ports. rc18 always opens them too:
+Before jarvisd, each part of Jarvis was a separate service with its own port, and older nodes and apps still use those ports. A server upgraded from an earlier jarvisd, or one that imported a legacy install, opens them too:
 
 | Port | Service |
 |---|---|
@@ -31,9 +31,9 @@ Before jarvisd, each part of Jarvis was a separate service with its own port, an
 | 9883 | MQTT over WebSocket |
 
 !!! note "Which servers open them"
-    Up to and including rc18, jarvisd always opens the legacy ports; rc18 has no setting to turn them off. From the next release, a fresh install opens only the ports in the first table, and a server upgraded from an earlier jarvisd keeps the legacy ports on, so nodes set up against them keep working.
+    Since rc18.4, a fresh install opens only the ports in the first table, and a server upgraded from an earlier jarvisd keeps the legacy ports on, so nodes set up against them keep working. Up to and including rc18, jarvisd always opened them, with no setting to turn them off.
 
-    From the next release, the `server.legacy_ports` setting (admin web app → **Settings**, then restart), or `JARVIS_LEGACY_PORTS=1` (or `0`) in `jarvisd.env`, which overrides it, brings them back or turns them off.
+    The `server.legacy_ports` setting (admin web app → **Settings**, then restart), or `JARVIS_LEGACY_PORTS=1` (or `0`) in `jarvisd.env`, which overrides it, brings them back or turns them off.
 
     `jarvisd doctor` checks exactly the ports your server opens.
 
