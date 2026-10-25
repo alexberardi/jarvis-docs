@@ -2,7 +2,7 @@
 
 The Jarvis Automation app (iOS and Android) connects to your server, so you can talk to Jarvis, manage devices and routines, and set up voice nodes. Install the server first and finish its [setup wizard](setup-wizard.md).
 
-Jarvis Automation is a **pre-release** (release candidate rc18.5). Server builds are on the [releases page](https://github.com/alexberardi/jarvis-server/releases); each one is marked *Pre-release*, so open the newest and look under **Assets**.
+Jarvis Automation is a **pre-release** (release candidate rc18.6). Server builds are on the [releases page](https://github.com/alexberardi/jarvis-server/releases); each one is marked *Pre-release*, so open the newest and look under **Assets**.
 
 ## Get the app
 

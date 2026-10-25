@@ -2,7 +2,7 @@
 
 Install the Jarvis Automation server on a Mac that stays on: it is the server for your whole household. The installer is a disk image with one app in it; there is nothing to type.
 
-Jarvis Automation is a **pre-release** (release candidate rc18.5). Builds are on the [releases page](https://github.com/alexberardi/jarvis-server/releases); each one is marked *Pre-release*, so open the newest and look under **Assets**.
+Jarvis Automation is a **pre-release** (release candidate rc18.6). Builds are on the [releases page](https://github.com/alexberardi/jarvis-server/releases); each one is marked *Pre-release*, so open the newest and look under **Assets**.
 
 ## Before you start
 
@@ -12,7 +12,7 @@ Jarvis Automation is a **pre-release** (release candidate rc18.5). Builds are on
 
 ## Install
 
-1. From the newest release, download `Jarvis-Automation-Server-<version>.dmg`, where `<version>` is the release's version, such as `0.1.0-rc18.5`.
+1. From the newest release, download `Jarvis-Automation-Server-<version>.dmg`, where `<version>` is the release's version, such as `0.1.0-rc18.6`.
 2. Open it and drag **Jarvis Automation Server** to **Applications**.
 3. Open **Jarvis Automation Server** from Applications. macOS asks whether to open an app downloaded from the internet: click **Open**. The app is signed and notarized by Apple.
 4. The app says it runs in the background on this Mac. Leave **Let devices on my network reach it** ticked, so phones, voice nodes and other computers can reach the server, and click **Install**.
