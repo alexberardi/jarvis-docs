@@ -69,6 +69,48 @@ Jarvis uses a language model for two jobs: **live** (answering you) and **backgr
 | all-MiniLM-L6-v2 embeddings | 46 MB | Memory search. |
 | 3D-Speaker ERes2Net | 26 MB | Speaker recognition. Built in. |
 
+## Use a cloud model instead
+
+If your machine is too slow for a local model, Jarvis can send its language-model requests to a cloud provider instead. Speech-to-text, the voice and speaker recognition stay on your machine. From rc18.8, Google Gemini, OpenAI and Anthropic work without extra setup, and each is tested against the real provider before every release.
+
+!!! warning "What leaves your machine"
+    The text of every request for that label goes to the provider: what you said, the conversation so far, Jarvis's instructions and the list of tools it can use. Use a provider you trust.
+
+### Walkthrough: Gemini 3.1 Flash-Lite
+
+1. Get an API key from [Google AI Studio](https://aistudio.google.com/apikey).
+2. In the admin, open **Models**, find **Live (voice replies)** and set **Runs** to **Remote endpoint**.
+3. Fill in:
+
+    | Field | Value |
+    |---|---|
+    | Base URL | `https://generativelanguage.googleapis.com` |
+    | API | auto |
+    | Model name | `gemini-3.1-flash-lite` |
+    | API key | your AI Studio key |
+
+    Jarvis adds Google's `/v1beta/openai` path itself; pasting the full URL works too.
+4. Save. Under **Prompt and model behaviour**, the prompt should now read **Cloud**. If it shows a different prompt marked **set by you**, click **Use the model's (Cloud)**.
+5. Say something to a node, such as "add milk to my todo list".
+
+**Background (memory, planning)** keeps its own setting: leave it on this machine, or point it at the same provider the same way.
+
+### Other providers
+
+| Provider | Base URL | Model name (tested) |
+|---|---|---|
+| Google Gemini | `https://generativelanguage.googleapis.com` | `gemini-3.1-flash-lite` |
+| OpenAI | `https://api.openai.com/v1` | `gpt-5-nano` |
+| Anthropic | `https://api.anthropic.com` | `claude-haiku-4-5-20251001` |
+
+Leave **API** on auto: Jarvis uses Anthropic's own API for `api.anthropic.com` and the OpenAI-compatible one for everything else, so any other OpenAI-compatible service works too.
+
+### If it doesn't answer
+
+- **Busy or rate-limited:** when the provider answers 429 or 5xx (Google's "This model is currently experiencing high demand"), Jarvis retries twice, after 1 s and 3 s, and then gives up on that turn.
+- **Requests hang:** preview models, such as some Gemini 3.x ones, sometimes hang on the provider's side. Try a model listed above.
+- **Error from the provider:** Jarvis passes on the provider's own message, such as a 400 for an unknown model name or a 401 for a wrong key.
+
 ## Engines
 
 An engine is the program that runs a language model. Jarvis downloads and starts it for you.
