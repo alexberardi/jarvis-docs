@@ -2,7 +2,7 @@
 
 Install the Jarvis Automation server on a Linux machine that stays on: it is the server for your whole household. On Debian and Ubuntu there is a package; on other distributions, use the install script.
 
-Jarvis Automation is a **pre-release** (release candidate rc18.7). Builds are on the [releases page](https://github.com/alexberardi/jarvis-server/releases); each one is marked *Pre-release*, so open the newest and look under **Assets**.
+Jarvis Automation is a **pre-release** (release candidate rc18.8). Builds are on the [releases page](https://github.com/alexberardi/jarvis-server/releases); each one is marked *Pre-release*, so open the newest and look under **Assets**.
 
 ## Before you start
 
@@ -12,7 +12,7 @@ Jarvis Automation is a **pre-release** (release candidate rc18.7). Builds are on
 
 ## Debian and Ubuntu
 
-1. From the newest release, download the package for your processor, where `<version>` is the release's version, such as `0.1.0-rc18.7`:
+1. From the newest release, download the package for your processor, where `<version>` is the release's version, such as `0.1.0-rc18.8`:
     - `jarvis-automation-server_<version>_amd64.deb` for Intel and AMD,
     - `jarvis-automation-server_<version>_arm64.deb` for ARM.
 2. Open it: App Center (or Software) installs it after your password.

@@ -2,7 +2,7 @@
 
 How to remove the server and the desktop agent from macOS, Windows and Linux, and how to remove your data too if you want.
 
-Jarvis Automation is a **pre-release** (release candidate rc18.7). Builds are on the [releases page](https://github.com/alexberardi/jarvis-server/releases); each one is marked *Pre-release*, so open the newest and look under **Assets**.
+Jarvis Automation is a **pre-release** (release candidate rc18.8). Builds are on the [releases page](https://github.com/alexberardi/jarvis-server/releases); each one is marked *Pre-release*, so open the newest and look under **Assets**.
 
 Every way below **keeps your data** unless you ask for it to go: reinstall later and the server picks up where it left off. Deleting the data removes everything the server knows (accounts, households, devices, settings, models) and can't be undone. [Where the data lives](../operate/data-and-backups.md#where-the-data-lives) lists the folders; take a [backup](../operate/data-and-backups.md#back-up) first if you might want it back.
 
