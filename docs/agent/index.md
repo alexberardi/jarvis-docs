@@ -53,7 +53,7 @@ Install it as yourself, on the computer you want Jarvis to use. In the file name
     sh install-agent.sh
     ```
 
-    It checks the agent against the release's `SHA256SUMS` before installing it.
+    It checks the agent against the release's `SHA256SUMS` before installing it. [Advanced one-liners](../install/one-liners.md#desktop-agent-on-linux-install-agentsh) has the download command and the script's options.
 
     The agent starts at login from then on. Its shield icon shows in panels with a tray (KDE Plasma, waybar, XFCE; GNOME needs the AppIndicator extension).
 

@@ -83,6 +83,38 @@ powershell -ExecutionPolicy Bypass -File install.ps1 -StopLegacy
 
 Under `irm | iex` there is no file to pass options to; set them as environment variables first: `JARVISD_VERSION` for `-Version`, `JARVISD_RELEASE_BASE` for `-BaseUrl`, and `JARVISD_YES=1` for `-Yes`.
 
+## Desktop agent on Linux: install-agent.sh
+
+The [desktop agent](../agent/index.md) makes a computer a node you can talk to. It installs for your account, so run the script as yourself, not with `sudo`:
+
+```sh
+curl -fsSLO https://github.com/alexberardi/jarvis-server/releases/download/v0.1.0-rc18.8/install-agent.sh
+less install-agent.sh    # read it first
+sh install-agent.sh      # no sudo
+```
+
+The script:
+
+1. downloads the agent for your system and checks it against the release's `SHA256SUMS`, and the signature of that file too when `minisign` is installed;
+2. keeps a self-updating copy in `~/.local/lib/jarvis-agent` and starts it at login;
+3. adds **Jarvis Automation Agent** to the app menu and registers browser control;
+4. starts the agent, which opens **Set up Jarvis Automation** in your browser to [find your server and add this computer](../agent/index.md#set-it-up).
+
+On Debian and Ubuntu the agent's `.deb` does the same; on a Mac or Windows use the agent's installer from the release page. The setup wizard's **This computer** step can also install it on the server's own machine.
+
+### Options
+
+Put them after `sh install-agent.sh`. `sh install-agent.sh --help` lists them too.
+
+| Option | What it does |
+|---|---|
+| `--version <tag>` | Install that release instead of the one the script came from. |
+| `--force` | Reinstall even when this version is already installed. |
+| `--no-start` | Set everything up, but don't start the agent now. |
+| `--uninstall` | Remove the agent. Your sign-in and settings are kept. |
+| `--purge` | With `--uninstall`: also delete the sign-in, settings and caches. |
+| `--base-url <url>` | Fetch the release files from your own mirror or a local folder instead of GitHub (also `JARVIS_AGENT_RELEASE_BASE`). The signature is still checked. |
+
 ## Check a download
 
 Each release carries `SHA256SUMS`, the checksums of its installers and archives, and `SHA256SUMS.minisig`, the project's signature of that file. `install.sh`, `install.ps1` and `install-agent.sh` are not in `SHA256SUMS`: they come over HTTPS from the release, so read them before you run them. `install-pi.sh`, the voice node installer, is listed, so you can check it first.
