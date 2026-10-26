@@ -2,7 +2,7 @@
 
 **Jarvis Automation Agent** runs on your own computer (macOS, Windows or Linux) and connects it to your Jarvis Automation server. With it, Jarvis can listen for "Hey Jarvis" on the computer, open apps and links, set the volume, find and switch windows, type what you dictate, read your screen when you ask, and, with the **Jarvis Browser Control** extension, work with your browser tabs and pages.
 
-Jarvis Automation is a **pre-release** (release candidate rc18.7). Builds are on the [releases page](https://github.com/alexberardi/jarvis-server/releases); each one is marked *Pre-release*, so open the newest and look under **Assets**.
+Jarvis Automation is a **pre-release** (release candidate rc18.8). Builds are on the [releases page](https://github.com/alexberardi/jarvis-server/releases); each one is marked *Pre-release*, so open the newest and look under **Assets**.
 
 You need a running server first: [install it](../install/index.md) and finish its [setup wizard](../install/setup-wizard.md) (`http://<host>:7710/setup`). What the agent and the extension read goes only to that server; see the [Privacy Policy](../security/privacy-policy.md#information-the-desktop-agent-and-browser-extension-handle).
 
@@ -20,7 +20,7 @@ You need a running server first: [install it](../install/index.md) and finish it
 
 ## Install
 
-Install it as yourself, on the computer you want Jarvis to use. In the file names below, `<version>` is the release's version, such as `0.1.0-rc18.7`.
+Install it as yourself, on the computer you want Jarvis to use. In the file names below, `<version>` is the release's version, such as `0.1.0-rc18.8`.
 
 === "macOS"
 
@@ -53,7 +53,7 @@ Install it as yourself, on the computer you want Jarvis to use. In the file name
     sh install-agent.sh
     ```
 
-    It checks the agent against the release's `SHA256SUMS` before installing it.
+    It checks the agent against the release's `SHA256SUMS` before installing it. [Advanced one-liners](../install/one-liners.md#desktop-agent-on-linux-install-agentsh) has the download command and the script's options.
 
     The agent starts at login from then on. Its shield icon shows in panels with a tray (KDE Plasma, waybar, XFCE; GNOME needs the AppIndicator extension).
 

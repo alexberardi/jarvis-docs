@@ -2,7 +2,7 @@
 
 Each release also carries install scripts, for a server you reach over SSH, a distribution without a package, or installing many machines the same way. They install the same server as the [macOS](macos.md), [Windows](windows.md) and [Linux](linux.md) installers.
 
-Jarvis Automation is a **pre-release** (release candidate rc18.7). Builds are on the [releases page](https://github.com/alexberardi/jarvis-server/releases); each one is marked *Pre-release*, so open the newest and look under **Assets**.
+Jarvis Automation is a **pre-release** (release candidate rc18.8). Builds are on the [releases page](https://github.com/alexberardi/jarvis-server/releases); each one is marked *Pre-release*, so open the newest and look under **Assets**.
 
 | Script | Installs | Runs on |
 |---|---|---|
@@ -18,7 +18,7 @@ While only pre-releases exist, take each script from its release's own address. 
 ## Linux and macOS: install.sh
 
 ```sh
-curl -fsSLO https://github.com/alexberardi/jarvis-server/releases/download/v0.1.0-rc18.7/install.sh
+curl -fsSLO https://github.com/alexberardi/jarvis-server/releases/download/v0.1.0-rc18.8/install.sh
 less install.sh          # read it first
 sh install.sh            # asks for sudo
 ```
@@ -42,7 +42,7 @@ Put them after `sh install.sh`. `sh install.sh --help` lists them too.
 
 | Option | What it does |
 |---|---|
-| `--version <tag>` | Install that release, such as `v0.1.0-rc18.7`, instead of the one the script came from. |
+| `--version <tag>` | Install that release, such as `v0.1.0-rc18.8`, instead of the one the script came from. |
 | `--user` | Linux only: run the server as a service of your own account, without root. The program goes to `~/.local/bin`, the data to `~/.jarvisd`. Run it without `sudo`. |
 | `--yes` | Answer yes for you: apply the firewall fix without asking. Use it where there is no terminal to ask in. |
 | `--stop-legacy` | Stop the old Docker install on the same machine (its containers, and on macOS its background services and admin), so the new server can take its ports. Nothing is deleted. See [Migrating from the old install](migrating-from-docker.md). |
@@ -58,7 +58,7 @@ Intel Macs are not supported. A Linux machine without systemd needs the release'
 In PowerShell (it asks for administrator rights if it doesn't have them):
 
 ```powershell
-irm https://github.com/alexberardi/jarvis-server/releases/download/v0.1.0-rc18.7/install.ps1 | iex
+irm https://github.com/alexberardi/jarvis-server/releases/download/v0.1.0-rc18.8/install.ps1 | iex
 ```
 
 It does what `install.sh` does: checks the download, places the server in `%ProgramFiles%\jarvisd`, registers the Windows service, offers the firewall rule for your local network and prints the setup link.
@@ -82,6 +82,38 @@ powershell -ExecutionPolicy Bypass -File install.ps1 -StopLegacy
 | `-BaseUrl <url>` | Fetch the release files from your own mirror instead of GitHub. |
 
 Under `irm | iex` there is no file to pass options to; set them as environment variables first: `JARVISD_VERSION` for `-Version`, `JARVISD_RELEASE_BASE` for `-BaseUrl`, and `JARVISD_YES=1` for `-Yes`.
+
+## Desktop agent on Linux: install-agent.sh
+
+The [desktop agent](../agent/index.md) makes a computer a node you can talk to. It installs for your account, so run the script as yourself, not with `sudo`:
+
+```sh
+curl -fsSLO https://github.com/alexberardi/jarvis-server/releases/download/v0.1.0-rc18.8/install-agent.sh
+less install-agent.sh    # read it first
+sh install-agent.sh      # no sudo
+```
+
+The script:
+
+1. downloads the agent for your system and checks it against the release's `SHA256SUMS`, and the signature of that file too when `minisign` is installed;
+2. keeps a self-updating copy in `~/.local/lib/jarvis-agent` and starts it at login;
+3. adds **Jarvis Automation Agent** to the app menu and registers browser control;
+4. starts the agent, which opens **Set up Jarvis Automation** in your browser to [find your server and add this computer](../agent/index.md#set-it-up).
+
+On Debian and Ubuntu the agent's `.deb` does the same; on a Mac or Windows use the agent's installer from the release page. The setup wizard's **This computer** step can also install it on the server's own machine.
+
+### Options
+
+Put them after `sh install-agent.sh`. `sh install-agent.sh --help` lists them too.
+
+| Option | What it does |
+|---|---|
+| `--version <tag>` | Install that release instead of the one the script came from. |
+| `--force` | Reinstall even when this version is already installed. |
+| `--no-start` | Set everything up, but don't start the agent now. |
+| `--uninstall` | Remove the agent. Your sign-in and settings are kept. |
+| `--purge` | With `--uninstall`: also delete the sign-in, settings and caches. |
+| `--base-url <url>` | Fetch the release files from your own mirror or a local folder instead of GitHub (also `JARVIS_AGENT_RELEASE_BASE`). The signature is still checked. |
 
 ## Check a download
 

@@ -2,7 +2,7 @@
 
 How well each language model picks the right action for what you say, and how long it takes, measured on the Jarvis Automation server (jarvisd). These are the numbers behind the picks in [Models and hardware](../models/index.md).
 
-Jarvis Automation is a **pre-release** (release candidate rc18.7). The numbers below were measured on rc18-era builds and will be re-measured as the prompt and the models change.
+Jarvis Automation is a **pre-release** (release candidate rc18.8). The numbers below were measured on rc18-era builds and will be re-measured as the prompt and the models change.
 
 ## Results
 

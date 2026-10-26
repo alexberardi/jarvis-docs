@@ -2,7 +2,7 @@
 
 Once the server is running, open `http://<host>:7710/setup` in a browser (`<host>` is the machine running the server, or `localhost` on that machine) to finish setting up. The installers open it for you.
 
-Jarvis Automation is a **pre-release** (release candidate rc18.7). Builds are on the [releases page](https://github.com/alexberardi/jarvis-server/releases); each one is marked *Pre-release*, so open the newest and look under **Assets**.
+Jarvis Automation is a **pre-release** (release candidate rc18.8). Builds are on the [releases page](https://github.com/alexberardi/jarvis-server/releases); each one is marked *Pre-release*, so open the newest and look under **Assets**.
 
 ## The setup link and its token
 
