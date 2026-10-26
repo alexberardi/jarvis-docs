@@ -2,7 +2,7 @@
 
 Clients are what you talk to Jarvis through: voice nodes, the mobile app and the desktop agent. Every client connects to one server, `jarvisd`, the Jarvis Automation server you installed on a Mac, a Windows PC or a Linux machine (see [Install](../install/index.md)).
 
-Jarvis Automation is a **pre-release** (release candidate rc18.6). Builds are on the [releases page](https://github.com/alexberardi/jarvis-server/releases); each one is marked *Pre-release*, so open the newest and look under **Assets**.
+Jarvis Automation is a **pre-release** (release candidate rc18.7). Builds are on the [releases page](https://github.com/alexberardi/jarvis-server/releases); each one is marked *Pre-release*, so open the newest and look under **Assets**.
 
 ```mermaid
 graph LR
