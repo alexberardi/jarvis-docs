@@ -14,7 +14,7 @@ REPO_ROOT = Path(__file__).resolve().parent.parent
 DOCS = REPO_ROOT / "docs"
 
 NODE_SETUP_TAG = "v0.3.6"
-SERVER_TAG = "v0.1.0-rc18.6"
+SERVER_TAG = "v0.1.0-rc18.7"
 
 CLIENT_PAGES = (
     "clients/index.md",

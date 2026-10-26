@@ -122,7 +122,7 @@ def test_one_liners_list_every_script_option():
 
 def test_one_liners_show_pinned_commands_and_verification():
     text = _text("install/one-liners.md")
-    pinned = "https://github.com/alexberardi/jarvis-server/releases/download/v0.1.0-rc18.6/"
+    pinned = "https://github.com/alexberardi/jarvis-server/releases/download/v0.1.0-rc18.7/"
     assert f"{pinned}install.sh" in text
     assert f"{pinned}install.ps1" in text
     assert "SHA256SUMS.minisig" in text and "minisign -V" in text

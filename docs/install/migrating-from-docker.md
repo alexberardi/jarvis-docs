@@ -2,7 +2,7 @@
 
 Before Jarvis Automation, Jarvis ran as a set of Docker containers, each service on its own port. That install is retired for new users, and it no longer installs out of the box: MinIO, which it depends on, is gone. An existing install keeps running, and its pages are kept, frozen, under [Legacy](../legacy/index.md). This page moves you to Jarvis Automation, a single program called `jarvisd`, on the same machine.
 
-Jarvis Automation is a **pre-release** (release candidate rc18.6). Builds are on the [releases page](https://github.com/alexberardi/jarvis-server/releases); each one is marked *Pre-release*, so open the newest and look under **Assets**. The commands below use `v0.1.0-rc18` as the example tag: replace it with the newest tag there.
+Jarvis Automation is a **pre-release** (release candidate rc18.7). Builds are on the [releases page](https://github.com/alexberardi/jarvis-server/releases); each one is marked *Pre-release*, so open the newest and look under **Assets**. The commands below use `v0.1.0-rc18` as the example tag: replace it with the newest tag there.
 
 ## Choose a path
 
@@ -101,7 +101,7 @@ Install with the script, and give it the option that stops the old install first
 === "Linux and macOS"
 
     ```sh
-    curl -fsSLO https://github.com/alexberardi/jarvis-server/releases/download/v0.1.0-rc18.6/install.sh
+    curl -fsSLO https://github.com/alexberardi/jarvis-server/releases/download/v0.1.0-rc18.7/install.sh
     less install.sh                         # read it first
     sh install.sh --stop-legacy             # asks for sudo
     ```
@@ -183,7 +183,7 @@ Options and other ways to point at the old database: [`jarvisd import-legacy`](.
 Recipes, meal plans and staples come over separately. While the old database is still running, export them with the script from the same release:
 
 ```sh
-curl -fsSLO https://raw.githubusercontent.com/alexberardi/jarvis-server/v0.1.0-rc18.6/scripts/legacy/recipes-export.sh
+curl -fsSLO https://raw.githubusercontent.com/alexberardi/jarvis-server/v0.1.0-rc18.7/scripts/legacy/recipes-export.sh
 less recipes-export.sh                  # read it first
 bash recipes-export.sh --out ~/recipes-export.tar.gz
 ```
