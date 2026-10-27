@@ -2,7 +2,7 @@
 
 A voice node is a small device with a microphone and speaker, usually a Raspberry Pi, that listens for "Hey Jarvis", sends what you say to your server and plays the reply. Install the server first and finish its [setup wizard](setup-wizard.md); the node then needs only the server's address, `http://<server>:7700`.
 
-Jarvis Automation is a **pre-release** (release candidate rc18.9). Builds are on the [releases page](https://github.com/alexberardi/jarvis-server/releases); each one is marked *Pre-release*, so open the newest and look under **Assets**.
+Jarvis Automation is a **pre-release** (release candidate rc18.10). Builds are on the [releases page](https://github.com/alexberardi/jarvis-server/releases); each one is marked *Pre-release*, so open the newest and look under **Assets**.
 
 ## Choose a node
 

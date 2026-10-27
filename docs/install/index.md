@@ -1,6 +1,6 @@
 # Install Jarvis Automation
 
-Jarvis Automation is a **pre-release** (release candidate rc18.9). Builds are on the [releases page](https://github.com/alexberardi/jarvis-server/releases); each one is marked *Pre-release*, so open the newest and look under **Assets**.
+Jarvis Automation is a **pre-release** (release candidate rc18.10). Builds are on the [releases page](https://github.com/alexberardi/jarvis-server/releases); each one is marked *Pre-release*, so open the newest and look under **Assets**.
 
 Jarvis Automation is one server (`jarvisd`) that runs on a Mac, a Windows PC or a Linux machine on your network, plus the clients you talk to Jarvis through.
 
