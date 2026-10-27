@@ -2,7 +2,7 @@
 
 Install the Jarvis Automation server on a Windows PC that stays on: it is the server for your whole household. The installer is a normal setup program; there is nothing to type.
 
-Jarvis Automation is a **pre-release** (release candidate rc18.8). Builds are on the [releases page](https://github.com/alexberardi/jarvis-server/releases); each one is marked *Pre-release*, so open the newest and look under **Assets**.
+Jarvis Automation is a **pre-release** (release candidate rc18.9). Builds are on the [releases page](https://github.com/alexberardi/jarvis-server/releases); each one is marked *Pre-release*, so open the newest and look under **Assets**.
 
 ## Before you start
 
@@ -14,7 +14,7 @@ The Windows server is built and tested automatically for every release, but has 
 
 ## Install
 
-1. From the newest release, download `Jarvis-Automation-Server-Setup-<version>.exe`, where `<version>` is the release's version, such as `0.1.0-rc18.8`.
+1. From the newest release, download `Jarvis-Automation-Server-Setup-<version>.exe`, where `<version>` is the release's version, such as `0.1.0-rc18.9`.
 2. Open it. Windows may say **Windows protected your PC**: Windows shows this for any installer that isn't signed with a paid code-signing certificate, and Jarvis Automation's isn't. Click **More info**, then **Run anyway**. To check the file first, compare its SHA-256 with its line in the release's `SHA256SUMS` (`Get-FileHash <file>` in PowerShell).
 3. Allow setup to make changes when Windows asks.
 4. On the **Tasks** page, leave **Let phones, voice nodes and other computers on my local network reach Jarvis Automation** ticked. It opens the Windows firewall for your local network only. Tick the desktop shortcut if you want one.
