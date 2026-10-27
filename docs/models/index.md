@@ -2,7 +2,7 @@
 
 Jarvis Automation runs its models on your own machine: a language model that understands what you say and calls the right tool, plus speech-to-text, a voice, embeddings and speaker recognition. This page lists the models Jarvis can download for you and which language model to pick for your hardware.
 
-Jarvis Automation is a **pre-release** (release candidate rc18.8). The catalog below is the one rc18's server ships; it can change between release candidates.
+Jarvis Automation is a **pre-release** (release candidate rc18.9). The catalog below is the one rc18's server ships; it can change between release candidates.
 
 ## Which language model to pick
 

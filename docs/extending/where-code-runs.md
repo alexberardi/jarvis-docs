@@ -2,7 +2,7 @@
 
 A package you build with the [Command SDK](../libraries/command-sdk.md) runs on a device that talks to your Jarvis Automation server, not on the server itself. The device decides which parts of the package run.
 
-Jarvis Automation is a **pre-release** (release candidate rc18.8), so this changes from release to release. Builds are on the [releases page](https://github.com/alexberardi/jarvis-server/releases).
+Jarvis Automation is a **pre-release** (release candidate rc18.9), so this changes from release to release. Builds are on the [releases page](https://github.com/alexberardi/jarvis-server/releases).
 
 ## At a glance
 
