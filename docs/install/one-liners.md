@@ -2,7 +2,7 @@
 
 Each release also carries install scripts, for a server you reach over SSH, a distribution without a package, or installing many machines the same way. They install the same server as the [macOS](macos.md), [Windows](windows.md) and [Linux](linux.md) installers.
 
-Jarvis Automation is a **pre-release** (release candidate rc18.9). Builds are on the [releases page](https://github.com/alexberardi/jarvis-server/releases); each one is marked *Pre-release*, so open the newest and look under **Assets**.
+Jarvis Automation is a **pre-release** (release candidate rc18.10). Builds are on the [releases page](https://github.com/alexberardi/jarvis-server/releases); each one is marked *Pre-release*, so open the newest and look under **Assets**.
 
 | Script | Installs | Runs on |
 |---|---|---|
@@ -18,7 +18,7 @@ While only pre-releases exist, take each script from its release's own address. 
 ## Linux and macOS: install.sh
 
 ```sh
-curl -fsSLO https://github.com/alexberardi/jarvis-server/releases/download/v0.1.0-rc18.9/install.sh
+curl -fsSLO https://github.com/alexberardi/jarvis-server/releases/download/v0.1.0-rc18.10/install.sh
 less install.sh          # read it first
 sh install.sh            # asks for sudo
 ```
@@ -42,7 +42,7 @@ Put them after `sh install.sh`. `sh install.sh --help` lists them too.
 
 | Option | What it does |
 |---|---|
-| `--version <tag>` | Install that release, such as `v0.1.0-rc18.9`, instead of the one the script came from. |
+| `--version <tag>` | Install that release, such as `v0.1.0-rc18.10`, instead of the one the script came from. |
 | `--user` | Linux only: run the server as a service of your own account, without root. The program goes to `~/.local/bin`, the data to `~/.jarvisd`. Run it without `sudo`. |
 | `--yes` | Answer yes for you: apply the firewall fix without asking. Use it where there is no terminal to ask in. |
 | `--stop-legacy` | Stop the old Docker install on the same machine (its containers, and on macOS its background services and admin), so the new server can take its ports. Nothing is deleted. See [Migrating from the old install](migrating-from-docker.md). |
@@ -58,7 +58,7 @@ Intel Macs are not supported. A Linux machine without systemd needs the release'
 In PowerShell (it asks for administrator rights if it doesn't have them):
 
 ```powershell
-irm https://github.com/alexberardi/jarvis-server/releases/download/v0.1.0-rc18.9/install.ps1 | iex
+irm https://github.com/alexberardi/jarvis-server/releases/download/v0.1.0-rc18.10/install.ps1 | iex
 ```
 
 It does what `install.sh` does: checks the download, places the server in `%ProgramFiles%\jarvisd`, registers the Windows service, offers the firewall rule for your local network and prints the setup link.
@@ -88,7 +88,7 @@ Under `irm | iex` there is no file to pass options to; set them as environment v
 The [desktop agent](../agent/index.md) makes a computer a node you can talk to. It installs for your account, so run the script as yourself, not with `sudo`:
 
 ```sh
-curl -fsSLO https://github.com/alexberardi/jarvis-server/releases/download/v0.1.0-rc18.9/install-agent.sh
+curl -fsSLO https://github.com/alexberardi/jarvis-server/releases/download/v0.1.0-rc18.10/install-agent.sh
 less install-agent.sh    # read it first
 sh install-agent.sh      # no sudo
 ```

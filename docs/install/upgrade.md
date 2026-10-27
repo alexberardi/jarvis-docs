@@ -2,7 +2,7 @@
 
 How to move the server, the desktop agent and voice nodes to a newer release, what is kept when you do, and how to go back.
 
-Jarvis Automation is a **pre-release** (release candidate rc18.9). Builds are on the [releases page](https://github.com/alexberardi/jarvis-server/releases); each one is marked *Pre-release*, so open the newest and look under **Assets**.
+Jarvis Automation is a **pre-release** (release candidate rc18.10). Builds are on the [releases page](https://github.com/alexberardi/jarvis-server/releases); each one is marked *Pre-release*, so open the newest and look under **Assets**.
 
 ## Upgrade the server
 
@@ -13,7 +13,7 @@ Pick one; they all end the same way. In a container (Unraid or Docker), see [In 
 
     ```sh
     sudo jarvisd upgrade                          # the newest release
-    sudo jarvisd upgrade --version v0.1.0-rc18.9    # a given release
+    sudo jarvisd upgrade --version v0.1.0-rc18.10    # a given release
     ```
 
     On Windows, run it in an administrator PowerShell without `sudo`. `jarvisd upgrade --check` only says whether a newer release exists. All options: [jarvisd upgrade](../operate/cli.md#upgrade).
