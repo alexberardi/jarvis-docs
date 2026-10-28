@@ -5,3 +5,6 @@
 # get a friendly "install the app" page instead of a 404.
 # 200 = rewrite: serve the fallback page while keeping the /app/... URL.
 /app/*  /app-fallback/  200
+# Google site verification (Chrome Web Store): Google fetches this exact .html URL, but Pages
+# 308-redirects any .html to its extensionless path. Rewrite it to serve the file in place.
+/googlee748febfde71b47b.html  /googlee748febfde71b47b  200

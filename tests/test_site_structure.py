@@ -161,6 +161,9 @@ def test_root_files_are_in_the_built_site(built_site):
     assert (built_site / "app-fallback" / "index.html").exists()
     rules = (built_site / "_redirects").read_text(encoding="utf-8").splitlines()
     assert "/app/*  /app-fallback/  200" in rules
+    # Google's verification file answers at its .html URL itself, not through Pages' redirect.
+    assert "/googlee748febfde71b47b.html  /googlee748febfde71b47b  200" in rules
+    assert (built_site / "googlee748febfde71b47b.html").exists()
 
 
 def test_deploy_no_longer_copies_root_files():
