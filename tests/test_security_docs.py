@@ -161,4 +161,4 @@ def test_privacy_policy_describes_one_server_program():
 
 
 def test_privacy_policy_date_bumped():
-    assert "**Last updated:** October 21, 2026" in _text(PRIVACY)
+    assert "**Last updated:** October 28, 2026" in _text(PRIVACY)
