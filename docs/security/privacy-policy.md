@@ -1,6 +1,6 @@
 # Privacy Policy
 
-**Last updated:** October 21, 2026
+**Last updated:** October 28, 2026
 
 This privacy policy describes how Jarvis Automation ("we", "us", "Jarvis") handles information collected through the Jarvis platform, including the **Jarvis Automation** mobile app, the **Jarvis desktop agent** and the **Jarvis Browser Control** browser extension, the self-hosted **Jarvis Automation server** (one program, `jarvisd`, that you run on your own hardware), and optional cloud services.
 
@@ -68,9 +68,18 @@ Jarvis work with your browser tabs. It:
   browser's native-messaging channel. It makes no network requests of its own. Web pages and
   other extensions cannot send it anything.
 - **Reads tab titles and URLs** when you ask Jarvis to list, open, switch or close tabs.
-- **Reads a page's visible text** when you ask Jarvis to read or summarise a page. It never
-  reads form fields, including text boxes, dropdowns and passwords. It does not type into,
-  fill in or click anything on a page.
+- **Reads a page's visible text** when you ask Jarvis to read or summarise a page.
+- **Fills in a field or clicks a button** only when you ask Jarvis to, and only when exactly one
+  field or button on the page matches what you said. It writes the text you dictated and never
+  reads a field back. A password field is filled only when you say it is the password field.
+- **Runs errands you give Jarvis** in a browser window it opens behind yours: it lists that
+  page's buttons, links and form fields, with what ordinary fields already contain (such as an
+  email or address, so Jarvis doesn't type them twice), acts on them, takes a picture of that
+  window when the list isn't enough, and saves a file the errand needs (such as a statement) to
+  your downloads folder. Password, card, one-time-code and hidden fields are listed without
+  their contents, and it never types into a password field this way. It never opens, moves or
+  deletes files, and never reads your other downloads.
+- **Never reads passwords, card numbers or one-time codes.**
 - **Controls audio and video** on a page (play, pause, seek) when you ask it to.
 - **Stores nothing.** It keeps no history, cookies, browsing data or settings.
 
