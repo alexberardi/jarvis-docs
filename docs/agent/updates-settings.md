@@ -25,7 +25,7 @@ jarvis-agent restart                  # the running agent reads the file again
 
 | Key | Default | What it does |
 |---|---|---|
-| `voice` | on | Listen for "Hey Jarvis" (Linux, macOS) |
+| `voice` | on | Listen for "Hey Jarvis" (Linux, macOS, Windows) |
 | `island` | on | Show the [island](voice.md#the-island) |
 | `tray` | on | Show the shield icon and its menu |
 | `confirm_dictation` | `submit` | Ask before [dictation](dictation.md) sends anything: `off`, `submit` or `all` |
