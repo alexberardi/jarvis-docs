@@ -85,7 +85,7 @@ Signing out removes the computer from your server. Anyone who talks to a signed-
 
     - **Computer control and macros** (Teach Jarvis): the **Computer control** switch in the shield icon's menu (off by default) and recording what you do so Jarvis can repeat it. Input Monitoring is for this.
     - **Store listings:** the Firefox add-on on addons.mozilla.org and the extension in the Chrome Web Store. Until they are public, the setup page's buttons open these docs, Firefox gets the add-on from the agent and Chrome-family browsers use **Load unpacked**.
-    - **Voice on Windows**, and reading the screen on Windows, GNOME, KDE and X11.
+    - Reading the screen on Windows, GNOME, KDE and X11.
 
 ## Remove it
 

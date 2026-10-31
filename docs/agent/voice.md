@@ -1,6 +1,6 @@
 # Voice and the island
 
-On Linux and macOS the agent listens for **"Hey Jarvis"**, records what you say next and plays Jarvis's answer, as a voice node does. Voice on Windows is [in progress](index.md#in-progress).
+On Linux, macOS and Windows the agent listens for **"Hey Jarvis"**, records what you say next and plays Jarvis's answer, as a voice node does. Windows needs `v0.1.0-rc18.11` or later, and **Settings > Privacy & security > Microphone > Let desktop apps access your microphone** turned on; with it off, the agent hears only silence.
 
 ## Listening
 
