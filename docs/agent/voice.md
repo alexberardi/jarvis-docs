@@ -10,6 +10,8 @@ After a reply, Jarvis listens for a few seconds for a follow-up without the wake
 
 The wake word's sensitivity, the follow-up window, the chimes and the microphone and speaker are [settings](updates-settings.md#settings) (`wake_threshold`, `follow_up`, `chimes`, `voice_input`, `voice_output`).
 
+When Jarvis misses a "Hey Jarvis", look at the admin's **Logs** page, filtered to the service `jarvis-agent` (from `v0.1.0-rc18.12`). Each wake the agent heard is there with its score, and with why it was ignored when it was: below the wake threshold, or held back for a short while after Jarvis decided something it heard wasn't meant for it (a video or a conversation in the room).
+
 ## The island
 
 The island is a small pill at the top centre of the screen (under the notch on a Mac). It drops in when the wake word is heard, shows sound bars that follow your voice and then Jarvis's, pulses while Jarvis thinks, and counts down the follow-up window with a ring. It never takes focus or clicks and has no Dock or taskbar entry.
