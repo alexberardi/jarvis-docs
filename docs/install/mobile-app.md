@@ -9,6 +9,14 @@ Jarvis Automation is a **pre-release** (release candidate rc18.14). Server build
 - iPhone and iPad: [Jarvis Automation on the App Store](https://apps.apple.com/app/id6760924901)
 - Android: [Jarvis Automation on Google Play](https://play.google.com/store/apps/details?id=com.jarvis.nodemobile)
 
+### Get the Android beta
+
+The Android app is in a closed beta on Google Play. Until you join it, the Google Play link above won't let you install the app.
+
+1. Join the [Jarvis Automation testing group](https://groups.google.com/g/jarvis-automation-testing) on Google Groups, with the Google account you use on your phone.
+2. Join the beta program, either on your phone through the [Google Play listing](https://play.google.com/store/apps/details?id=com.jarvis.nodemobile) or in a browser on the [testing page](https://play.google.com/apps/testing/com.jarvis.nodemobile).
+3. Install **Jarvis Automation** from Google Play. Updates arrive through Google Play like any other app.
+
 ## Connect the app to your server
 
 The app needs one address, your server's: `http://<server>:7700`, where `<server>` is the IP address or hostname of the machine running the server.
