@@ -4,6 +4,10 @@ Jarvis can phone a business for you: book a table, schedule a brake job, make a 
 
 This page takes you from nothing to a working first call, then explains every setting on the admin's **Phone** page.
 
+[![Video: Jarvis makes the call](../assets/images/videos/phone-calls.jpg){ loading=lazy }](https://youtu.be/TJBKbA7EdQo "Watch on YouTube")
+
+*[Watch the demo: Jarvis books a brake job and a doctor's appointment, start to finish](https://youtu.be/TJBKbA7EdQo) (YouTube)*
+
 !!! note "Before you start"
     - Calls are **off by default** and only a **superuser** can turn them on.
     - Jarvis dials numbers in the **US and Canada** only.
