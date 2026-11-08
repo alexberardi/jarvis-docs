@@ -118,6 +118,7 @@ nav:
   - Use:
     - use/index.md
     - Why Jarvis?: getting-started/why-jarvis.md
+    - Phone calls: use/phone-calls.md
     - Mobile App:
       - mobile/index.md
       - Home & Chat: mobile/home.md
