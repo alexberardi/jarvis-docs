@@ -2,6 +2,10 @@
 
 The Inbox shows notifications and results from background tasks. Access it by tapping the bell icon in the Home screen header.
 
+[![Video: notifications that do things](../assets/images/videos/notifications.jpg){ loading=lazy }](https://youtu.be/fQNX3BDpWL0 "Watch on YouTube")
+
+*[Watch the Inbox in action: notifications you can tap, edit, export and run](https://youtu.be/fQNX3BDpWL0) (YouTube)*
+
 ## Item Types
 
 Each item has a coloured category chip. Tapping an item opens the screen for its type.
