@@ -4,6 +4,10 @@ Jarvis Automation is a **pre-release** (release candidate rc18.16). Builds are o
 
 Jarvis Automation is one server (`jarvisd`) that runs on a Mac, a Windows PC or a Linux machine on your network, plus the clients you talk to Jarvis through.
 
+[![Video: install your own Jarvis](../assets/images/videos/install.jpg){ loading=lazy }](https://youtu.be/khcb8WvoTSU "Watch on YouTube")
+
+*[Watch the install walkthrough](https://youtu.be/khcb8WvoTSU) (YouTube)*
+
 1. Check the [requirements and choose a model](requirements.md).
 2. Install the server on [macOS](macos.md), [Windows](windows.md) or [Linux](linux.md), or with an [install script](one-liners.md). Or run it as a container on [Unraid](unraid.md) or in [Docker](docker.md).
 3. Finish in the [setup wizard](setup-wizard.md) at `http://<host>:7710/setup`.
