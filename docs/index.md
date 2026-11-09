@@ -4,6 +4,21 @@
 
 [:fontawesome-brands-discord: **Join the Discord**](https://discord.gg/9SuQFVexxJ){ .md-button } &nbsp; [:fontawesome-brands-github: GitHub](https://github.com/alexberardi/jarvis-server){ .md-button }
 
+## See Jarvis in action · 1:43 { #overview }
+
+Watch Jarvis work around your calendar, make a phone call, and turn one request into several errands.
+
+<div class="overview-player">
+  <a class="overview-poster" href="https://youtu.be/u4mtwoVLTjs">
+    <img src="assets/images/videos/overview.jpg" alt="Jarvis negotiating an appointment time on a test call" width="1920" height="1080" loading="lazy">
+    <span class="overview-play"><svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><path fill="currentColor" d="M8 5v14l11-7z"></path></svg>Watch overview</span>
+  </a>
+</div>
+
+[Watch on YouTube](https://youtu.be/u4mtwoVLTjs)
+
+<script src="assets/javascripts/overview-video.js" defer></script>
+
 !!! note "Pre-release"
     Jarvis Automation is a **pre-release** (release candidate rc18.17). Builds are on the [releases page](https://github.com/alexberardi/jarvis-server/releases).
 
