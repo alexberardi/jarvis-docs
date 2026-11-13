@@ -12,9 +12,18 @@ When a check fails, the result is not a free-form error message. Every blocking 
 
 The Forge builds a package from a description. Open [pantry.jarvisautomation.io/forge](https://pantry.jarvisautomation.io/forge), choose a model, paste your own API key for it, and describe the command, agent or device integration you want in plain words. Type `@` to point it at an existing package as a reference. The result is a complete package with a **share code**: enter the code in the mobile app to [test the package on one of your nodes](../mobile/pantry.md) before you publish it.
 
-[![Video: describe it, Jarvis builds it](../assets/images/videos/forge.jpg){ loading=lazy }](https://youtu.be/nt06V7AthYM "Watch on YouTube")
+Watch three packages built from one-line descriptions, ending with a Zigbee smart plug switching on a lamp (10 minutes).
 
-*[Watch the demo: three packages built from one-line descriptions, ending with a Zigbee smart plug switching on a lamp](https://youtu.be/nt06V7AthYM) (YouTube)*
+<div class="overview-player">
+  <a class="overview-poster" href="https://youtu.be/nt06V7AthYM" data-title="Forge demo" data-label="Watch the Forge demo on YouTube (10 minutes)">
+    <img src="../assets/images/videos/forge.jpg" alt="Describe it, Jarvis builds it: three phone screens showing a Zigbee smart plug found and switched on" width="1280" height="720" loading="lazy">
+    <span class="overview-play"><svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><path fill="currentColor" d="M8 5v14l11-7z"></path></svg>Watch the demo</span>
+  </a>
+</div>
+
+[Watch on YouTube](https://youtu.be/nt06V7AthYM)
+
+<script src="../assets/javascripts/overview-video.js" defer></script>
 
 ## Running Your Own Pantry
 
