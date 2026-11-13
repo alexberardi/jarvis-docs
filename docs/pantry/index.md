@@ -8,6 +8,14 @@ On a Jarvis Automation server the Pantry is **off by default** for every househo
 
 When a check fails, the result is not a free-form error message. Every blocking failure (and some non-blocking warnings) is reported as a structured finding carrying a stable reason code. Those codes, what they mean, why we flag them, and how to fix them are documented on the [Rejection codes](rejections.md) page. If your submission was rejected and you followed a link here, start with the [Rejection codes](rejections.md) reference to find the specific code attached to your finding.
 
+## The Forge
+
+The Forge builds a package from a description. Open [pantry.jarvisautomation.io/forge](https://pantry.jarvisautomation.io/forge), choose a model, paste your own API key for it, and describe the command, agent or device integration you want in plain words. Type `@` to point it at an existing package as a reference. The result is a complete package with a **share code**: enter the code in the mobile app to [test the package on one of your nodes](../mobile/pantry.md) before you publish it.
+
+[![Video: describe it, Jarvis builds it](../assets/images/videos/forge.jpg){ loading=lazy }](https://youtu.be/nt06V7AthYM "Watch on YouTube")
+
+*[Watch the demo: three packages built from one-line descriptions, ending with a Zigbee smart plug switching on a lamp](https://youtu.be/nt06V7AthYM) (YouTube)*
+
 ## Running Your Own Pantry
 
 A Pantry can also be self-hosted. A home or office deployment can use a model on its own hardware for the Forge, list the
