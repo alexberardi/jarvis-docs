@@ -9,7 +9,7 @@
 Watch Jarvis work around your calendar, make a phone call, and turn one request into several errands.
 
 <div class="overview-player">
-  <a class="overview-poster" href="https://youtu.be/u4mtwoVLTjs">
+  <a class="overview-poster" href="https://youtu.be/u4mtwoVLTjs" data-title="Jarvis overview" data-label="Watch overview on YouTube (1 minute 43 seconds)">
     <img src="assets/images/videos/overview.jpg" alt="Jarvis negotiating an appointment time on a test call" width="1920" height="1080" loading="lazy">
     <span class="overview-play"><svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><path fill="currentColor" d="M8 5v14l11-7z"></path></svg>Watch overview</span>
   </a>
