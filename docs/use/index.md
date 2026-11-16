@@ -8,6 +8,7 @@ Once the server is [installed](../install/index.md) and its [setup wizard](../in
 | **The mobile app** (iOS, Android) | Chat by text or voice, and manage nodes, devices, routines and Pantry packages. | [Mobile app](../install/mobile-app.md) |
 | **The web app**, in a browser | Open **Chat** at `http://<host>:7710/chat` and type. Any household member can sign in. | Nothing to install |
 | **The desktop agent** on your computer | Say "Hey Jarvis" on the computer, dictate, and let Jarvis open apps, links and browser tabs. | [Desktop agent](../agent/index.md) |
+| **A chat app** you already use (Discord, Slack) | Message your own bot from anywhere, with no VPN; it answers in the same app. | [Chat channels](channels/index.md) |
 
 `<host>` is the machine the server runs on, or `localhost` on that machine.
 
