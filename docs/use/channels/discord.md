@@ -80,17 +80,3 @@ Jarvis answers "Linked." Now send the bot a direct message, or write in the Jarv
 - **While Jarvis works** you see a reaction on your message and the typing indicator, then a check mark when the answer is in. Someone who isn't linked sees none of this.
 
 The commands are `/jarvis link`, `/jarvis new`, `/jarvis node`, `/jarvis notify` and `/jarvis status`. [Commands](index.md#commands) says what each does.
-
-## If something is wrong
-
-| What you see | What to do |
-|---|---|
-| "The application did not respond" | The bot isn't connected. Turn on **Message Content Intent** (step 2), check the token, and check the node is on. The bot retries by itself, waiting longer after each failure; give it a few minutes. |
-| The bot stays offline | The token is missing or wrong. **Reset Token** in the Developer Portal and enter the new one in the package's settings. |
-| No `/jarvis` commands appear | The bot was invited without the `applications.commands` scope. Repeat step 3. |
-| "I only work in direct messages and in the Jarvis channel." | You ran a command in another channel. Use a direct message, the Jarvis channel or one of its threads. |
-| No answer in the channel, but direct messages work | The **Jarvis channel ID** is empty or names another channel. |
-| Answers arrive in the channel itself, not a thread | The bot lacks **Create Public Threads** in that channel. |
-| A reminder never arrives | Discord blocks direct messages from the bot. In the server's privacy settings, allow direct messages from server members. |
-
-More causes that apply to every channel are in [Chat channels](index.md#if-something-is-wrong).

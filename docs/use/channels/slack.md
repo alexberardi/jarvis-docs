@@ -102,17 +102,3 @@ Jarvis answers "Linked." Now send the app a direct message, or write in the Jarv
 - **While Jarvis works** you see a reaction on your message, then a check mark when the answer is in. Someone who isn't linked sees none of this.
 
 The commands are `/jarvis link CODE`, `/jarvis new`, `/jarvis node NAME`, `/jarvis notify on`, `/jarvis notify off` and `/jarvis status`. [Commands](index.md#commands) says what each does.
-
-## If something is wrong
-
-| What you see | What to do |
-|---|---|
-| `/jarvis` answers "dispatch_failed", or nothing | The app isn't connected. Check both tokens, that **Socket Mode** is on, and that the node is on. |
-| The card says **Not running** | A token is missing or wrong. The package needs both. |
-| "Sending messages to this app has been turned off" | Turn the **Messages** tab on under **App Home**, then reload Slack. |
-| No answer in the channel, but direct messages work | Invite the app to the channel, check the **Jarvis channel ID**, and check the app has the history scope for that kind of channel (public or private). |
-| Photos or voice clips are ignored | The app lacks the `files:read` scope. Add it, then reinstall the app to the workspace. |
-| A change to scopes or events did nothing | Slack applies those only after **Reinstall to Workspace**. |
-| "I only work in direct messages and in the Jarvis channel." | You ran a command in another channel. |
-
-More causes that apply to every channel are in [Chat channels](index.md#if-something-is-wrong).
