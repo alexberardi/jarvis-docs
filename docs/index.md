@@ -20,7 +20,7 @@ Watch Jarvis work around your calendar, make a phone call, and turn one request 
 <script src="assets/javascripts/overview-video.js" defer></script>
 
 !!! note "Pre-release"
-    Jarvis Automation is a **pre-release** (release candidate rc18.19). Builds are on the [releases page](https://github.com/alexberardi/jarvis-server/releases).
+    Jarvis Automation is a **pre-release** (release candidate rc18.20). Builds are on the [releases page](https://github.com/alexberardi/jarvis-server/releases).
 
     The old Docker/microservice install is retired for new users: it no longer installs out of the box (MinIO is gone). Its pages are kept, frozen, under [Legacy](legacy/index.md).
 
