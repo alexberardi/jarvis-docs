@@ -12,7 +12,7 @@ Two channels exist today:
 Each one is a package from the [Pantry](../../mobile/pantry.md). You create your own bot in the chat service, install the package on one of your nodes, and give it the bot's token. The bot is yours alone: nobody else's Jarvis uses it, and your messages go between the chat service and your own node.
 
 !!! note "Before you start"
-    - Chat channels need server **v0.1.0-rc18.19** or later, with nodes and the mobile app updated to match.
+    - Chat channels need server **v0.1.0-rc18.20** or later, with nodes and the mobile app updated to match.
     - The household's Pantry must be on (it is **off by default**; see [Pantry](../../pantry/index.md)).
     - You need a node that stays on: a computer running the [desktop agent](../../agent/index.md), or a [Raspberry Pi node](../../agent/pi-node.md). The channel works only while that node is running.
     - Installing the package takes a household **admin** or **power user**. After that, every member links their own account.
